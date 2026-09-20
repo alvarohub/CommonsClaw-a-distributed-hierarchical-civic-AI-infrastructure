@@ -19,7 +19,10 @@ system with a local Ollama server and the `phi3.5:latest` model.
 
 ## Project structure
 
-- `main.py` - Starts the application and coordinates the main components.
+- `main.py` - Starts the application, coordinates the main components, and
+  falls back to console mode when no display is available.
+- `console.py` - Screenless terminal chat frontend (used over SSH or when
+  Tkinter/a display is missing); shares the status store with `control.py`.
 - `gui.py` - Implements the Tkinter conversation interface.
 - `llm_manager.py` - Checks Ollama availability and streams model responses.
 - `hardware_monitor.py` - Reads CPU, RAM, and temperature data.
@@ -35,7 +38,7 @@ The current implementation requires:
 
 - Linux.
 - Python 3.
-- Tkinter.
+- Tkinter (optional — without it, `main.py` runs in console mode).
 - The Python packages `requests` and `psutil`.
 - Ollama running locally at `http://127.0.0.1:11434`.
 - The model `phi3.5:latest` installed in Ollama.
@@ -58,14 +61,30 @@ method.
 
 ## Running
 
-Start the main graphical application:
+Start the main application:
 
 ```bash
 python3 main.py
 ```
 
-The application checks Ollama, opens the Tkinter interface, and periodically
-writes hardware and model status to `/tmp/ssai_status.json`.
+If a display is available it opens the fullscreen Tkinter interface; if not
+(headless Pi, SSH session), it automatically starts a console chat instead.
+You can also force the console frontend directly with `python3 console.py`.
+The application checks Ollama, and periodically writes hardware and model
+status to `/tmp/ssai_status.json` in both modes.
+
+### Web interface (Phase 2A)
+
+A phone/browser chat is served by:
+
+```bash
+python3 web_server.py
+```
+
+Then open `http://<pi-host-or-ip>:8080` on a phone or laptop. The page has a
+🎤 button (Web Speech API — the browser transcribes, text is sent to the Pi)
+and a 🔊 toggle (speaks answers). Requires the Python package `flask`
+(`pip install flask` in a venv, or `sudo apt install python3-flask`).
 
 In a separate terminal, start the control view:
 
@@ -98,7 +117,8 @@ The default technician exit shortcut in the graphical interface is
 - The project is currently a prototype focused on the Raspberry Pi/Linux
   environment.
 - Ollama must be available locally before model responses can be generated.
-- The GUI is configured for fullscreen operation by default.
+- The GUI is configured for fullscreen operation by default; on a headless
+  system the console frontend is used instead.
 - Hardware temperature monitoring uses the Linux path configured in
   `config.py`.
 - The repository does not currently include automated tests or a CI workflow.

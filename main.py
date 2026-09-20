@@ -2,15 +2,23 @@ from __future__ import annotations
 
 import signal
 import threading
-import tkinter as tk
+
+try:
+    import tkinter as tk
+except ImportError:
+    tk = None  # python3-tk not installed; console mode only.
 
 import requests
 
 import config
-from gui import ConversationGUI
 from hardware_monitor import HardwareMonitor
 from llm_manager import LLMManager, ModelMetrics
 from status_store import StatusStore
+
+if tk is not None:
+    from gui import ConversationGUI
+else:
+    ConversationGUI = None
 
 
 class SSAIApplication:
@@ -36,7 +44,21 @@ class SSAIApplication:
         self._update_model_status(self.llm_manager.metrics)
         self._start_background_thread()
 
-        self.root = tk.Tk()
+        if tk is None:
+            print("Tkinter is not installed; starting console mode.")
+            self._run_console_fallback()
+            return
+
+        try:
+            self.root = tk.Tk()
+        except tk.TclError as exc:
+            # No display available (SSH/headless boot): fall back to console
+            # mode instead of crashing. The LLM and monitoring services are
+            # shared, so behaviour is identical apart from the frontend.
+            print(f"No display available ({exc}); starting console mode.")
+            self._run_console_fallback()
+            return
+
         self.gui = ConversationGUI(
             root=self.root,
             on_submit=self._handle_prompt,
@@ -48,6 +70,25 @@ class SSAIApplication:
             self.root.mainloop()
         finally:
             self._shutdown()
+
+    def _run_console_fallback(self) -> None:
+        # Import lazily so the GUI path never pays for it, and hand over the
+        # already-initialised shared services.
+        from console import ConsoleApplication
+
+        # Restore the default Ctrl+C behaviour (KeyboardInterrupt) so the
+        # console input loop can be interrupted; the GUI handler above expects
+        # a Tk root that does not exist on this path.
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
+        console_app = ConsoleApplication()
+        console_app.llm_manager = self.llm_manager
+        console_app.status_store = self.status_store
+        console_app.hardware_monitor = self.hardware_monitor
+        console_app.stop_event = self.stop_event
+        console_app.background_thread = self.background_thread
+        self.background_thread = None  # ownership moves to the console app
+        console_app.run()
 
     def _handle_prompt(self, prompt: str) -> bool:
         if self.stop_event.is_set() or self.gui is None:
