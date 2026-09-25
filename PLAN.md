@@ -36,17 +36,17 @@ GUI still works unchanged when a monitor is attached.
 
 **Baseline measurements (2026-09-25, emotionpi):**
 
-| Metric                     | Value           |
-| -------------------------- | --------------- |
-| Pi RAM (4/8/16 GB)         | 16 GB           |
-| Model                      | llama3.2:1b     |
-| TTFT (warm)                | ~0.8 s          |
-| TTFT (cold, model load)    | ~8.5 s          |
+| Metric                     | Value              |
+| -------------------------- | ------------------ |
+| Pi RAM (4/8/16 GB)         | 16 GB              |
+| Model                      | llama3.2:1b        |
+| TTFT (warm)                | ~0.8 s             |
+| TTFT (cold, model load)    | ~8.5 s             |
 | Tokens/s (raw Ollama)      | ~8.4 (phi3.5: 5.2) |
-| Time for a ~50-word answer | ~15–30 s        |
-| RAM used with model loaded | ~4.1 GB         |
-| CPU temp after 5 turns     | ~54 °C          |
-| Boot-to-ready time         |                 |
+| Time for a ~50-word answer | ~15–30 s           |
+| RAM used with model loaded | ~4.1 GB            |
+| CPU temp after 5 turns     | ~54 °C             |
+| Boot-to-ready time         |                    |
 
 Note: 5.2 tok/s confirmed as the hardware ceiling (memory bandwidth), not a
 code/config issue — `OLLAMA_NUM_THREAD=4` unchanged. Smaller model or
@@ -145,8 +145,10 @@ pull` before AP-up (or over eth0 sharing).
 
 - [x] Phone joins `SSAI` network, opens the page, full Q→A round trip with
       streaming (verified 2026-09-25 evening, country `HK`).
-- [ ] Keyboard dictation works as STT; TTS toggle speaks answers.
+- [ ] Keyboard dictation works as STT; TTS toggle speaks answers. (Buttons
+      built; needs an on-phone test of 🎤/🔊 — mic may need HTTPS.)
 - [ ] Works after an unattended reboot (AP + web server autostart).
+      (`install_autostart.sh` ready; needs a reboot test.)
 
 ---
 
@@ -214,6 +216,9 @@ decided with Phase 1 numbers:
 6. Phase 3 audio hardware: USB speakerphone vs ReSpeaker HAT.
 7. Phase 3 model: stay on phi3.5 vs smaller/faster model for voice.
 8. Languages: English only, or multilingual STT/TTS/models?
+9. Two-tier on-node model: tiny always-on (gemma3:270m/qwen2.5:0.5b) +
+   deeper tier (llama3.2:1b) with a router — see
+   [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md).
 
 ## Change log
 

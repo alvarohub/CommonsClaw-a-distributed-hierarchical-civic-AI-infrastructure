@@ -23,6 +23,12 @@ system with a local Ollama server and the `phi3.5:latest` model.
   falls back to console mode when no display is available.
 - `console.py` - Screenless terminal chat frontend (used over SSH or when
   Tkinter/a display is missing); shares the status store with `control.py`.
+- `web_server.py` - Serves the phone/browser chat (waitress + SSE).
+- `benchmark.py` - Benchmarks Ollama models (tok/s, TTFT) and appends rows
+  to `BENCHMARKS.md`.
+- `ap_up.sh` / `ap_down.sh` - Bring the Wi-Fi access point up/down.
+- `install_autostart.sh` - Installs systemd autostart (web server at boot,
+  boot-to-console, AP autoconnect).
 - `gui.py` - Implements the Tkinter conversation interface.
 - `llm_manager.py` - Checks Ollama availability and streams model responses.
 - `hardware_monitor.py` - Reads CPU, RAM, and temperature data.
@@ -116,6 +122,26 @@ In a separate terminal, start the control view:
 ```bash
 python3 control.py
 ```
+
+### Benchmarking models
+
+```bash
+python3 benchmark.py --all        # every installed model
+python3 benchmark.py gemma2:2b    # a specific model
+```
+
+Results are appended to [BENCHMARKS.md](BENCHMARKS.md) (shareable table).
+
+### Unattended operation
+
+```bash
+sudo bash install_autostart.sh
+```
+
+Installs a systemd service that starts the web server at boot (after Ollama),
+sets boot-to-console, and makes the AP autoconnect. After a reboot the chat
+is live at `http://10.42.0.1:8080` with no login needed. Undo with
+`sudo bash install_autostart.sh --uninstall`.
 
 The control view reads the shared status file and refreshes every 0.5 seconds.
 Hardware samples are collected by the main application every 15 seconds, so

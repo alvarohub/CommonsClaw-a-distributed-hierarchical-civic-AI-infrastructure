@@ -2,6 +2,22 @@
 
 This document records the main work completed on SSAI, organized by date.
 
+## 2026-09-25 (night 2)
+
+- **Full model ladder benchmarked** (benchmark.py, rigorous 100-token runs):
+  gemma3:270m = 35.7 tok/s (TTFT 0.05s), qwen2.5:0.5b = 26.0 (0.04s),
+  llama3.2:1b = 8.1 (0.13s), phi3.5 = 5.0 (0.20s). Sub-1B models are ~7x
+  faster than phi3.5 and feel instant — confirms the internet claim.
+- **Vision recorded.** Alvaro articulated the project goal: the node is a
+  "kami" (spirit of a place) — solar-powered, sensor-laden, embedded in a
+  public park in Japan, part of a "hierarchical civic AI datacenter"
+  architecture (local tiny model → city → nation → world, energy proportional
+  to the question, privacy firewalls between tiers). Verbatim statement +
+  technical commentary in TOWARDS_HIERARCHICAL_CIVIC_AI.md.
+- **Two-tier model idea** (fits the vision): gemma3:270m/qwen2.5:0.5b =
+  always-on voice (chit-chat, sensors), llama3.2:1b = deep tier, keyword/
+  complexity router between them. To be prototyped.
+
 ## 2026-09-25 (night)
 
 - **Performance baseline established.** phi3.5 on this Pi 5 (16 GB) =
@@ -27,6 +43,15 @@ This document records the main work completed on SSAI, organized by date.
   vs phi3.5's 5.2 tok/s = 62% faster (smaller models gain less than parameter
   ratio suggests — memory bandwidth binds them less efficiently). Both models
   remain installed on the Pi for A/B testing.
+
+- **Added benchmark tooling + autostart.** `benchmark.py` (warm-up + 3 timed
+  runs of a fixed prompt per model; records avg/best tok/s, warm TTFT, wall,
+  temp; appends rows to `BENCHMARKS.md` — shareable table for collaborators,
+  incl. future Hailo AI HAT+ rows). `install_autostart.sh` + `ssai-web.service`:
+  web server starts at boot (after Ollama health check), boot-to-console
+  (frees ~250 MB), AP profile autoconnects. Undo with `--uninstall`.
+  On config format: keeping `config.py` (imported everywhere, supports
+  comments; YAML would add a dependency for no functional gain).
 
 ## 2026-09-25 (evening)
 
