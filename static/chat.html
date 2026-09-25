@@ -171,7 +171,9 @@
         border-radius: 6px;
         padding: 3px 8px;
       }
-      #memtoggles { margin-left: auto; }
+      #memtoggles {
+        margin-left: auto;
+      }
       .memt {
         background: #111;
         border: 1px solid #333;
@@ -181,7 +183,10 @@
         cursor: pointer;
         opacity: 0.35;
       }
-      .memt.on { opacity: 1; border-color: var(--accent); }
+      .memt.on {
+        opacity: 1;
+        border-color: var(--accent);
+      }
       #title {
         font-size: 12px;
         letter-spacing: 2px;
@@ -530,9 +535,7 @@
       function activeMemoryCategories() {
         return [...document.querySelectorAll('.memt.on')].map((b) => b.dataset.cat);
       }
-      document.querySelectorAll('.memt').forEach((b) =>
-        b.addEventListener('click', () => b.classList.toggle('on')),
-      );
+      document.querySelectorAll('.memt').forEach((b) => b.addEventListener('click', () => b.classList.toggle('on')));
 
       // Speaker default-on: reflect it in the button state.
       ttsBtn.classList.add('on');

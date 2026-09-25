@@ -1,4 +1,5 @@
 # CommonsClaw: A Hierarchical, Geographically Distributed Mixture of Experts for Civic AI
+
 # _Stay Local, Escalate When Necessary_
 
 [July 2026, A. Cassinelli & C. Harada]
@@ -129,3 +130,32 @@ model for unknown senders, plugin patterns) and what CommonsClaw must invent tha
 they do not have (communal memory with plural authorship, the level
 negotiation protocol, machintropological analyst agents) — lives in
 [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md).
+
+## Open questions (2026-09-25)
+
+Raised as the node started to look like "an agent with skills and memory":
+
+1. **Agents all the way down?** If the node is an agent, and the Level-0
+   loggers become agents, and the city tier is an agent — what is the
+   _minimal_ shared protocol that lets them negotiate without a central
+   orchestrator? (Related: agent-to-agent protocols like A2A/MCP — do they
+   assume trust models incompatible with community boundaries?)
+2. **The node's self-knowledge as governance data.** The identity file should
+   record the node's own metabolism — energy consumed, traffic handled,
+   request typology — so that caching, tunneling to a more specialized node,
+   or waking a bigger datacenter become _measured_ decisions, not vibes.
+   (Scaffolded as Phase 4 in PLAN.md.)
+3. **Whose voice dominates a commons?** Many authors write into one memory;
+   the kami synthesizes. How do we keep a confident visitor (or a spammer,
+   or the node itself) from drowning the quieter ones?
+4. **Alignment without servility.** We reject the darwinian
+   assistant-selection loop (kill on user dissatisfaction). What replaces it
+   as the feedback signal? Community review of the journal? Sensor-grounded
+   "the place is doing well" metrics? This is arguably _the_ research
+   question of machintropology applied here.
+5. **The commons as infrastructure, not app.** Can a node be adopted,
+   forked, and maintained by a neighborhood the way a community garden is —
+   and what does "maintained by people sharing compute and energy" mean
+   concretely (spare Pi in someone's kitchen as the backup node?).
+
+Further reading and related work: [REFERENCES.md](REFERENCES.md).

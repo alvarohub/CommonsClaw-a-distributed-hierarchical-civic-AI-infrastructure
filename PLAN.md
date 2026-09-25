@@ -248,6 +248,44 @@ decided with Phase 1 numbers:
 
 ---
 
+## Phase 4 — The node as an agent (design sketch, 2026-09-25)
+
+The system is converging on "an agent with skills and memory" — deliberately
+**pro-social / pro-environmental / pro-community**: it serves no individual
+and not even "all humans" — it represents _the community and the ecosystem_,
+and talks to other agents with other knowledge in other places.
+
+### 4.1 Self-observation (the node knows its own metabolism)
+
+The node's identity (`memory/identity.md`) should carry _measured_ facts
+about itself, updated by loggers:
+
+- Energy: solar input, battery, consumption, duty cycle (dark hours policy).
+- Traffic: requests/day, category mix, peak hours (from the status store).
+- Request typology: what people actually ask (recurring topics → cache
+  candidates or fine-tuning data).
+- Uptime / health / thermal history.
+
+### 4.2 Adaptive behavior from self-observation
+
+- **Caching**: frequent question types get cached/canned answers (huge
+  energy saving; measured first via 4.1).
+- **Tunnels to other nodes**: when a request type exceeds local competence,
+  a link to a more specialized node or a bigger datacenter is established
+  — negotiated, logged, revocable. This is the level-2+ interface.
+- **Power-aware degradation**: low battery → switch to the tiny model,
+  shorter answers, sleep between interactions.
+
+### 4.3 What this changes in the architecture
+
+- The status store becomes a first-class _self-report_ (not just a debug
+  dashboard feed): a logger writes it into `sensors/node_metabolism.md`.
+- Request logging gains a category field (we already have categories from
+  the memory routing — reuse them for traffic statistics).
+- `identity.md` gains a "metabolism" section written by loggers, not by hand.
+
+---
+
 ## Open decisions (numbered for easy reference in discussion)
 
 1. Phase 2 web framework: Flask (default) vs FastAPI.
@@ -263,9 +301,22 @@ decided with Phase 1 numbers:
 9. Two-tier on-node model: tiny always-on (gemma3:270m/qwen2.5:0.5b) +
    deeper tier (llama3.2:1b) with a router — see
    [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md).
+10. Agent-framework question: are we reinventing OpenClaw et al.? (Answered
+    for now in [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md) —
+    mechanics overlap, politics/topology opposite. Revisit when we need
+    channels, sandboxing, or a plugin ecosystem.)
+11. Node-to-node protocol: what crosses a boundary (context? summary?
+    embeddings?), who consents, what is logged, is there retribution.
+12. Community analytics (machintropology): which agent reads the communal
+    memory to surface the community's recurring needs — and where does it
+    run (too heavy for the Pi; a Level-2 role?).
 
 ## Change log
 
+- **2026-09-25** — Phase 2A+2B complete on emotionpi (AP, phone chat, portal,
+  autostart, benchmarks, memory categories with toggles + keyword routing).
+  Project renamed CommonsClaw; vision + OpenClaw comparison + references
+  documented. Phase 4 (agent self-observation, caching, node links) sketched.
 - **2026-09-17** — Plan created alongside [SETUP_RPI5.md](SETUP_RPI5.md).
   Baseline fork established at `alvarohub/rpi5-local-llm-node-with-wifi-api`.
 - **2026-09-17 (2)** — No LCD available. Phase 1 redefined as screenless:

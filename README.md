@@ -17,7 +17,7 @@ and topology are opposite. Full comparison:
 [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md).
 
 
-This **decentralized, hierarchical agentic infrastructure** was inspired by the [Floating Solar Hydrogen Data Centers](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center) vision of sustainable, scaled-down sovereign datacenters spearheaded by **Cesar Harada** as well as previous works by **Alvaro Cassinelli and Daniel Saakes** on decentralized [Spatial Physical Computing smart sensor-actuator networks](https://alvarocassinelli.com/gluons/) supporting local governance and community making with the support of Project Ceibal in Uruguay in 2015. 
+This **decentralized, hierarchical agentic infrastructure** was inspired by the [Floating Solar Hydrogen Data Centers](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center) vision of sustainable, scaled-down sovereign datacenters spearheaded by **Cesar Harada** as well as previous works by **Alvaro Cassinelli and Daniel Saakes** on decentralized [Spatial Physical Computing smart sensor-actuator networks](https://alvarocassinelli.com/gluons/) supporting local governance and community making (with the support of Project Ceibal in Uruguay in 2015), and a series of experiments initiated by Alvaro Cassinelli on [Spatialized Social Networks](https://alvarocassinelli.com/memory-blocks-knowledge-voxels/) exploring "the use of technologies that augment sociability using localization as a central reference point".
 
 
 ## Hierarchical Civic AI: Public Spaces (Level 1)
@@ -122,8 +122,10 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - **Planned:** communication with _other nodes_ — peers at the same level
   (neighboring parks, nearby greenhouses) and higher levels (city-scale
   models) — with negotiated transactions when queries cross community
-  boundaries. The defining open problem of HCA; see
-  [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md) § what HCA must invent.
+  boundaries. The defining open problem; see
+  [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md) § what CommonsClaw
+  must invent, and [REFERENCES.md](REFERENCES.md) for the research landscape
+  (cascaded inference, edge LLMs, agent protocols, more-than-human design).
 
 ## Project structure
 
@@ -168,7 +170,8 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 
 **Docs:** `PLAN.md` (roadmap), `SETUP_RPI5.md`, `ENVIRONMENT_LOG.md`,
 `TOWARDS_HIERARCHICAL_CIVIC_AI.md` (vision), `COMMONSCLAW_VS_OPENCLAW.md`,
-`BENCHMARKS.md`, `CREDITS.md`, `DEVELOPMENT_LOG.md`.
+`REFERENCES.md` (research landscape), `BENCHMARKS.md`, `CREDITS.md`,
+`DEVELOPMENT_LOG.md`.
 
 ## Requirements
 
@@ -310,8 +313,7 @@ The default technician exit shortcut in the graphical interface is
 
 ## Credits
 
-Solar floating datacenters concept: **Cesar Harada**. Concept and lead development of CommonsClaw : **Alvaro Cassinelli and Cesar Harada**. Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
-University of Tokyo. Full history and credits: [CREDITS.md](CREDITS.md).
+Solar floating datacenters concept: **Cesar Harada**. Concept and lead development of CommonsClaw : **Alvaro Cassinelli and Cesar Harada**. Seed code ("SSAI") absorved in this project: **Ido Hoffmann** et al., DLX, University of Tokyo. Full history and credits: [CREDITS.md](CREDITS.md).
 
 ## License
 
