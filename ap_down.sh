@@ -8,9 +8,9 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-if nmcli -t -f NAME con show | grep -qx "ssai-ap"; then
-  nmcli con down ssai-ap || true
-  echo "AP 'ssai-ap' brought down (profile kept; bring back with ap_up.sh)."
+if nmcli -t -f NAME con show | grep -qx "commonsclaw-ap"; then
+  nmcli con down commonsclaw-ap || true
+  echo "AP 'commonsclaw-ap' brought down (profile kept; bring back with ap_up.sh)."
 else
-  echo "No ssai-ap profile; nothing to do."
+  echo "No commonsclaw-ap profile; nothing to do."
 fi

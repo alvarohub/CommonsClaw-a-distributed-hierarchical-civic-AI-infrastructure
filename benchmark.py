@@ -93,7 +93,7 @@ def append_row(row: str) -> None:
         text = BENCH_FILE.read_text()
     else:
         text = (
-            "# SSAI — Model Benchmarks\n\n"
+            "# CommonsClaw — Model Benchmarks\n\n"
             f"Machine: emotionpi (Raspberry Pi 5, 16 GB, active fan, CPU-only).\n"
             f'Prompt: "{PROMPT}" — num_predict={NUM_PREDICT}, {RUNS} timed runs '
             "after 1 warm-up.\n\n"

@@ -81,7 +81,7 @@ class WebApplication:
     def _start_background_thread(self) -> None:
         self.background_thread = threading.Thread(
             target=self._background_loop,
-            name="ssai-monitor-loop",
+            name="commonsclaw-monitor-loop",
             daemon=True,
         )
         self.background_thread.start()

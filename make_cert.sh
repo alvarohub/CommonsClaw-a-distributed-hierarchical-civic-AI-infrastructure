@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate a self-signed TLS cert for the SSAI web chat so the in-page
+# Generate a self-signed TLS cert for the CommonsClaw web chat so the in-page
 # microphone (Web Speech API) works — browsers require a secure context.
 # Run ON THE PI:   bash make_cert.sh
 # Then start the server with:  python3 web_server.py --https
@@ -15,8 +15,8 @@ mkdir -p "$DIR/certs"
 # match the cert to both. CN is just informational.
 openssl req -x509 -newkey rsa:2048 -nodes \
   -keyout "$KEY" -out "$CERT" -days 825 \
-  -subj "/CN=ssai.local" \
-  -addext "subjectAltName=IP:10.42.0.1,IP:192.168.2.13,DNS:ssai.local,DNS:emotionpi.local"
+  -subj "/CN=commonsclaw.local" \
+  -addext "subjectAltName=IP:10.42.0.1,IP:192.168.2.13,DNS:commonsclaw.local,DNS:emotionpi.local"
 
 echo "Wrote:"
 echo "  $CERT"

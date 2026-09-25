@@ -1,4 +1,4 @@
-# SSAI — Environment Log
+# CommonsClaw — Environment Log
 
 Reference facts about the hardware, network and access for this project.
 Update as things change; this is the single place to look up "how do I
@@ -71,7 +71,7 @@ cd ~/Documents/DEV_HARDWARE/RaspberryPi5_STT/ssai && ./push_to_pi.sh
 ssh admin@192.168.2.13 'curl -s http://127.0.0.1:11434/api/tags'
 
 # live status file written by the app
-ssh admin@192.168.2.13 'cat /tmp/ssai_status.json'
+ssh admin@192.168.2.13 'cat /tmp/commonsclaw_status.json'
 ```
 
 ## Working config (confirmed 2026-09-25)
@@ -80,7 +80,7 @@ ssh admin@192.168.2.13 'cat /tmp/ssai_status.json'
   Sharing). Mac bridge `bridge100` = `192.168.2.1`; Pi eth0 DHCP = `192.168.2.13`.
 - Pi reaches the internet through the Mac's Wi-Fi (used for ollama install + pull).
 - `ssh admin@emotionpi.local` (mDNS) works intermittently — prefer `192.168.2.13`.
-- Pi: Ollama `phi3.5:latest` installed, service `active`; `~/ssai` holds the code;
+- Pi: Ollama `phi3.5:latest` installed, service `active`; `~/commonsclaw` holds the code;
   `flask` installed (via `sudo apt install python3-flask`); `console.py` verified
   working headless.
 - **Measured ceiling: phi3.5 = ~5.2 tok/s, llama3.2:1b = ~8.4 tok/s on this
@@ -93,13 +93,13 @@ ssh admin@192.168.2.13 'cat /tmp/ssai_status.json'
 Two scripts in the repo, run **on the Pi** (push first with `./push_to_pi.sh`):
 
 ```bash
-cd ~/ssai
-sudo bash ap_up.sh            # default ssid SSAI, password emotionpi
+cd ~/commonsclaw
+sudo bash ap_up.sh            # default ssid CommonsClaw, password emotionpi
 sudo bash ap_up.sh MyNet mysecret   # custom ssid/password
 sudo bash ap_down.sh          # tear the AP down (profile kept)
 ```
 
-- Creates NetworkManager profile `ssai-ap` on `wlan0`, `ipv4.method shared`
+- Creates NetworkManager profile `commonsclaw-ap` on `wlan0`, `ipv4.method shared`
   → Pi is `10.42.0.1` and hands out DHCP to clients. eth0 (Mac dev link) is
   untouched and keeps working in parallel.
 - Web chat from a phone on the AP: `http://10.42.0.1:8080`

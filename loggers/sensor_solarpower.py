@@ -6,7 +6,7 @@ tested before the real hardware (INA219 on I2C, or similar) is wired up.
 Replace the _read() function with actual hardware reads later.
 
 Usage:  python3 loggers/sensor_solarpower.py          (append one reading)
-Cron:   */5 * * * * /usr/bin/python3 /home/admin/ssai/loggers/sensor_solarpower.py
+Cron:   */5 * * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/sensor_solarpower.py
 """
 
 from __future__ import annotations

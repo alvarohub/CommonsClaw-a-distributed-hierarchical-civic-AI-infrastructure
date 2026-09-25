@@ -1,4 +1,4 @@
-# SSAI — Plan of Record
+# CommonsClaw — Plan of Record
 
 Living document. Decisions are recorded here (not in chat). Update the dated
 log at the bottom as phases progress; tweak phases freely as we learn.
@@ -65,7 +65,7 @@ is testable on its own:
 The Pi serves the chat page over the existing home network — no access
 point yet. Testable immediately with the temporarily attached
 monitor + keyboard (Pi's own browser at `http://localhost:8080`) and from
-the laptop (`http://ssai.local:8080`). Functionally this **is** the whole
+the laptop (`http://commonsclaw.local:8080`). Functionally this **is** the whole
 interaction upgrade; 2B is "just" the networking around it.
 
 ### 2A.1 Web server on the Pi — BUILT (`web_server.py`)
@@ -111,8 +111,8 @@ capabilities, so this phase needs no new Pi hardware.
 #### 2B.1 Access point mode — scripts ready (Option A)
 
 - Implemented as `ap_up.sh` / `ap_down.sh` (nmcli `shared`-mode AP on `wlan0`,
-  profile `ssai-ap`). Run on the Pi: `sudo bash ap_up.sh [SSID] [PASSWORD]`
-  (defaults `SSAI` / `emotionpi`). Pi serves DHCP and is reachable at
+  profile ). Run on the Pi: `sudo bash ap_up.sh [SSID] [PASSWORD]`
+  (defaults `CommonsClaw` / `emotionpi`). Pi serves DHCP and is reachable at
   `10.42.0.1`; chat at `http://10.42.0.1:8080`.
 - **eth0 (Mac dev link) is untouched** → SSH/rsync keep working while the AP
   runs. This is why the Ethernet setup was worth it.
@@ -138,9 +138,9 @@ pull` before AP-up (or over eth0 sharing).
 #### 2B.3 Optional extras — BUILT (2026-09-25)
 
 - **Captive portal**: `portal_up.sh` / `portal_down.sh` — dnsmasq wildcard
-  DNS via `/etc/NetworkManager/dnsmasq-shared.d/ssai-portal.conf` +
+  DNS via `/etc/NetworkManager/dnsmasq-shared.d/commonsclaw-portal.conf` +
   probe-answer routes in `web_server.py` (`/generate_204`,
-  `/hotspot-detect.html`, `/ncsi.txt`, ...). Joining `SSAI` should pop the
+  `/hotspot-detect.html`, `/ncsi.txt`, ...). Joining `CommonsClaw` should pop the
   chat open automatically. Needs an on-phone test.
 - **HTTPS (for the in-page 🎤 mic)**: `make_cert.sh` generates a self-signed
   cert; `python3 web_server.py --https` serves on 8443. (Note: HTTPS uses the
@@ -149,7 +149,7 @@ pull` before AP-up (or over eth0 sharing).
 
 **Acceptance criteria (2B):**
 
-- [x] Phone joins `SSAI` network, opens the page, full Q→A round trip with
+- [x] Phone joins `CommonsClaw` network, opens the page, full Q→A round trip with
       streaming (verified 2026-09-25 evening, country `HK`).
 - [x] Keyboard dictation works as STT (verified). TTS default-on toggle built.
       In-page 🎤 needs HTTPS (`make_cert.sh` + `--https`) — optional.
@@ -184,7 +184,7 @@ plain-text "reports" both machines and people can write.
 
 ### Still to do in 2C
 
-- [ ] Cron entry: `* * * * * /usr/bin/python3 /home/admin/ssai/loggers/pi_vitals.py`
+- [ ] Cron entry: `* * * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/sensor_pivitals.py`
 - [ ] First real sensor logger (e.g. BME280 on I2C, or meshtastic ingest)
       following the same report format.
 - [ ] Let the LLM _suggest_ logger-config tweaks (it can already read the

@@ -1,7 +1,7 @@
-# SSAI configuration
+# CommonsClaw node configuration
 # Keep prototype parameters here so the main program logic stays simple.
 
-PROGRAM_NAME = "SSAI"
+PROGRAM_NAME = "CommonsClaw"
 PROGRAM_VERSION = "V4"
 SYSTEM_PROMPT = """Answer the user's question directly with the shortest response that provides a complete and correct answer.
 
@@ -30,7 +30,7 @@ GENERATION_SHUTDOWN_TIMEOUT = 1.0
 # Hardware monitoring / SSH control interface
 # The main process samples hardware every 15 seconds.
 HARDWARE_SAMPLE_INTERVAL = 15.0
-STATUS_FILE = "/tmp/ssai_status.json"
+STATUS_FILE = "/tmp/commonsclaw_status.json"
 # The Dashboard polls status more often than hardware is sampled so questions
 # and generation changes appear promptly without triggering extra samples.
 CONTROL_REFRESH_INTERVAL = 0.5

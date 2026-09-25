@@ -1,15 +1,15 @@
 [Unit]
-Description=SSAI web chat server
+Description=CommonsClaw web chat server
 After=ollama.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=admin
-WorkingDirectory=/home/admin/ssai
+WorkingDirectory=/home/admin/commonsclaw
 # Wait until Ollama answers before starting the web server.
 ExecStartPre=/bin/sh -c 'until curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; do sleep 1; done'
-ExecStart=/usr/bin/python3 /home/admin/ssai/web_server.py
+ExecStart=/usr/bin/python3 /home/admin/commonsclaw/web_server.py
 Restart=on-failure
 RestartSec=3
 

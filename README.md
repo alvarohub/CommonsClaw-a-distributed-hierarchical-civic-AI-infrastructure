@@ -14,9 +14,7 @@ commons.
 
 First steps toward the **Floating Solar Hydrogen Data Centers** vision
 spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
-extended into the **Hierarchical Civic AI** concept by **Alvaro Cassinelli**,
-in a recent collaboration with DLX, University of Tokyo. Part of the tech
-development is happening in a sister repository at DLX (Ido Hoffmann et al.).
+comlemented by a **Hierarchical Civic AI** infrastructure (aka CommonsClaw) by **Alvaro Cassinelli**, in a recent collaboration with DLX, University of Tokyo. Part of the tech development (including a hardware prototype of a floating solar node) is documented in a sister repository at DLX (by Ido Hoffmann, Federico Trucchia and Yuri Klebanov).
 See [Credits](#credits) at the end.
 
 **Not a personal assistant.** Rather than a local-AI assistant such as OpenClaw
@@ -34,7 +32,7 @@ and topology are opposite. Full comparison:
 sensor-laden Raspberry Pi 5 that gives a voice to a public place. Visitors
 chat with the spirit of the park itself over the node's own Wi-Fi access
 point — no internet needed. The node converses, remembers the community's
-topics, and knows its local telemetry.
+topics, and knows (and can discusse) its local telemetry.
 
 | Level | What it is                                                                                                                                                                                                               | Example                         |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
@@ -56,7 +54,7 @@ for the full vision.
  │                                                                            │
  │   PEOPLE side                        MEMORY (plain-text files)             │
  │                                                                            │
- │   phone ──Wi-Fi AP "SSAI"──► web chat ──► llm_manager ──► Ollama (LLM)     │
+ │   phone ──Wi-Fi AP "CommonsClaw"──► web chat ──► llm_manager ──► Ollama (LLM)     │
  │  (browser: typing, 🎤 STT,      (no        ▲   │                           │
  │   🔊 TTS — the Pi needs      internet)     │   │ reads on every question   │
  │   no internet at all)                      │   ▼                           │
@@ -146,7 +144,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - `reports_reader.py` — compiles `memory/` + `sensors/` + `reports/` into the
   prompt digest.
 - `config.py` — application, model, GUI, and hardware settings.
-- `status_store.py` — live status JSON (`/tmp/ssai_status.json`, ephemeral).
+- `status_store.py` — live status JSON (`/tmp/commonsclaw_status.json`, ephemeral).
 - `hardware_monitor.py` — CPU/RAM/temp reader (in-memory; _not_ a logger).
 - `control.py` — terminal dashboard reading the status store.
 
@@ -173,7 +171,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 
 - `ap_up.sh` / `ap_down.sh` — Wi-Fi access point on/off.
 - `portal_up.sh` / `portal_down.sh` — captive portal on/off.
-- `install_autostart.sh` + `ssai-web.service` — systemd boot autostart.
+- `install_autostart.sh` + `commonsclaw-web.service` — systemd boot autostart.
 - `make_cert.sh` — self-signed HTTPS cert (enables the in-page mic).
 - `push_to_pi.sh` — rsync dev workflow (Mac → Pi).
 - `benchmark.py` — model benchmarks → `BENCHMARKS.md`.
@@ -222,7 +220,7 @@ If a display is available it opens the fullscreen Tkinter interface; if not
 (headless Pi, SSH session), it automatically starts a console chat instead.
 You can also force the console frontend directly with `python3 console.py`.
 The application checks Ollama, and periodically writes hardware and model
-status to `/tmp/ssai_status.json` in both modes.
+status to `/tmp/commonsclaw_status.json` in both modes.
 
 ### Web interface (Phase 2A/2B)
 
@@ -233,7 +231,7 @@ python3 web_server.py
 ```
 
 Then open `http://<pi-host-or-ip>:8080` on a phone or laptop. With the Wi-Fi
-access point up (Phase 2B, `sudo bash ap_up.sh`), a phone joins the `SSAI`
+access point up (Phase 2B, `sudo bash ap_up.sh`), a phone joins the `CommonsClaw`
 network and opens `http://10.42.0.1:8080`. Requires `flask` and, for
 stability, `waitress` (`sudo apt install python3-flask python3-waitress`).
 
@@ -243,7 +241,7 @@ stability, `waitress` (`sudo apt install python3-flask python3-waitress`).
   browser does the speech-to-text (Chrome/Android uses Google's servers) and
   sends plain _text_ to the Pi. **The Pi needs no internet connection** — this
   is the whole point of the design.
-- **Phone internet while on the AP:** the `SSAI` network has no internet, but
+- **Phone internet while on the AP:** the `CommonsClaw` network has no internet, but
   a phone stays online over its **cellular (LTE) SIM** at the same time —
   both Android and iOS do this automatically ("smart network switch" /
   "Wi-Fi Assist"). So STT audio goes out over LTE while the page talks to the

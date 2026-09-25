@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Captive portal for the SSAI access point (Phase 2B.3, Option B).
-# Makes a phone that joins the SSAI Wi-Fi pop the chat page open
+# Captive portal for the CommonsClaw access point (Phase 2B.3, Option B).
+# Makes a phone that joins the CommonsClaw Wi-Fi pop the chat page open
 # automatically (like hotel Wi-Fi), instead of typing an URL.
 #
 # How: nmcli's "shared" mode already runs dnsmasq for DHCP/DNS. We drop a
@@ -14,7 +14,7 @@ set -euo pipefail
 
 PI_AP_IP="10.42.0.1"
 SNIPPET_DIR="/etc/NetworkManager/dnsmasq-shared.d"
-SNIPPET="$SNIPPET_DIR/ssai-portal.conf"
+SNIPPET="$SNIPPET_DIR/commonsclaw-portal.conf"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Run with sudo:  sudo bash portal_up.sh" >&2
@@ -23,7 +23,7 @@ fi
 
 mkdir -p "$SNIPPET_DIR"
 cat > "$SNIPPET" <<EOF
-# SSAI captive portal: resolve everything to the Pi so OS captive-portal
+# CommonsClaw captive portal: resolve everything to the Pi so OS captive-portal
 # detection fires and any typed URL lands on the chat.
 address=/#/$PI_AP_IP
 EOF
@@ -31,14 +31,14 @@ EOF
 echo "Wrote $SNIPPET"
 
 # Restart the AP connection so dnsmasq reloads with the snippet.
-if nmcli -t -f NAME con show | grep -qx "ssai-ap"; then
-  nmcli con down ssai-ap 2>/dev/null || true
-  nmcli con up ssai-ap
+if nmcli -t -f NAME con show | grep -qx "commonsclaw-ap"; then
+  nmcli con down commonsclaw-ap 2>/dev/null || true
+  nmcli con up commonsclaw-ap
   echo "AP restarted with portal DNS."
 else
-  echo "NOTE: no ssai-ap profile yet — run 'sudo bash ap_up.sh' first."
+  echo "NOTE: no commonsclaw-ap profile yet — run 'sudo bash ap_up.sh' first."
 fi
 
 echo
-echo "Portal ON. Phones joining SSAI should now pop the chat page open."
+echo "Portal ON. Phones joining CommonsClaw should now pop the chat page open."
 echo "If a phone does not pop, open any http:// site (e.g. http://neverssl.com)."

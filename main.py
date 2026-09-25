@@ -16,12 +16,12 @@ from llm_manager import LLMManager, ModelMetrics
 from status_store import StatusStore
 
 if tk is not None:
-    from gui import ConversationGUI
+    from lcd_gui import ConversationGUI
 else:
     ConversationGUI = None
 
 
-class SSAIApplication:
+class CommonsClawApplication:
     """Coordinates the GUI, local LLM, hardware monitor and SSH status data."""
 
     def __init__(self):
@@ -121,7 +121,7 @@ class SSAIApplication:
         self.generation_thread = threading.Thread(
             target=self._generation_loop,
             args=(prompt,),
-            name="ssai-generation-loop",
+            name="commonsclaw-generation-loop",
             daemon=True,
         )
         self.generation_thread.start()
@@ -179,7 +179,7 @@ class SSAIApplication:
     def _start_background_thread(self) -> None:
         self.background_thread = threading.Thread(
             target=self._background_loop,
-            name="ssai-monitor-loop",
+            name="commonsclaw-monitor-loop",
             daemon=True,
         )
         self.background_thread.start()
@@ -230,7 +230,7 @@ class SSAIApplication:
 
 
 def main() -> None:
-    SSAIApplication().run()
+    CommonsClawApplication().run()
 
 
 if __name__ == "__main__":

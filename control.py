@@ -47,7 +47,7 @@ def render(status: dict | None) -> None:
     print("=" * 42)
 
     if status is None:
-        print("Status: waiting for main SSAI process...")
+        print("Status: waiting for main CommonsClaw process...")
         return
 
     hardware = status.get("hardware", {})
@@ -102,7 +102,7 @@ class Dashboard:
 
     def update(self, status: dict | None) -> None:
         if status is None:
-            self._replace_live(["Status: waiting for main SSAI process..."])
+            self._replace_live(["Status: waiting for main CommonsClaw process..."])
             return
 
         completed_turn = status.get("completed_turn")
@@ -191,7 +191,7 @@ def main() -> None:
             time.sleep(config.CONTROL_REFRESH_INTERVAL)
     except KeyboardInterrupt:
         print()
-        print("SSAI control closed.")
+        print("CommonsClaw control closed.")
 
 
 if __name__ == "__main__":
