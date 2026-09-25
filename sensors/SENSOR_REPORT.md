@@ -1,9 +1,13 @@
 # SENSOR REPORT — the place reads itself
 
 # description: Cross-sensor dashboard — trends, anomalies, and observations.
-#   Written periodically by a script (today) or by the kami / a Level-1
-#   analyst agent (later). This is what the node *notices* about itself.
+
+# Written periodically by a script (today) or by the kami / a Level-1
+
+# analyst agent (later). This is what the node _notices_ about itself.
+
 # updated: never (no data yet)
+
 # writer: loggers/summarize_sensors.py (script), later: analyst agents
 
 ## Current state

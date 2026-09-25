@@ -98,3 +98,34 @@ The vision maps unusually well onto concrete engineering decisions:
 4. What does the kami _refuse_ to answer locally vs route upward?
 5. The persona's relationship to truth: it speaks _for_ the place — what
    happens when visitors ask it things the place cannot know?
+
+## Relation to OpenClaw ("CivicClaw vs OpenClaw")
+
+*Added 2026-09-25, after reviewing the OpenClaw project.*
+
+[OpenClaw](https://github.com/openclaw/openclaw) is the strongest existing
+example of the *good* individualistic pattern: a personal AI assistant
+gateway that runs on your own hardware, keeps your memory local, and refuses
+the cloud-butler model. The mechanics genuinely overlap with this project —
+local models, file-based persistent memory, tool/skill extensibility. But the
+politics and topology are opposite:
+
+- **OpenClaw's memory belongs to one person; ours belongs to a place and its
+  community.** Everyone who talks to the kami shares one accumulating
+  identity — a *commons*, not a personal diary.
+- **OpenClaw is flat** (one agent + plugins); HCA is a **hierarchy of levels**
+  that negotiate transactions (permission, possibly retribution) when a query
+  crosses a community boundary.
+- **OpenClaw meets you in your chat channels; the kami is embodiment-first**
+  — it *is* the place, its sensors are its body, its personality grows from
+  the place's history, and it is accountable to a community rather than to a
+  customer.
+
+That the primitives are converging across the field is a good sign: it means
+the civic layer is the timely, differentiating contribution. The full
+comparison — including what we might deliberately borrow (their trust/pairing
+model for unknown senders, plugin patterns) and what HCA must invent that
+they do not have (communal memory with plural authorship, the level
+negotiation protocol, machintropological analyst agents) — lives in
+[CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md).
+

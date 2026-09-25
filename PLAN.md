@@ -187,7 +187,7 @@ plain-text "reports" both machines and people can write.
 - [ ] Cron entry: `* * * * * /usr/bin/python3 /home/admin/ssai/loggers/pi_vitals.py`
 - [ ] First real sensor logger (e.g. BME280 on I2C, or meshtastic ingest)
       following the same report format.
-- [ ] Let the LLM *suggest* logger-config tweaks (it can already read the
+- [ ] Let the LLM _suggest_ logger-config tweaks (it can already read the
       `logger_config` header; applying them stays human-gated).
 - [ ] Polls/decisions: a note type the kami tallies when asked.
 

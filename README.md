@@ -13,6 +13,14 @@ in a recent collaboration with DLX, University of Tokyo. Part of the tech
 development is happening in a sister repository at DLX (Ido Hoffmann et al.).
 See [Credits](#credits) at the end.
 
+**Not a personal assistant.** Unlike local-AI assistants such as OpenClaw
+(one person, one butler, your chat channels), this node's memory belongs to a
+**place and its community** — everyone who talks to it shares one
+accumulating identity — and it is **embodiment-first**: the node *is* the
+place, its sensors are its body. The mechanics overlap (local model,
+file-based memory, tool use); the politics and topology are opposite. Full
+comparison: [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md).
+
 ## Hierarchical Civic AI: Public Spaces (Level 1)
 
 **This repo is Level 1 of the hierarchy — the "kami" node:** a solar-powered,
@@ -21,11 +29,11 @@ chat with the spirit of the park itself over the node's own Wi-Fi access
 point — no internet needed. The node converses, remembers the community's
 topics, and knows its local telemetry.
 
-| Level | What it is                                                                                                                | Example                         |
-| ----- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Level | What it is                                                                                                                                                                                                               | Example                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent and data collection — elemental conversation or no direct conversation at all with humans, but feeds the level 2 | greenhouse control, gemma3:270m |
-| **1** | **Local conversational LLM (this node)** — the kami's voice. A bridge between humans and the environment, a member of the neighborhood, a repository of local, communal knowledge (see below).                            | **llama3.2:1b on a Pi 5**       |
-| 2+    | City / nation / world-scale models, queried only when needed                                                              | routed upward                   |
+| **1** | **Local conversational LLM (this node)** — the kami's voice. A bridge between humans and the environment, a member of the neighborhood, a repository of local, communal knowledge (see below).                           | **llama3.2:1b on a Pi 5**       |
+| 2+    | City / nation / world-scale models, queried only when needed                                                                                                                                                             | routed upward                   |
 
 See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
@@ -95,14 +103,32 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 ## Features
 
 - Local conversation with a language model (Ollama, fully offline). Default
-  `llama3.2:1b`; switch in `config.py:MODEL_NAME`.
-- Wi-Fi access point + phone web chat (streaming answers).
-- Phone-side STT (Web Speech API) and TTS (speechSynthesis) — the Pi needs
-  no internet.
+  `llama3.2:1b`; switchable per-question in the web UI or in
+  `config.py:MODEL_NAME`.
+- Wi-Fi access point + phone web chat (streaming answers), with captive
+  portal (page pops open on join) and optional HTTPS for in-page mic.
+- Phone-side STT (Web Speech API) and TTS (speechSynthesis, on by default) —
+  the Pi needs no internet.
+- **Sensor subprocesses:** independent logger processes (cron/daemon) collect
+  telemetry into plain-text files — one self-describing file per sensor in
+  `sensors/`, plus a `SENSOR_REPORT.md` dashboard for trends and anomalies.
+  Loggers can be queried directly (`--once`) and will later be Level-0 agents
+  that can describe their own data in words.
+- **Community notes:** visitors leave suggestions, poll answers and comments
+  via the 📝 button; the kami reads them when answering and can tally or
+  summarize them on request.
+- **Persistent memory:** `memory/identity.md` (personality, learned facts,
+  skills) + `memory/journal.md` (day-to-day continuity) — the node's soul
+  persists across reboots.
 - Screenless console mode (auto-fallback when no display).
 - CPU, RAM, and temperature monitoring + terminal control view.
 - Model benchmark harness with shareable results table.
 - Unattended autostart (systemd + AP + boot-to-console).
+- **Planned:** communication with *other nodes* — peers at the same level
+  (neighboring parks, nearby greenhouses) and higher levels (city-scale
+  models) — with negotiated transactions when queries cross community
+  boundaries. The defining open problem of HCA; see
+  [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md) § what HCA must invent.
 
 ## Project structure
 

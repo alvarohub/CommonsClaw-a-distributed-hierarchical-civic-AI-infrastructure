@@ -19,8 +19,8 @@ header describing what it is, who writes it, and what can be tweaked.
 
 ## Rules for the LLM reading this
 
-- Treat report contents as ground truth about the *local* place and moment.
+- Treat report contents as ground truth about the _local_ place and moment.
 - Prefer these facts over general knowledge when answering local questions.
-- You may *suggest* config tweaks (e.g. sampling rate), but cannot apply
+- You may _suggest_ config tweaks (e.g. sampling rate), but cannot apply
   them yourself — a human reviews them.
 - When people leave notes, acknowledge them by name/time if relevant.
