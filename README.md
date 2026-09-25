@@ -13,8 +13,8 @@ in a recent collaboration with DLX, University of Tokyo. Part of the tech
 development is happening in a sister repository at DLX (Ido Hoffmann et al.).
 See [Credits](#credits) at the end.
 
-**Not a personal assistant.** Unlike local-AI assistants such as OpenClaw
-(one person, one butler, your chat channels), this node's memory belongs to a
+**Not a personal assistant.** Rather than a local-AI assistant such as OpenClaw
+(one person, one butler, your chat channels), this is a _**Community Claw**_: the node's memory belongs to a
 **place and its community** — everyone who talks to it shares one
 accumulating identity — and it is **embodiment-first**: the node _is_ the
 place, its sensors are its body. The mechanics overlap (local model,
@@ -315,10 +315,8 @@ The default technician exit shortcut in the graphical interface is
 
 ## Credits
 
-Concept and lead development: **Alvaro Cassinelli** — with **GitHub Copilot**
-(AI pair-programmer). Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
-University of Tokyo. Solar floating datacenter concept: **Cesar Harada**.
-Full history and credits: [CREDITS.md](CREDITS.md).
+Solar floating datacenters concept: **Cesar Harada**. Concept and lead development of : **Alvaro Cassinelli and Cesar Harada**. Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
+University of Tokyo. Full history and credits: [CREDITS.md](CREDITS.md).
 
 ## License
 
@@ -326,7 +324,4 @@ Full history and credits: [CREDITS.md](CREDITS.md).
 - **Accompanying software** (firmware, dashboards, data pipelines): see `CONTRIBUTING.md` for the compatible permissive licence (typically a copyleft-compatible OSI licence such as GPLv3) chosen per sub-directory.
 - **Documentation, diagrams, and text in this README:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), unless otherwise marked.
 
-Note: the seed code this repo was forked from (dlx-designlab/ssai) is MIT
-licensed; surviving upstream files retain that license and attribution. The
-project's own licensing (above) applies to new work. See [LICENSE](LICENSE)
-and [CREDITS.md](CREDITS.md).
+
