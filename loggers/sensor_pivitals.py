@@ -2,19 +2,18 @@
 """Example Level-0 sensor logger for the kami node.
 
 Runs from cron (e.g. every minute) and writes a short, human-readable
-"report" into reports/. Each report file has a metadata header that the LLM
-reads — including logger config it may suggest tweaking (which sensors, what
-rate, location metadata).
+"report" into reports/ and sensors/. Each file has a metadata header that
+the LLM reads — including logger config it may suggest tweaking (which
+sensors, what rate, location metadata).
 
 This one logs the Pi's own vitals (CPU/RAM/temp) as a stand-in for real
 sensors. Real loggers (BME280 on I2C, LoRa/meshtastic weather stations, ...)
 follow the same format: header + recent observations.
 
-Reports dir layout:
-    reports/
-      _INDEX.md            <- what exists + how to read it (for the LLM)
-      pi_vitals.md         <- this logger's report
-      community_notes.md   <- notes left by people via the chat page
+Layout it writes to:
+    reports/sensor_pivitals_log.md   <- running log (this logger)
+    sensors/sensor_pivitals.md       <- per-sensor file (same readings)
+    reports/community_notes.md       <- notes left by people via the chat page
 """
 
 from __future__ import annotations
@@ -28,11 +27,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))  # for config, hardware_mo
 import config
 from hardware_monitor import HardwareMonitor
 
-REPORTS_DIR = Path(__file__).parent.parent / "reports"
-REPORT = REPORTS_DIR / "pi_vitals.md"
-MAX_LINES = 60  # keep the report short — the LLM reads it whole
+BASE = Path(__file__).parent.parent
+REPORTS_DIR = BASE / "reports"
+SENSORS_DIR = BASE / "sensors"
+REPORT = REPORTS_DIR / "sensor_pivitals_log.md"
+SENSOR_FILE = SENSORS_DIR / "sensor_pivitals.md"
+MAX_LINES = 60  # keep the files short — the LLM reads them whole
 
-HEADER = """# Report: pi_vitals
+HEADER = """# Report: sensor_pivitals
 # description: The node's own health — CPU load, memory, chip temperature.
 #   Stand-in for real environmental sensors until they are wired up.
 # logger_config: interval=60s (cron), retains last ~60 samples
@@ -45,7 +47,7 @@ HEADER = """# Report: pi_vitals
 
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
-    (Path(__file__).parent.parent / "sensors").mkdir(exist_ok=True)
+    SENSORS_DIR.mkdir(exist_ok=True)
     snap = HardwareMonitor().read_snapshot()
     line = (
         f"{time.strftime('%Y-%m-%d %H:%M')}  "
@@ -71,13 +73,12 @@ def main() -> None:
     )
 
     # Mirror the reading into the per-sensor file (sensors/ layout).
-    sensor_file = Path(__file__).parent.parent / "sensors" / "pi_core_temp.md"
-    if sensor_file.exists():
-        slines = sensor_file.read_text().splitlines()
+    if SENSOR_FILE.exists():
+        slines = SENSOR_FILE.read_text().splitlines()
         sbody = [l for l in slines if l and not l.startswith("#")]
         shead = [l for l in slines if l.startswith("#")]
         sbody = (sbody + [line])[-MAX_LINES:]
-        sensor_file.write_text("\n".join(shead) + "\n" + "\n".join(sbody) + "\n")
+        SENSOR_FILE.write_text("\n".join(shead) + "\n" + "\n".join(sbody) + "\n")
 
     print(f"wrote {REPORT}")
 

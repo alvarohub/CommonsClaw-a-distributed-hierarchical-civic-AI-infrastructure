@@ -54,8 +54,8 @@ for the full vision.
  │   🔊 TTS — the Pi needs      internet)     │   │ reads on every question   │
  │   no internet at all)                      │   ▼                           │
  │   📝 Note button ─────────────────────►  reports/community_notes.md        │
- │                                            reports/pi_vitals.md            │
- │   SENSORS side                             sensors/<one file per sensor>   │
+ │                                            reports/sensor_*_log.md         │
+ │   SENSORS side                             sensors/sensor_*.md (per-sensor)│
  │                                            sensors/SENSOR_REPORT.md        │
  │   sensors ──► logger processes ──────────► memory/identity.md (who it is)  │
  │  (I2C, GPIO,    (cron/daemons,            memory/journal.md (its days)     │
@@ -132,25 +132,48 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 
 ## Project structure
 
-- `main.py` - Starts the application, coordinates the main components, and
-  falls back to console mode when no display is available.
-- `console.py` - Screenless terminal chat frontend (used over SSH or when
-  Tkinter/a display is missing); shares the status store with `control.py`.
-- `web_server.py` - Serves the phone/browser chat (waitress + SSE).
-- `benchmark.py` - Benchmarks Ollama models (tok/s, TTFT) and appends rows
-  to `BENCHMARKS.md`.
-- `ap_up.sh` / `ap_down.sh` - Bring the Wi-Fi access point up/down.
-- `install_autostart.sh` - Installs systemd autostart (web server at boot,
-  boot-to-console, AP autoconnect).
-- `gui.py` - Implements the Tkinter conversation interface.
-- `llm_manager.py` - Checks Ollama availability and streams model responses.
-- `hardware_monitor.py` - Reads CPU, RAM, and temperature data.
-- `status_store.py` - Writes shared status data to a JSON file.
-- `control.py` - Displays shared status in a terminal view.
-- `config.py` - Contains application, model, GUI, and hardware settings.
-- `DEVELOPMENT_LOG.md` - Daily development log describing completed work.
-- `LICENSE` - License texts (see the License section below).
-- `CREDITS.md` - Project history and credits.
+**LLM core** (shared by every frontend):
+
+- `llm_manager.py` — Ollama availability, streaming responses, per-request
+  model override; injects the memory digest into the system prompt.
+- `reports_reader.py` — compiles `memory/` + `sensors/` + `reports/` into the
+  prompt digest.
+- `config.py` — application, model, GUI, and hardware settings.
+- `status_store.py` — live status JSON (`/tmp/ssai_status.json`, ephemeral).
+- `hardware_monitor.py` — CPU/RAM/temp reader (in-memory; *not* a logger).
+- `control.py` — terminal dashboard reading the status store.
+
+**Interfaces:**
+
+- `main.py` — Tkinter fullscreen GUI; falls back to console mode headless.
+- `console.py` — screenless terminal chat frontend.
+- `web_server.py` — phone/browser chat (waitress + SSE), `/api/note`,
+  captive-portal probe answers, optional `--https`.
+- `static/chat.html` — the chat page (streaming, model selector, 🎤/🔊/📝).
+- `gui.py` — Tkinter conversation interface (used by `main.py`).
+
+**Sensors & loggers** (separate processes; write plain-text files):
+
+- `loggers/sensor_pivitals.py` — node health (CPU/RAM/temp) via cron.
+- `loggers/sensor_solarpower.py` — solar panel + battery (DUMMY data until
+  the INA219 is wired).
+- `sensors/` — one self-describing file per sensor + `SENSOR_REPORT.md`
+  dashboard.
+- `reports/` — community notes + running sensor logs.
+- `memory/` — `identity.md` (who the kami is) + `journal.md` (continuity).
+
+**Operations:**
+
+- `ap_up.sh` / `ap_down.sh` — Wi-Fi access point on/off.
+- `portal_up.sh` / `portal_down.sh` — captive portal on/off.
+- `install_autostart.sh` + `ssai-web.service` — systemd boot autostart.
+- `make_cert.sh` — self-signed HTTPS cert (enables the in-page mic).
+- `push_to_pi.sh` — rsync dev workflow (Mac → Pi).
+- `benchmark.py` — model benchmarks → `BENCHMARKS.md`.
+
+**Docs:** `PLAN.md` (roadmap), `SETUP_RPI5.md`, `ENVIRONMENT_LOG.md`,
+`TOWARDS_HIERARCHICAL_CIVIC_AI.md` (vision), `CIVICCLAW_VS_OPENCLAW.md`,
+`BENCHMARKS.md`, `CREDITS.md`, `DEVELOPMENT_LOG.md`.
 
 ## Requirements
 

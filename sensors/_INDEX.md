@@ -6,10 +6,10 @@ by cron jobs, the LLM, and humans alike.
 
 ## Layout
 
-- `<sensor_name>.md` — one file per sensor: metadata header + appended
+- `sensor_<name>.md` — one file per sensor: metadata header + appended
   timestamped readings.
 - `SENSOR_REPORT.md` — the **dashboard**: trends, anomalies, and notes,
-  refreshed periodically (by a script today; by Level-1 agents or the kami
+  refreshed periodically (by a script today; by Level-0 agents or the kami
   itself later).
 
 ## Sensor file format

@@ -2,6 +2,20 @@
 
 This document records the main work completed on SSAI, organized by date.
 
+## 2026-09-25 (afternoon 4)
+
+- **Naming coherence + project-structure cleanup.** Renamed the example
+  logger family to the `sensor_*` convention: `loggers/sensor_pivitals.py`
+  (was pi_vitals.py), `reports/sensor_pivitals_log.md`,
+  `sensors/sensor_pivitals.md` (git mv, history preserved). Added the dummy
+  `loggers/sensor_solarpower.py` (simulated panel/battery day-night curve —
+  placeholder until the INA219 is wired) writing `sensors/sensor_solarpower.md`.
+  README project structure reorganized by function (LLM core / interfaces /
+  sensors & loggers / operations / docs), with a note that
+  `hardware_monitor.py` is an in-memory reader for the live status store
+  while loggers are the persistent writers. Digest verified: identity,
+  SENSOR_REPORT, both sensor files, community notes, sensor log all in prompt.
+
 ## 2026-09-25 (afternoon 3)
 
 - **Sensors folder + dashboard + persistent memory.** `sensors/` holds one
