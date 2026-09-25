@@ -20,6 +20,12 @@ I am interested in building really from the bottom up. The conversational llama3
 
 ## Summary
 
+> **Editor's note on numbering (2026-09-25):** the level numbering was
+> simplified after this statement was recorded — **Level 0** = engineered
+> AIoT *including* tiny "trigger" models; **Level 1** = the conversational
+> public-space node (this repo); **Level 2+** = city/nation/world scale. The
+> verbatim text above keeps the original wording (old level 2 = new level 1).
+
 - **The kami node**: a solar-powered Pi in a public space (a stone turtle in
   a Japanese park), hosting a small local LLM with sensors. People chat with
   the _place itself_ — its spirit ("kami") — not with a generic assistant.

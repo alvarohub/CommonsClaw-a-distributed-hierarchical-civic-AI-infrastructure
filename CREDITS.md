@@ -43,7 +43,8 @@
    with GitHub Copilot: in about a week the prototype gains headless console
    mode, a Wi-Fi access point with a phone web chat (streaming, phone-side
    STT/TTS), model benchmarking, and unattended autostart — and the project
-   is renamed **HCA_PublicPlace**, Level 2 of the HCA hierarchy.
+   is renamed and becomes the **Public Spaces** node, Level 1 of the HCA
+   hierarchy.
 5. Planned: the code moves into an `HCA_PublicPlace/` subfolder of the larger
    HCA repository (not yet public).
 

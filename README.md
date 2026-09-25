@@ -1,32 +1,33 @@
-# HCA_PublicPlace
+# Hierarchical Civic AI: the people's AI network
 
-**A "kami" node: a solar-powered, sensor-laden Raspberry Pi 5 that gives a
-voice to a public place** — visitors chat with the spirit of the park itself
-over a Wi-Fi access point, no internet needed.
+A sustainable, distributed civic AI infrastructure: many small, local,
+solar-powered nodes that give places a voice — answering at the *smallest
+sufficient scale*, keeping local knowledge local, and reaching upward to
+larger models only when a question truly needs it. Energy proportional to the
+question; privacy firewalls between tiers.
 
 First steps toward the **Floating Solar Hydrogen Data Centers** vision
 spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
-and a sustainable, distributed **Hierarchical Civic AI: the people's AI
-network** infrastructure by **Alvaro Cassinelli**, in a recent collaboration
-with DLX, University of Tokyo. Part of the tech development is happening in a
-sister repository at DLX, University of Tokyo (Ido Hoffmann et al.).
+extended into the **Hierarchical Civic AI** concept by **Alvaro Cassinelli**,
+in a recent collaboration with DLX, University of Tokyo. Part of the tech
+development is happening in a sister repository at DLX (Ido Hoffmann et al.).
 See [Credits](#credits) at the end.
 
-## The hierarchy
+## Hierarchical Civic AI: Public Spaces (Level 1)
 
-This repo is **Level 2** of the hierarchy — a small local LLM (Ollama) that
-converses, remembers the community's topics, and knows its local telemetry:
+**This repo is Level 1 of the hierarchy — the "kami" node:** a solar-powered,
+sensor-laden Raspberry Pi 5 that gives a voice to a public place. Visitors
+chat with the spirit of the park itself over the node's own Wi-Fi access
+point — no internet needed. The node converses, remembers the community's
+topics, and knows its local telemetry.
 
-| Level | What it is                                                        | Example                               |
-| ----- | ----------------------------------------------------------------- | ------------------------------------- |
-| 0     | Engineered AIoT: pattern recognition, ML without language         | greenhouse control, anomaly detection |
-| 1     | "Basic trigger" sub-1B models: formatting, classification, intent | gemma3:270m, qwen2.5:0.5b             |
-| **2** | **Local conversational LLM (this node)** — the kami's voice       | **llama3.2:1b on a Pi 5**             |
-| 3+    | City / nation / world-scale models, queried only when needed      | routed upward                         |
+| Level | What it is                                                            | Example                           |
+| ----- | --------------------------------------------------------------------- | --------------------------------- |
+| 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent — no conversation | greenhouse control, gemma3:270m   |
+| **1** | **Local conversational LLM (this node)** — the kami's voice           | **llama3.2:1b on a Pi 5**         |
+| 2+    | City / nation / world-scale models, queried only when needed          | routed upward                     |
 
-Design principle: use the _smallest sufficient scale_ — energy proportional
-to the question, privacy firewalls between tiers, local knowledge stays
-local. See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
+See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
 
 ## Status
@@ -47,7 +48,7 @@ opens a chat page → talks to a local model. The default model is
 | phi3.5 (3.8B)             | 5.0     | 0.20 s    | ~20 s            |
 
 Sub-1B models are ~7x faster but too shallow for real conversation — they
-are Level-1 candidates (triggers/formatting). Full runs + future Hailo
+are Level-0 candidates (triggers/formatting). Full runs + future Hailo
 AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 `python3 benchmark.py --all`.
 
