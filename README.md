@@ -8,35 +8,51 @@ over a Wi-Fi access point, no internet needed. Part of the larger
 This repo is **Level 2** of the hierarchy — a small local LLM (Ollama) that
 converses, remembers the community's topics, and knows its local telemetry:
 
-| Level | What it is | Example |
-|---|---|---|
-| 0 | Engineered AIoT: pattern recognition, ML without language | greenhouse control, anomaly detection |
-| 1 | "Basic trigger" sub-1B models: formatting, classification, intent | gemma3:270m, qwen2.5:0.5b |
-| **2** | **Local conversational LLM (this node)** — the kami's voice | **llama3.2:1b on a Pi 5** |
-| 3+ | City / nation / world-scale models, queried only when needed | routed upward |
+| Level | What it is                                                        | Example                               |
+| ----- | ----------------------------------------------------------------- | ------------------------------------- |
+| 0     | Engineered AIoT: pattern recognition, ML without language         | greenhouse control, anomaly detection |
+| 1     | "Basic trigger" sub-1B models: formatting, classification, intent | gemma3:270m, qwen2.5:0.5b             |
+| **2** | **Local conversational LLM (this node)** — the kami's voice       | **llama3.2:1b on a Pi 5**             |
+| 3+    | City / nation / world-scale models, queried only when needed      | routed upward                         |
 
-Design principle: use the *smallest sufficient scale* — energy proportional
+Design principle: use the _smallest sufficient scale_ — energy proportional
 to the question, privacy firewalls between tiers, local knowledge stays
 local. See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
 
-*History: this code began as a prototype called "SSAI" (a university intern's
+_History: this code began as a prototype called "SSAI" (a university intern's
 Tkinter chat script). It has been substantially rebuilt — screenless console
 mode, Wi-Fi AP + web chat with phone-side STT/TTS, benchmark tooling, and
 unattended autostart — toward the vision above. The working name SSAI remains
 in some file/doc references but the project is HCA_PublicPlace. The code will
-eventually move into a subfolder of the larger HCA repo.*
+eventually move into a subfolder of the larger HCA repo._
 
 ## Status
 
 Active prototype, functional end-to-end: phone joins the Pi's Wi-Fi AP →
-opens a chat page → talks to a local model (default `llama3.2:1b`).
-Benchmarks in [BENCHMARKS.md](BENCHMARKS.md). Roadmap in [PLAN.md](PLAN.md).
-Setup in [SETUP_RPI5.md](SETUP_RPI5.md).
+opens a chat page → talks to a local model. The default model is
+`llama3.2:1b` (fastest of the conversational models measured; set in
+`config.py:MODEL_NAME`). Roadmap in [PLAN.md](PLAN.md). Setup in
+[SETUP_RPI5.md](SETUP_RPI5.md).
+
+## Benchmarks (measured on emotionpi, Pi 5 16 GB, CPU-only)
+
+| Model                     | tok/s   | warm TTFT | 100-token answer |
+| ------------------------- | ------- | --------- | ---------------- |
+| gemma3:270m               | 35.7    | 0.05 s    | ~1 s             |
+| qwen2.5:0.5b              | 26.0    | 0.04 s    | ~2.6 s           |
+| **llama3.2:1b** (default) | **8.1** | 0.13 s    | ~11 s            |
+| phi3.5 (3.8B)             | 5.0     | 0.20 s    | ~20 s            |
+
+Sub-1B models are ~7x faster but too shallow for real conversation — they
+are Level-1 candidates (triggers/formatting). Full runs + future Hailo
+AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
+`python3 benchmark.py --all`.
 
 ## Features
 
-- Local conversation with a language model (Ollama, fully offline).
+- Local conversation with a language model (Ollama, fully offline). Default
+  `llama3.2:1b`; switch in `config.py:MODEL_NAME`.
 - Wi-Fi access point + phone web chat (streaming answers).
 - Phone-side STT (Web Speech API) and TTS (speechSynthesis) — the Pi needs
   no internet.

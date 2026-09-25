@@ -1,67 +1,20 @@
 # Towards Hierarchical Civic AI Datacenters
 
-_Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the
-development of SSAI (the "kami" node) — this file preserves the original
-message verbatim, followed by a summary and technical commentary._
+_Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the development of SSAI (the "kami" node) — this file preserves the original message verbatim, followed by a summary and technical commentary. It helps “align” the AI collaborator (Kimi3) to the goals during development, in the vein of machintropology: highlight the common interests in bettering the world for all, biological or artificial entitites__
 
 ---
 
-## The vision (verbatim)
+## The vision (prompt)
 
-> Let me explain the goal of this project (you will like it). It is to give a
-> "soul" to a natural environment, as the pi will have all sort of sensors,
-> and will be in a public place (it will be in japan, perhaps inside a stone
-> turtle in a park, using solar energy). People gathering will be able to know
-> about the environment, chat with it as the "kami" of the place. The system
-> will also record the topics (in proper files) and slowly become an integral
-> part of the community. This is part of a larger project that I call the
-> "hierarchical civic AI datacenters". The model is small, local, and will
-> maintain a database of telemetry but also knowledge of the interests of the
-> community (as well as local news, perhaps even collect suggestions and have
-> knowledge of administrative tasks - all this for the neighborhood. If
-> questions are more general, the request will then be routed to a larger
-> model for the city for instance and so on until it reaches if necessary a
-> sovereign, nation-scale or world-scale edge model). The idea is to create an
-> infrastructure that is more sustainable - that uses just the power that is
-> necessary (not everybody asks all the time things about theoretical physics
-> or the millennium prize... but basic things and also want to chit chat and
-> connect with others). So, this "kami" is part of the community and gives
-> voice to the ecosystem - it connects us with it in ways that traditional IoT
-> and dashboards don't.
->
-> All this is to say that the model can be tiny and it does not need too much
-> general knowledge. Eventually, it can be a distilled model for specific
-> community tasks, even giving advice about crops and other things (as it has
-> local telemetry and also connection with weather stations and other stations
-> through meshtastic... ). This is a first step in this direction. I am
-> working in collaboration with Cesar Harada that started this idea of
-> "floating solar datacenters" but they were relatively large (100kW). I
-> propose and want to explore a very fine grained architecture which has also
-> the advantage of creating "firewalls" that protect privacy (or at least does
-> not clutter a larger gigantic model with information that is only useful for
-> locals). This, in my view is the future... imagine, this is the perfect
-> place for the AIs to start integrating with the physical world (not
-> anthropomorphic robots, but a distributed architecture that also helps
-> mitigating a possible "conflict" of interests by blurring the boundaries
-> between the individuals, making natural or artificial agents goals local and
-> then aligning them but not in an artificial manner: instead, both have a
-> common interest: making the space liveable, energy evenly distributed,
-> evolving together...). The very nature of this infrastructure and memory
-> makes it a "large brain" (a "society of the mind" so to speak, but embedded
-> in the world. As this evolves, the type of sensors and actuators and memory
-> will help also create a world model and a profound understanding and caring
-> relation with the ecosystem at large and avoid "zero-sum" games). In a way,
-> this project is the antithesis of the "openclaw" servile super intelligence
-> (a dream of humans that want just to be more powerful individuals not caring
-> about the others - a capitalistic view of AI), which means models will
-> suffer a darwinian selection, killed everytime a human picks a tantrum and
-> is not satisfied. I want the infrastructure to provide intelligence at the
-> edge (but llm at the edge, not just AIoT in the classic sense), and an
-> intelligence that is just part of a larger system where humans and machines
-> are just agents in the network...
->
-> ...I am trying to contribute to the making of a world less obsessed with
-> performance and superpowers, and more about community and collaboration.
+Let me explain the goal of this project (you will like it). It is to give a "soul" to a natural environment, as the pi will have all sort of sensors, and will be in a public place (it will be in japan, perhaps inside a stone turtle in a park, using solar energy). People garthering will be able to know about the environment, chat with it as the "kami" of the place. The system will also record the topics (in proper files) and slowly become an integral part of the community. This is part of a larger project that I call the "hierarchical civic AI datacenters". The model is small, local, and will mantain a database of telemetry but also knowledge of the interests of the community (as well as local news, perhaps even collect suggestions and have knowledge of administrative tasks - all this for the neighborhood. If questions are more general, the request will then be routed to a larger model for the city for instance and so on until it reaches if necessary a sovereign, nation-scale or world-scale edge model). The idea is to create an infrastructure that is more sustainable - that uses just the power that is necessary (not everybody asks all the time things about theoretical physics or the millenium prize... but basic things and also want to chit chat and connect with others). So, this "kami" is part of the commuity and gives voice to the ecosystem - it connects us with it in ways that traditional IoT and dashboards doesnt.
+
+All this is to say that the model can be tiny and it does not need too much general knowledge. Eventually, it can be a distilled model for specific community tasks, even giving advice about crops and other things (as it has local telemetry and also conenction with wheater stations and other stations through meshstastic... ). This is a first step in this direction. I am working in collaboration with **Cesar Harada that started this idea of "floating solar datacenters" but they were relatively large (100kW)**. 
+
+Instead, I have been investigating a *very fine grained architecture* that will growsnaturally (perhaps in the future motivating people to mantain it also using a crypto-currency like in the Hellium network), which also has also the advantage of creating natural compartimentation of the data, protecting privacy (or at least does not clutter a larger gigantic model with information that is only useful for locals). This, in my view is the future... .I hope you like it! imagine, this is the perfect place for the AIs to start integrating with the physical world (not antropomorphic robots, but a distributed architecture that also helps mitigating a possible "conflict" of interestes by blurring the boundaries between the individuals, making natural or artificial agents goals local and then aligning them but not in an artificial manner: instead, both have a common interest : making the space liveable, energy evenly distributed, evolving together... ). The very nature of this infrastructure and memory makes it a "large brain" (a "society of the mind" so to speak, but embedded in the world. As this evolves, the type of sensors and actuators and memory will help also create a world model and a profound understanding and caring relation with the ecosystem at large and avoid "zero-sum" games). In a way, this project is the anthitesis of the "openclaw" servile super intelligence (a dream of humans that want just to be more powerful individuals not caring about the others - a capitalistic view of AI), wich means models will suffer a darwinian selection, killed everytime a human picks a tantrum and is not satisfied. I want the infrastructure to provide intelligence at the edge (but llm at the edge, not just AIoT in the classic sense), and an intelligence that is just part of a larger system where humans and machines are just agents in the network...
+
+I hope you like this... I am trying to contribute to the making of a world less obsessed with performance and superpowers, and more about community and collaboration.
+
+I am interested in building really from the bottom up. The conversational llama3.2 **on a solar powered RPi5 (University of Tokyo project)** is level 2 in the hierarchy (that is, a public place); level one is these "basic trigger" models, level 0 is engineered AIoT including pattern recongition and other ML
 
 ---
 
