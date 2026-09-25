@@ -195,6 +195,41 @@ class WebApplication:
             from flask import redirect
             return redirect("/", code=302)
 
+        @app.get("/dashboard")
+        def dashboard():
+            return send_file("static/dashboard.html")
+
+        # Memory files the dashboard can read (relative to the repo root).
+        _MEM_DIRS = ("reports", "sensors", "memory")
+
+        @app.get("/api/files")
+        def list_files():
+            base = os.path.dirname(os.path.abspath(__file__))
+            out = []
+            for d in _MEM_DIRS:
+                dirpath = os.path.join(base, d)
+                if os.path.isdir(dirpath):
+                    for name in sorted(os.listdir(dirpath)):
+                        if name.endswith(".md"):
+                            out.append(f"{d}/{name}")
+            return jsonify({"files": out})
+
+        @app.get("/api/file")
+        def read_file_ep():
+            name = request.args.get("name", "")
+            # Path-traversal guard: must be "<memdir>/<file>.md", no "..".
+            parts = name.split("/")
+            if (len(parts) != 2 or parts[0] not in _MEM_DIRS
+                    or ".." in name or not parts[1].endswith(".md")):
+                return "not allowed", 403
+            base = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(base, parts[0], parts[1])
+            try:
+                with open(path, encoding="utf-8") as f:
+                    return f.read(), 200, {"Content-Type": "text/plain; charset=utf-8"}
+            except OSError:
+                return "not found", 404
+
         @app.get("/api/models")
         def models():
             try:

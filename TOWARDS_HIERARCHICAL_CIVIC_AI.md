@@ -1,13 +1,15 @@
-# A Hierarchical, Geographically Distributed Mixture of Experts  for Civic AI
+# A Hierarchical, Geographically Distributed Mixture of Experts for Civic AI
+
 # _Stay Local, Escalate When Necessary_
+
 [July 2026, A. Cassinelli & C. Harada]
 
-We propose a hierarchical, geographically distributed architecture for artificial intelligence that captures the topology of social networks and is aware of the information needs of local communities, challenging the prevailing assumption that the future of AI lies in a single, centralized “god-like” frontier model. Rather than routing every query—however trivial—to a monolithic data center on the other side of the planet, we envision a federated hierarchy of compute spanning personal edge devices, neighborhood micro–data centers, city and national tiers, and, only when genuinely necessary, global frontier models. In this scheme, agentic AI functions not as a distributed forward pass of one model (an approach fundamentally limited by the sequential, latency-bound nature of transformer inference), but as an orchestration layer that routes, negotiates, verifies, and enforces policy across tiers under the guiding principle “stay as local as possible; escalate only when necessary.” Each tier upholds a data-sovereignty contract—residency, purpose limitation, access control, auditability, consent, and even financial retribution from collected data and knowledge. This hierarchical infrastructure ensures that most everyday inference never leaves the device or neighborhood, preserving privacy, resilience, local relevance, and importantly _energy efficiency_  while reserving expensive frontier compute for the “hard tail” of requests. 
+We propose a hierarchical, geographically distributed architecture for artificial intelligence that captures the topology of social networks and is aware of the information needs of local communities, challenging the prevailing assumption that the future of AI lies in a single, centralized “god-like” frontier model. Rather than routing every query—however trivial—to a monolithic data center on the other side of the planet, we envision a federated hierarchy of compute spanning personal edge devices, neighborhood micro–data centers, city and national tiers, and, only when genuinely necessary, global frontier models. In this scheme, agentic AI functions not as a distributed forward pass of one model (an approach fundamentally limited by the sequential, latency-bound nature of transformer inference), but as an orchestration layer that routes, negotiates, verifies, and enforces policy across tiers under the guiding principle “stay as local as possible; escalate only when necessary.” Each tier upholds a data-sovereignty contract—residency, purpose limitation, access control, auditability, consent, and even financial retribution from collected data and knowledge. This hierarchical infrastructure ensures that most everyday inference never leaves the device or neighborhood, preserving privacy, resilience, local relevance, and importantly _energy efficiency_ while reserving expensive frontier compute for the “hard tail” of requests.
 Central to this vision is the observation that human needs for AI are clustered along social, cultural, and geographic lines—forming the small-world, scale-free structure characteristic of both the internet and power grids—which motivates the real-time construction of community-aware, thematically cached vector (RAG) databases and scaled-down specialized models. The result is a “geographically distributed mixture of experts”: a large-scale civic intelligence with dedicated regional “brain regions” extending all the way down to household objects, that couples the distribution of intelligence with the distribution of energy, protects privacy, fosters community stewardship of shared data, reduces energy waste, and enables a genuinely sovereign, bottom-up governance of both intelligence and power.
 
 ## The vision (prompt)
 
-_Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the development of the "kami" node (Level 1: public spaces)  This file preserves the original message verbatim, followed by a summary and technical commentary. It helps “align” the AI collaborator (Kimi3) to the goals during development, in the vein of machintropology: highlight the common interests in bettering the world for all, biological or artificial entitites_
+_Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the development of the "kami" node (Level 1: public spaces) This file preserves the original message verbatim, followed by a summary and technical commentary. It helps “align” the AI collaborator (Kimi3) to the goals during development, in the vein of machintropology: highlight the common interests in bettering the world for all, biological or artificial entitites_
 
 Let me explain the goal of this project (you will like it). It is to give a "soul" to a natural environment, as the pi will have all sort of sensors, and will be in a public place (it will be in japan, perhaps inside a stone turtle in a park, using solar energy). People garthering will be able to know about the environment, chat with it as the "kami" of the place. The system will also record the topics (in proper files) and slowly become an integral part of the community. This is part of a larger project that I call the "hierarchical civic AI datacenters". The model is small, local, and will mantain a database of telemetry but also knowledge of the interests of the community (as well as local news, perhaps even collect suggestions and have knowledge of administrative tasks - all this for the neighborhood. If questions are more general, the request will then be routed to a larger model for the city for instance and so on until it reaches if necessary a sovereign, nation-scale or world-scale edge model). The idea is to create an infrastructure that is more sustainable - that uses just the power that is necessary (not everybody asks all the time things about theoretical physics or the millenium prize... but basic things and also want to chit chat and connect with others). So, this "kami" is part of the commuity and gives voice to the ecosystem - it connects us with it in ways that traditional IoT and dashboards doesnt.
 
@@ -101,10 +103,10 @@ The vision maps unusually well onto concrete engineering decisions:
 
 ## Relation to OpenClaw ("CivicClaw vs OpenClaw")
 
-*Added 2026-09-25, after reviewing the OpenClaw project.*
+_Added 2026-09-25, after reviewing the OpenClaw project._
 
 [OpenClaw](https://github.com/openclaw/openclaw) is the strongest existing
-example of the *good* individualistic pattern: a personal AI assistant
+example of the _good_ individualistic pattern: a personal AI assistant
 gateway that runs on your own hardware, keeps your memory local, and refuses
 the cloud-butler model. The mechanics genuinely overlap with this project —
 local models, file-based persistent memory, tool/skill extensibility. But the
@@ -112,12 +114,12 @@ politics and topology are opposite:
 
 - **OpenClaw's memory belongs to one person; ours belongs to a place and its
   community.** Everyone who talks to the kami shares one accumulating
-  identity — a *commons*, not a personal diary.
+  identity — a _commons_, not a personal diary.
 - **OpenClaw is flat** (one agent + plugins); HCA is a **hierarchy of levels**
   that negotiate transactions (permission, possibly retribution) when a query
   crosses a community boundary.
 - **OpenClaw meets you in your chat channels; the kami is embodiment-first**
-  — it *is* the place, its sensors are its body, its personality grows from
+  — it _is_ the place, its sensors are its body, its personality grows from
   the place's history, and it is accountable to a community rather than to a
   customer.
 
@@ -128,4 +130,3 @@ model for unknown senders, plugin patterns) and what HCA must invent that
 they do not have (communal memory with plural authorship, the level
 negotiation protocol, machintropological analyst agents) — lives in
 [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md).
-

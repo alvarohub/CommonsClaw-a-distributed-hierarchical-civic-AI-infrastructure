@@ -16,7 +16,7 @@ See [Credits](#credits) at the end.
 **Not a personal assistant.** Unlike local-AI assistants such as OpenClaw
 (one person, one butler, your chat channels), this node's memory belongs to a
 **place and its community** — everyone who talks to it shares one
-accumulating identity — and it is **embodiment-first**: the node *is* the
+accumulating identity — and it is **embodiment-first**: the node _is_ the
 place, its sensors are its body. The mechanics overlap (local model,
 file-based memory, tool use); the politics and topology are opposite. Full
 comparison: [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md).
@@ -124,7 +124,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - CPU, RAM, and temperature monitoring + terminal control view.
 - Model benchmark harness with shareable results table.
 - Unattended autostart (systemd + AP + boot-to-console).
-- **Planned:** communication with *other nodes* — peers at the same level
+- **Planned:** communication with _other nodes_ — peers at the same level
   (neighboring parks, nearby greenhouses) and higher levels (city-scale
   models) — with negotiated transactions when queries cross community
   boundaries. The defining open problem of HCA; see
@@ -140,7 +140,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
   prompt digest.
 - `config.py` — application, model, GUI, and hardware settings.
 - `status_store.py` — live status JSON (`/tmp/ssai_status.json`, ephemeral).
-- `hardware_monitor.py` — CPU/RAM/temp reader (in-memory; *not* a logger).
+- `hardware_monitor.py` — CPU/RAM/temp reader (in-memory; _not_ a logger).
 - `control.py` — terminal dashboard reading the status store.
 
 **Interfaces:**

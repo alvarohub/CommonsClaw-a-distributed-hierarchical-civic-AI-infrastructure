@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Kami node — dashboard</title>
+    <style>
+      :root {
+        --bg: #000;
+        --fg: #fff;
+        --dim: #888;
+        --accent: #57e07a;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: monospace;
+        font-size: 14px;
+        padding: 12px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 17px;
+        margin-bottom: 8px;
+      }
+      h1 a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      #hw {
+        color: var(--dim);
+        margin-bottom: 12px;
+      }
+      .filebtn {
+        display: inline-block;
+        margin: 3px 6px 3px 0;
+        padding: 6px 10px;
+        background: #111;
+        color: var(--fg);
+        border: 1px solid #444;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .filebtn.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      pre {
+        background: #0a0a0a;
+        border: 1px solid #222;
+        border-radius: 8px;
+        padding: 12px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+      .dim {
+        color: var(--dim);
+      }
+    </style>
+  </head>
+  <body>
+    <h1><a href="/">← chat</a> · kami node dashboard</h1>
+    <div id="hw">…</div>
+    <div id="files"></div>
+    <pre id="view" class="dim">select a file above</pre>
+    <script>
+      'use strict';
+      const filesDiv = document.getElementById('files');
+      const view = document.getElementById('view');
+      const hw = document.getElementById('hw');
+      let current = null;
+
+      async function refreshHW() {
+        try {
+          const s = await (await fetch('/api/status')).json();
+          hw.textContent =
+            `${s.model} · CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · ` +
+            `RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C · ` +
+            (s.active ? 'GENERATING' : 'idle');
+        } catch {
+          hw.textContent = 'unreachable';
+        }
+      }
+
+      async function loadFiles() {
+        const d = await (await fetch('/api/files')).json();
+        filesDiv.innerHTML = '';
+        for (const f of d.files) {
+          const b = document.createElement('button');
+          b.className = 'filebtn' + (f === current ? ' active' : '');
+          b.textContent = f;
+          b.onclick = () => {
+            current = f;
+            loadFile(f);
+            loadFiles();
+          };
+          filesDiv.appendChild(b);
+        }
+      }
+
+      async function loadFile(name) {
+        view.classList.remove('dim');
+        view.textContent = 'loading…';
+        try {
+          const r = await fetch('/api/file?name=' + encodeURIComponent(name));
+          view.textContent = r.ok ? await r.text() : 'error ' + r.status;
+        } catch (e) {
+          view.textContent = 'error: ' + e.message;
+        }
+      }
+
+      refreshHW();
+      loadFiles();
+      setInterval(refreshHW, 10000);
+      // auto-refresh the open file so the dashboard feels live
+      setInterval(() => {
+        if (current) loadFile(current);
+      }, 15000);
+    </script>
+  </body>
+</html>
