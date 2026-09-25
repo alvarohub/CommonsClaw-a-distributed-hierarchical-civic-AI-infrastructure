@@ -2,8 +2,17 @@
 
 **A "kami" node: a solar-powered, sensor-laden Raspberry Pi 5 that gives a
 voice to a public place** — visitors chat with the spirit of the park itself
-over a Wi-Fi access point, no internet needed. Part of the larger
-**Hierarchical Civic AI: the people's AI network** project.
+over a Wi-Fi access point, no internet needed.
+
+First steps toward the **Floating Solar Hydrogen Data Centers** vision
+spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
+and a sustainable, distributed **Hierarchical Civic AI: the people's AI
+network** infrastructure by **Alvaro Cassinelli**, in a recent collaboration
+with DLX, University of Tokyo. Part of the tech development is happening in a
+sister repository at DLX, University of Tokyo (Ido Hoffmann et al.).
+See [Credits](#credits) at the end.
+
+## The hierarchy
 
 This repo is **Level 2** of the hierarchy — a small local LLM (Ollama) that
 converses, remembers the community's topics, and knows its local telemetry:
@@ -19,13 +28,6 @@ Design principle: use the _smallest sufficient scale_ — energy proportional
 to the question, privacy firewalls between tiers, local knowledge stays
 local. See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
-
-_History: this code began as a prototype called "SSAI" (a university intern's
-Tkinter chat script). It has been substantially rebuilt — screenless console
-mode, Wi-Fi AP + web chat with phone-side STT/TTS, benchmark tooling, and
-unattended autostart — toward the vision above. The working name SSAI remains
-in some file/doc references but the project is HCA_PublicPlace. The code will
-eventually move into a subfolder of the larger HCA repo._
 
 ## Status
 
@@ -219,6 +221,13 @@ The default technician exit shortcut in the graphical interface is
   `config.py`.
 - The repository does not currently include automated tests or a CI workflow.
 - Installation is not yet captured in a dependency or environment manifest.
+
+## Credits
+
+Concept and lead development: **Alvaro Cassinelli** — with **GitHub Copilot**
+(AI pair-programmer). Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
+University of Tokyo. Solar floating datacenter concept: **Cesar Harada**.
+Full history and credits: [CREDITS.md](CREDITS.md).
 
 ## License
 
