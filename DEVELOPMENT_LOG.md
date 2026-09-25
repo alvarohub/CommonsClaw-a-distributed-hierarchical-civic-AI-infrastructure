@@ -1,6 +1,25 @@
 # Development Log
 
-This document records the main work completed on SSAI, organized by date.
+This document records the main work on the CommonsClaw node (formerly the
+SSAI prototype), organized by date.
+
+## 2026-09-25 (evening 2)
+
+- **De-SSAI rename, complete.** `gui.py` → `lcd_gui.py` (it is the monitor
+  GUI); program name, service (`commonsclaw-web.service`), AP profile
+  (`commonsclaw-ap`), Wi-Fi SSID (`CommonsClaw`), status file
+  (`/tmp/commonsclaw_status.json`), Pi path (`~/commonsclaw`), thread/class
+  names all renamed. Historical mentions intentionally kept in this log and
+  CREDITS.md (accurate provenance). Old service removed on the Pi; new one
+  installed and **verified running**.
+- **Closed the dev loop:** sudoers drop-in
+  (`/etc/sudoers.d/commonsclaw-restart`, scoped to only `systemctl restart
+  commonsclaw-web`) makes `./push_to_pi.sh` fully passwordless — rsync +
+  service restart in one command. Verified end-to-end.
+- Upstream-code audit (for the credits discussion): 4 of 7 upstream files
+  byte-unchanged (`lcd_gui.py`, `control.py`, `hardware_monitor.py`,
+  `status_store.py`); 836 new Python lines vs 1,036 upstream; all new
+  capability (web chat, AP, memory, benchmarks) is ours.
 
 ## 2026-09-25 (afternoon 4)
 

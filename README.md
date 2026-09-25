@@ -1,16 +1,14 @@
-# CommonsClaw: a distributed and hierarchical civic AI infrastructre
+# CommonsClaw: a distributed, hierarchical civic AI infrastructre
 
-**CommonsClaw is a people's AI network — not one node, but a growing commons
-of many small, local, solar-powered nodes**, built and maintained by people
-who share compute, energy, and data. Each node gives a place a voice and
+**CommonsClaw is the people's AI network — not one node, but a growing commons
+of many small, local, solar-powered nodes**, built and maintained by communities that share compute, energy, and data. Each node gives a place a voice and
 answers at the _smallest sufficient scale_; local knowledge stays local, and
-nodes reach upward to larger models only when a question truly needs it.
+nodes reach upward to a larger datacenter (neighborhood, city) only when a question truly needs it.
 Energy proportional to the question; negotiated boundaries between tiers and
 between communities (for more check the [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md)).
 
-This repo is **one node** of that network — the Level-1 public-space kami
-(see below) — and the reference implementation others can copy to grow the
-commons.
+This repo describes the development of a Level-1 node (public space). This type of node works like a "kami" that inhabit a tree in a park or a stone turtle in a pond. They can be seen as  natural places with the social world worlds translating telemetry into human language and relaying ecosystem of  and relay the conversation to 
+
 
 First steps toward the **Floating Solar Hydrogen Data Centers** vision
 spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
