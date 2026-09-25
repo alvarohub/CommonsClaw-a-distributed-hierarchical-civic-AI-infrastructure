@@ -9,6 +9,13 @@ from typing import Iterator
 import requests
 from flask import Flask, Response, jsonify, request, send_file
 
+try:
+    import waitress
+    _HAVE_WAITRESS = True
+except ImportError:
+    waitress = None
+    _HAVE_WAITRESS = False
+
 import config
 from hardware_monitor import HardwareMonitor
 from llm_manager import LLMManager
@@ -31,9 +38,8 @@ class WebApplication:
         self.status_store = StatusStore()
         self.background_thread: threading.Thread | None = None
 
+        # Single generation slot (Ollama on a Pi is effectively serial).
         self._generation_lock = threading.Lock()
-        self._question_cond = threading.Condition()
-        self._pending_question: str | None = None
 
     # ------------------------------------------------------------------
     # lifecycle
@@ -45,7 +51,15 @@ class WebApplication:
         self._start_background_thread()
         app = self._build_app()
         try:
-            app.run(host=host, port=port, threaded=True)
+            if _HAVE_WAITRESS:
+                # Production WSGI server: robust against dropped/sleeping
+                # clients, which is what killed the Flask dev server.
+                print(f"Serving on http://{host}:{port} (waitress)")
+                waitress.serve(app, host=host, port=port, threads=8)
+            else:
+                print("waitress not installed; falling back to Flask dev server")
+                print("(sudo apt install python3-waitress for a stable server)")
+                app.run(host=host, port=port, threaded=True)
         finally:
             self._shutdown()
 
@@ -73,25 +87,31 @@ class WebApplication:
     # generation worker (single slot)
     # ------------------------------------------------------------------
 
-    def _submit_question(self, question: str) -> None:
-        self.status_store.submit_question(question)
-        with self._question_cond:
-            self._pending_question = question
-            self._question_cond.notify()
-
     def _stream_question(self, question: str) -> Iterator[dict]:
-        """Yield SSE event dicts for one question."""
-        if not self.llm_manager.metrics.available:
-            self.llm_manager.check_availability()
-            self.status_store.update_model(self.llm_manager.metrics)
-        if not self.llm_manager.metrics.available:
-            self.status_store.complete_turn(
-                answer=None, success=False, error="model_unavailable",
-            )
-            yield {"event": "error", "data": "Model unavailable"}
+        """Yield SSE event dicts for one question.
+
+        The caller holds a per-request response stream, so the client that
+        asked is the client that receives the answer (no shared broadcast).
+        """
+        self.status_store.submit_question(question)
+
+        # Single-slot: a second concurrent asker is told to wait rather than
+        # starting a parallel generation the Pi can't sustain.
+        if not self._generation_lock.acquire(blocking=False):
+            yield {"event": "busy", "data": "Answering another question…"}
             return
 
-        with self._generation_lock:
+        try:
+            if not self.llm_manager.metrics.available:
+                self.llm_manager.check_availability()
+                self.status_store.update_model(self.llm_manager.metrics)
+            if not self.llm_manager.metrics.available:
+                self.status_store.complete_turn(
+                    answer=None, success=False, error="model_unavailable",
+                )
+                yield {"event": "error", "data": "Model unavailable"}
+                return
+
             yield {"event": "start", "data": ""}
             response_parts: list[str] = []
             try:
@@ -124,6 +144,8 @@ class WebApplication:
                     error="communication_error",
                 )
                 yield {"event": "error", "data": "Model error"}
+        finally:
+            self._generation_lock.release()
 
     # ------------------------------------------------------------------
     # Flask app
@@ -155,34 +177,24 @@ class WebApplication:
             question = (data.get("question") or "").strip()
             if not question:
                 return jsonify({"error": "empty question"}), 400
-            self._submit_question(question)
-            return jsonify({"ok": True})
 
-        @app.get("/api/stream")
-        def stream():
             def generate():
-                # Heartbeat comment so proxies/browsers don't idle-timeout.
-                yield ": connected\n\n"
-                while not self.stop_event.is_set():
-                    with self._question_cond:
-                        self._question_cond.wait(timeout=0.5)
-                        question = self._pending_question
-                        self._pending_question = None
-                    if question is None:
-                        continue
-                    # Single-slot: if a generation is already running, tell
-                    # this client to show "busy" and drop the question.
-                    if self._generation_lock.locked():
-                        busy = {"event": "busy", "data": "Answering another question…"}
-                        yield f"event: {busy['event']}\ndata: {busy['data']}\n\n"
-                        continue
+                try:
                     for event in self._stream_question(question):
                         yield f"event: {event['event']}\ndata: {event['data']}\n\n"
+                except Exception:
+                    # Never let a generation error kill the HTTP response.
+                    import traceback
+                    traceback.print_exc()
+                    yield "event: error\ndata: internal error\n\n"
 
             return Response(
                 generate(),
                 mimetype="text/event-stream",
-                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                },
             )
 
         return app

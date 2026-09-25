@@ -143,14 +143,16 @@ Raspberry Pi OS (Bookworm) blocks system-wide `pip install`
 ("externally-managed-environment"). The clean route is apt:
 
 ```bash
-sudo apt install -y python3-requests python3-psutil python3-tk git
+sudo apt install -y python3-requests python3-psutil python3-tk python3-flask python3-waitress git
 ```
 
 (`python3-tk` is only needed for the fullscreen GUI; on a screenless setup
-you can skip it and the app will run in console mode.)
+you can skip it and the app will run in console mode. `python3-flask` +
+`python3-waitress` are for the Phase 2 web server `web_server.py` — waitress
+is the production server that keeps it stable when clients drop.)
 
 (Alternative: a venv with `python3 -m venv --system-site-packages .venv` and
-`pip install requests psutil` inside it. Not needed if you used apt above.)
+`pip install requests psutil flask waitress` inside it. Not needed if you used apt above.)
 
 The code requires Python ≥ 3.10; Bookworm ships 3.11, fine. Check with
 `python3 --version`.

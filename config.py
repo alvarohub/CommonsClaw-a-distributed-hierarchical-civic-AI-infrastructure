@@ -17,7 +17,10 @@ Ignore minor spelling or typing errors when the user's meaning is clear.
 """
 
 # Local LLM
-MODEL_NAME = "phi3.5:latest"
+# Measured on emotionpi (RPi5 16GB): phi3.5 ≈ 5.2 tok/s (memory-bandwidth
+# ceiling). llama3.2:1b is ~3-4x faster — better for a conversational/voice UX.
+MODEL_NAME = "llama3.2:1b"
+# MODEL_NAME = "phi3.5:latest"  # higher quality, ~5 tok/s
 OLLAMA_API_BASE = "http://127.0.0.1:11434/api"
 NUM_PREDICT = 150
 CONVERSATION_HISTORY = True

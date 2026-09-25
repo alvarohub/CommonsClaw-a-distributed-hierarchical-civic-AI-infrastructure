@@ -102,6 +102,40 @@
         background: var(--error);
         border-color: var(--error);
       }
+      .thinking {
+        color: var(--dim);
+        font-style: italic;
+      }
+      .thinking::after {
+        content: '...';
+        animation: dots 1.2s steps(4, end) infinite;
+      }
+      @keyframes dots {
+        0% {
+          content: '';
+        }
+        25% {
+          content: '.';
+        }
+        50% {
+          content: '..';
+        }
+        75% {
+          content: '...';
+        }
+      }
+      #dot.busy {
+        background: var(--accent);
+        animation: pulse 1s ease-in-out infinite alternate;
+      }
+      @keyframes pulse {
+        from {
+          opacity: 0.3;
+        }
+        to {
+          opacity: 1;
+        }
+      }
       #tts.on {
         background: var(--accent);
         border-color: var(--accent);
@@ -150,8 +184,30 @@
 
       let busy = false;
       let ttsOn = false;
-      let es = null;
       let currentModelDiv = null;
+      let gotFirstChunk = false;
+      let thinkingDiv = null;
+
+      function resetBusy() {
+        busy = false;
+        sendBtn.disabled = false;
+        currentModelDiv = null;
+        hideThinking();
+        dot.classList.remove('busy');
+      }
+
+      function showThinking() {
+        hideThinking();
+        thinkingDiv = addLine('MODEL is thinking', 'thinking');
+        dot.classList.add('busy');
+      }
+
+      function hideThinking() {
+        if (thinkingDiv) {
+          thinkingDiv.remove();
+          thinkingDiv = null;
+        }
+      }
 
       function addLine(text, cls) {
         const div = document.createElement('div');
@@ -172,6 +228,7 @@
       }
 
       function appendChunk(text) {
+        hideThinking(); // first chunk replaces the thinking indicator
         if (!currentModelDiv) currentModelDiv = startModel();
         currentModelDiv.textContent += text;
         transcript.scrollTop = transcript.scrollHeight;
@@ -179,18 +236,15 @@
 
       function finishModel(metrics) {
         if (metrics && metrics.tokens_per_second) {
-          const meta = addLine(
+          addLine(
             `[${metrics.output_tokens ?? '?'} tok | ${metrics.tokens_per_second.toFixed(2)} tok/s | ${metrics.total_response_seconds?.toFixed(1)}s]`,
             'meta',
           );
-          void meta;
         }
         if (ttsOn && currentModelDiv) {
           speak(currentModelDiv.textContent.replace(/^MODEL:\s*/, ''));
         }
-        currentModelDiv = null;
-        busy = false;
-        sendBtn.disabled = false;
+        resetBusy();
       }
 
       function speak(text) {
@@ -215,28 +269,39 @@
         }
       }
 
-      function connectStream() {
-        if (es) es.close();
-        es = new EventSource('/api/stream');
-        es.onerror = () => {
-          es.close();
-          setTimeout(connectStream, 2000); // reconnect
+      // Parse an SSE stream from a fetch Response body. Calls onEvent(name, data).
+      async function readSSE(response, onEvent) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '';
+
+        const dispatch = (rawEvent) => {
+          let name = 'message';
+          let data = '';
+          for (const line of rawEvent.split('\n')) {
+            if (line.startsWith('event:')) name = line.slice(6).trim();
+            else if (line.startsWith('data:')) data += (data ? '\n' : '') + line.slice(5).replace(/^ /, '');
+            else if (line.startsWith(':')) return; // comment / heartbeat
+          }
+          if (data !== '' || name === 'start' || name === 'done' || name === 'error' || name === 'busy') {
+            onEvent(name, data);
+          }
         };
 
-        es.addEventListener('chunk', (e) => appendChunk(e.data));
-        es.addEventListener('done', (e) => {
-          const data = JSON.parse(e.data);
-          finishModel(data.metrics);
-        });
-        es.addEventListener('error', (e) => {
-          if (e.data) {
-            addLine('ERROR: ' + e.data, 'error');
-            busy = false;
-            sendBtn.disabled = false;
-            currentModelDiv = null;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx;
+          while ((idx = buf.indexOf('\n\n')) !== -1) {
+            dispatch(buf.slice(0, idx));
+            buf = buf.slice(idx + 2);
           }
-        });
-        es.addEventListener('busy', (e) => addLine('⏳ ' + e.data, 'busy'));
+        }
+        // Flush any trailing event that arrived without its blank-line
+        // terminator (some servers close right after the final event).
+        buf += decoder.decode();
+        if (buf.trim() !== '') dispatch(buf);
       }
 
       async function send() {
@@ -246,7 +311,21 @@
         sendBtn.disabled = true;
         addUser(question);
         qInput.value = '';
-        startModel();
+        showThinking();
+        gotFirstChunk = false;
+
+        // Watchdog: only fires if NOTHING arrived after sending — a truly
+        // dead connection. Mid-answer pauses (Ollama stalls on the Pi can
+        // exceed 30 s) are legal and must not trigger a false timeout.
+        const watchdog = setInterval(() => {
+          if (busy && !gotFirstChunk && Date.now() - sentAt > 60000) {
+            clearInterval(watchdog);
+            addLine('⚠ no response (connection failed)', 'error');
+            resetBusy();
+          }
+        }, 5000);
+        const sentAt = Date.now();
+
         try {
           const r = await fetch('/api/ask', {
             method: 'POST',
@@ -254,10 +333,27 @@
             body: JSON.stringify({ question }),
           });
           if (!r.ok) throw new Error('HTTP ' + r.status);
+
+          await readSSE(r, (name, data) => {
+            if (name === 'chunk') {
+              gotFirstChunk = true;
+              appendChunk(data);
+            } else if (name === 'done') finishModel(JSON.parse(data).metrics);
+            else if (name === 'busy') {
+              addLine('⏳ ' + data, 'busy');
+              resetBusy();
+            } else if (name === 'error') {
+              addLine('ERROR: ' + data, 'error');
+              resetBusy();
+            }
+          });
+          // If the stream ended without a done/error, re-enable input.
+          if (busy) resetBusy();
         } catch (err) {
           addLine('ERROR: ' + err.message, 'error');
-          busy = false;
-          sendBtn.disabled = false;
+          resetBusy();
+        } finally {
+          clearInterval(watchdog);
         }
       }
 
@@ -318,7 +414,6 @@
         if (e.key === 'Enter') send();
       });
 
-      connectStream();
       refreshStatus();
       setInterval(refreshStatus, 15000);
     </script>

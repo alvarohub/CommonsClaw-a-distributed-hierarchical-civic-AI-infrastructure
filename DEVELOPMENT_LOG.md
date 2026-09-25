@@ -2,6 +2,89 @@
 
 This document records the main work completed on SSAI, organized by date.
 
+## 2026-09-25 (night)
+
+- **Performance baseline established.** phi3.5 on this Pi 5 (16 GB) =
+  **~5.2 tok/s generation** (raw Ollama benchmark, no SSAI code involved).
+  TTFT ~0.8 s warm, ~8.5 s cold (model load). A "what is a differentiable
+  manifold" answer takes ~30 s mostly due to prompt eval + length at 5 tok/s.
+- **Verified the slowness is hardware, not our code:** Ollama bench gives the
+  identical 5.19 tok/s directly; `OLLAMA_NUM_THREAD=4` service override made
+  no difference (Ollama was already threading; the ~31% CPU seen in `ps` was
+  a momentary sample). Wall = Pi 5 memory bandwidth (~17 GB/s shared). An
+  accelerator, or a smaller model (llama3.2:1b / gemma2:2b) for voice latency,
+  are the real levers — deferred to Phase 3 decision.
+- Desktop environment (labwc) is running but idle (0% CPU) — harmless; set
+  boot-to-console later for the headless installation.
+- **UI: added "MODEL is thinking…" indicator** (animated dots) + pulsing
+  status dot while generating, cleared on first chunk — slow no longer looks
+  dead. Fixed SSE trailing-event flush and a too-aggressive 30 s watchdog
+  (Ollama legally stalls >30 s mid-answer; watchdog now only fires if zero
+  chunks arrive within 60 s of send).
+
+- **Switched default model to llama3.2:1b** (config.py, one-line flip back to
+  phi3.5 kept as comment). Measured on emotionpi: **llama3.2:1b ≈ 8.4 tok/s**
+  vs phi3.5's 5.2 tok/s = 62% faster (smaller models gain less than parameter
+  ratio suggests — memory bandwidth binds them less efficiently). Both models
+  remain installed on the Pi for A/B testing.
+
+## 2026-09-25 (evening)
+
+- **Phase 2B working end-to-end.** Set Wi-Fi country `HK`, ran
+  `sudo bash ap_up.sh` → AP `SSAI` up, Pi at `10.42.0.1`. Phone joined the
+  network and the web chat works from the phone at `http://10.42.0.1:8080`.
+  Ethernet dev link to the Mac stayed up in parallel (SSH/rsync unaffected).
+- **Stability fix: switched the web server to waitress.** The page/SSH
+  intermittently dropped (`Connection reset by peer`, `pgrep` showed
+  `web_server.py` fully dead). Hardware ruled out (`throttled=0x0`, 53 °C, no
+  OOM). Root cause: Flask's built-in dev server dies on dropped client
+  connections (phone sleep / AP "no internet" radio flap). Now
+  `web_server.py` serves via **waitress** (production WSGI, `threads=8`) with
+  a graceful fallback to the dev server + warning if waitress is absent; SSE
+  generator wrapped so a generation error can't kill the stream. Requires
+  `sudo apt install python3-waitress` on the Pi.
+- Gotcha hit + resolved: browser initially said "refused to connect" — the
+  AP was up but `web_server.py` wasn't running yet. It does not autostart.
+- **Architecture fix: per-request answer streaming.** Symptom: phone showed
+  `MODEL:` but no answer, Pi CPU idle. Root cause: the old design used ONE
+  shared `/api/stream` EventSource + a global `_pending_question`, so an
+  answer was streamed to whichever client connection was alive — a phone
+  EventSource reconnect (screen lock / radio flap) made chunks go nowhere.
+  Now `POST /api/ask` returns the SSE stream for its own question (fetch +
+  manual SSE parse in `chat.html`); the asking client is guaranteed its own
+  answer. Shared `/api/stream` and the pending-question plumbing removed;
+  single-slot busy logic kept (second asker gets an inline `busy` event).
+  Verified with Flask test client (status 200, empty 400, ask → SSE events).
+- Open follow-up: make `web_server.py` survive SSH logout / reboot (systemd),
+  and record Phase 1 baseline metrics.
+
+## 2026-09-25
+
+- **Phase 1 (replication) working on the Pi.** Installed Ollama on
+  `emotionpi` (CPU-only mode, service active), pulled `phi3.5:latest`
+  (2.2 GB), verified `ollama run` answers. rsynced the code to `~/ssai`,
+  installed `flask`. `python3 console.py` runs headless and streams real
+  answers (first live question: "do makers dream of electric turtles?").
+- **Phase 2A (web chat) verified on the Pi.** `python3 web_server.py` serves
+  the page; Mac browser at `http://192.168.2.13:8080` streams answers.
+  Flask installed via `sudo apt install python3-flask` (Bookworm blocks pip —
+  updated SETUP_RPI5.md to include it in the apt line).
+- Networking settled: Mac↔Pi over Ethernet with Internet Sharing ON; Pi got
+  DHCP lease `192.168.2.13` on `bridge100` (Mac is `192.168.2.1`). mDNS
+  (`emotionpi.local`) is unreliable across the bridge → use the numeric IP.
+  Monitor+keyboard attached to the Pi for direct checks.
+- Added `push_to_pi.sh` (Mac-side): rsyncs the repo to the Pi incrementally
+  (`./push_to_pi.sh`, override with `PI_HOST=...`). This is the dev workflow:
+  edit in VS Code on the Mac, push with rsync, no git clone on the Pi.
+- **Phase 2B started (Wi-Fi AP, Option A).** Added `ap_up.sh` / `ap_down.sh`:
+  nmcli `shared`-mode AP on `wlan0` (Pi serves DHCP at `10.42.0.1`), eth0
+  dev link untouched. Web chat then reachable from phones at
+  `http://10.42.0.1:8080`. Captive portal (Option B) deferred but planned.
+- Next: bring the AP up, test chat from a phone, record Phase 1 baseline
+  metrics (TTFT / tok/s / temp).
+
+## 2026-09-20
+
 ## 2026-09-20
 
 - Built Phase 2A: `web_server.py` (Flask + SSE) serving `static/chat.html`.

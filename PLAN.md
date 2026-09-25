@@ -28,23 +28,29 @@ GUI still works unchanged when a monitor is attached.
 
 **Acceptance criteria:**
 
-- [ ] Ollama serves `phi3.5:latest`; console chat answers questions over SSH.
+- [x] Ollama serves `phi3.5:latest`; console chat answers questions over SSH
+      (verified 2026-09-25 on `emotionpi`, 16 GB).
 - [ ] With a monitor attached, `python3 main.py` opens the GUI as before.
 - [ ] `control.py` over SSH shows live hardware + per-turn metrics.
 - [ ] Baseline metrics recorded below (5 sample questions, after warm-up).
 
-**Baseline measurements (fill in):**
+**Baseline measurements (2026-09-25, emotionpi):**
 
-| Metric                     | Value         |
-| -------------------------- | ------------- |
-| Pi RAM (4/8 GB)            |               |
-| Model                      | phi3.5:latest |
-| TTFT (typical, warm)       |               |
-| Tokens/s (typical)         |               |
-| Time for a ~50-word answer |               |
-| RAM used with model loaded |               |
-| CPU temp after 5 turns     |               |
-| Boot-to-ready time         |               |
+| Metric                     | Value           |
+| -------------------------- | --------------- |
+| Pi RAM (4/8/16 GB)         | 16 GB           |
+| Model                      | llama3.2:1b     |
+| TTFT (warm)                | ~0.8 s          |
+| TTFT (cold, model load)    | ~8.5 s          |
+| Tokens/s (raw Ollama)      | ~8.4 (phi3.5: 5.2) |
+| Time for a ~50-word answer | ~15–30 s        |
+| RAM used with model loaded | ~4.1 GB         |
+| CPU temp after 5 turns     | ~54 °C          |
+| Boot-to-ready time         |                 |
+
+Note: 5.2 tok/s confirmed as the hardware ceiling (memory bandwidth), not a
+code/config issue — `OLLAMA_NUM_THREAD=4` unchanged. Smaller model or
+accelerator is a Phase 3 decision.
 
 ---
 
@@ -64,15 +70,18 @@ interaction upgrade; 2B is "just" the networking around it.
 
 ### 2A.1 Web server on the Pi — BUILT (`web_server.py`)
 
-- Flask + SSE. Routes: `GET /` (page), `POST /api/ask` (submit),
-  `GET /api/stream` (SSE: chunk/done/error/busy), `GET /api/status`.
+- Flask + SSE, served by **waitress** (production WSGI; dev server proved
+  unstable with dropping phone clients). Routes: `GET /` (page),
+  `POST /api/ask` (submit **and** stream that question's answer as SSE:
+  start/chunk/done/busy/error), `GET /api/status`.
+- **Per-request streaming:** the answer travels on the asker's own POST
+  response — no shared broadcast, so a phone reconnect can't lose an answer.
 - Reuses `LLMManager` (Ollama streaming), `HardwareMonitor`, `StatusStore`
   unchanged → `control.py` keeps working; `console.py` remains as the
   debug frontend.
 - **Framework decision: Flask + SSE** (chosen — minimal deps, matches style).
 - **Concurrency:** single generation slot (`_generation_lock`); a second
-  client gets a `busy` SSE event ("Answering another question…") instead of
-  a parallel generation.
+  asker gets an inline `busy` event instead of a parallel generation.
 
 ### 2A.2 Chat web page — BUILT
 
@@ -99,18 +108,20 @@ The Pi broadcasts its own network; a visitor joins it and opens the same
 2A page. Speech-to-text and text-to-speech use the **phone's**
 capabilities, so this phase needs no new Pi hardware.
 
-#### 2B.1 Access point mode
+#### 2B.1 Access point mode — scripts ready (Option A)
 
-- Pi OS Bookworm uses NetworkManager:
-  `sudo nmcli device wifi hotspot ifname wlan0 ssid SSAI password "<pw>"`
-  → Pi serves the network at `10.42.0.1` (shared mode, DHCP built in).
-- Make it persistent across reboots and disable Wi-Fi power save.
-- **Gotcha:** the single radio can't be AP and client at once — finish all
-  downloads in Phase 1, or use Ethernet for development. Also, once in AP
-  mode the Pi drops off the home network → SSH then means joining the SSAI
-  network yourself (or Ethernet).
-- Keep avahi so `http://ssai.local` works on iOS/macOS; Android users type
-  the IP. (Open question: captive portal, see below.)
+- Implemented as `ap_up.sh` / `ap_down.sh` (nmcli `shared`-mode AP on `wlan0`,
+  profile `ssai-ap`). Run on the Pi: `sudo bash ap_up.sh [SSID] [PASSWORD]`
+  (defaults `SSAI` / `emotionpi`). Pi serves DHCP and is reachable at
+  `10.42.0.1`; chat at `http://10.42.0.1:8080`.
+- **eth0 (Mac dev link) is untouched** → SSH/rsync keep working while the AP
+  runs. This is why the Ethernet setup was worth it.
+- Make persistent across reboots (profile has autoconnect) and disable Wi-Fi
+  power save; set Wi-Fi country once: `sudo raspi-config nonint do_wifi_country FR`.
+- **Gotcha:** in AP mode the Pi's wlan0 has no internet — do `apt`/`ollama
+pull` before AP-up (or over eth0 sharing).
+- Captive portal (Option B: auto-popup on join via dnsmasq wildcard DNS)
+  confirmed needed later — see 2B.3.
 
 #### 2B.2 Phone-side voice
 
@@ -132,8 +143,8 @@ capabilities, so this phase needs no new Pi hardware.
 
 **Acceptance criteria (2B):**
 
-- [ ] Phone joins `SSAI` network, opens the page, full Q→A round trip with
-      streaming.
+- [x] Phone joins `SSAI` network, opens the page, full Q→A round trip with
+      streaming (verified 2026-09-25 evening, country `HK`).
 - [ ] Keyboard dictation works as STT; TTS toggle speaks answers.
 - [ ] Works after an unattended reboot (AP + web server autostart).
 
