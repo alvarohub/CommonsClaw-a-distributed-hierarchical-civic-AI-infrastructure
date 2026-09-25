@@ -102,7 +102,12 @@ class WebApplication:
     # generation worker (single slot)
     # ------------------------------------------------------------------
 
-    def _stream_question(self, question: str, model: str | None = None) -> Iterator[dict]:
+    def _stream_question(
+        self,
+        question: str,
+        model: str | None = None,
+        memory_categories: set[str] | None = None,
+    ) -> Iterator[dict]:
         """Yield SSE event dicts for one question.
 
         The caller holds a per-request response stream, so the client that
@@ -134,6 +139,7 @@ class WebApplication:
                     question,
                     on_metrics_update=self.status_store.update_model,
                     model=model,
+                    memory_categories=memory_categories,
                 ):
                     response_parts.append(chunk)
                     yield {"event": "chunk", "data": chunk}
@@ -276,12 +282,21 @@ class WebApplication:
             data = request.get_json(force=True, silent=True) or {}
             question = (data.get("question") or "").strip()
             model = (data.get("model") or "").strip() or None
+            # Memory categories: UI toggles (list) + slash keywords/auto-detect
+            # resolved by the LLM manager. Missing key = all on (legacy).
+            toggles = data.get("memory")
+            toggle_set = set(toggles) if isinstance(toggles, list) else None
+            memory_categories = self.llm_manager.resolve_categories(
+                question, toggle_set,
+            ) if toggle_set is not None else None
             if not question:
                 return jsonify({"error": "empty question"}), 400
 
             def generate():
                 try:
-                    for event in self._stream_question(question, model=model):
+                    for event in self._stream_question(
+                        question, model=model, memory_categories=memory_categories,
+                    ):
                         yield f"event: {event['event']}\ndata: {event['data']}\n\n"
                 except Exception:
                     # Never let a generation error kill the HTTP response.

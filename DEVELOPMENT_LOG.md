@@ -3,6 +3,17 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-09-25 (evening 3)
+
+- **Memory categories with toggles + keyword routing.** Diagnosed a 45 s
+  "hello": generation was 1.8 s (7.89 tok/s) but prompt-eval chewed the whole
+  memory digest every question. Now three toggleable categories — 🧠 identity,
+  📡 sensors, 📝 community — in the status bar; off = bare prompt = full
+  speed. Slash keywords force one on (`/sensors how warm is the pond`), and
+  auto-detect keywords ("temperature", "remember", ...) enable the matching
+  category transparently. Digest also slimmed (1000 chars/file, 3000 total).
+  Verified: routing unit tests, compile, JS check; pushed + service restarted.
+
 ## 2026-09-25 (evening 2)
 
 - **De-SSAI rename, complete.** `gui.py` → `lcd_gui.py` (it is the monitor
@@ -14,7 +25,7 @@ SSAI prototype), organized by date.
   installed and **verified running**.
 - **Closed the dev loop:** sudoers drop-in
   (`/etc/sudoers.d/commonsclaw-restart`, scoped to only `systemctl restart
-  commonsclaw-web`) makes `./push_to_pi.sh` fully passwordless — rsync +
+commonsclaw-web`) makes `./push_to_pi.sh` fully passwordless — rsync +
   service restart in one command. Verified end-to-end.
 - Upstream-code audit (for the credits discussion): 4 of 7 upstream files
   byte-unchanged (`lcd_gui.py`, `control.py`, `hardware_monitor.py`,

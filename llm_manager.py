@@ -60,9 +60,12 @@ class LLMManager:
         prompt: str,
         on_metrics_update: Callable[[ModelMetrics], None] | None = None,
         model: str | None = None,
+        memory_categories: set[str] | None = None,
     ) -> Iterator[str]:
         # `model` overrides the configured default for this call only
         # (used by the web UI's per-request model selector).
+        # `memory_categories` limits which memory sections enter the prompt
+        # (None = all on, as before; empty set = bare prompt).
         model_name = model or self.model_name
         self._reset_current_metrics()
         self.metrics.model_name = model_name
@@ -70,7 +73,7 @@ class LLMManager:
         if on_metrics_update:
             on_metrics_update(self.metrics)
 
-        request_messages = self._build_request_messages(prompt)
+        request_messages = self._build_request_messages(prompt, memory_categories)
         payload = {
             "model": model_name,
             "messages": request_messages,
@@ -136,25 +139,56 @@ class LLMManager:
             if on_metrics_update:
                 on_metrics_update(self.metrics)
 
-    def _build_request_messages(self, prompt: str) -> list[dict[str, str]]:
+    def _build_request_messages(self, prompt: str, memory_categories: set[str] | None) -> list[dict[str, str]]:
         system_message = {
             "role": "system",
-            "content": self._system_prompt_with_reports(),
+            "content": self._system_prompt_with_reports(memory_categories),
         }
         if self.history_enabled:
             return [system_message, *self.messages, {"role": "user", "content": prompt}]
         return [system_message, {"role": "user", "content": prompt}]
 
-    @staticmethod
-    def _system_prompt_with_reports() -> str:
-        """System prompt + the node's shared memory (reports/ digest).
+    # Slash keywords force a memory category on for this question
+    # (e.g. "/sensors how warm is it?"). Auto-detect keywords below do the
+    # same without the user knowing.
+    SLASH_KEYWORDS = {
+        "/identity": "identity",
+        "/sensors": "sensors",
+        "/community": "community",
+        "/notes": "community",
+    }
+    AUTO_KEYWORDS = {
+        "sensors": {"sensor", "temperature", "temp", "solar", "battery",
+                    "panel", "humidity", "weather", "hot", "cold", "warm",
+                    "cpu", "ram", "feeling", "body"},
+        "community": {"note", "notes", "remember", "suggestion", "poll",
+                      "vote", "people", "community", "said", "told"},
+        "identity": {"yourself", "who are you", "your name", "personality",
+                     "remember about yourself", "kami"},
+    }
 
-        Reports are re-read on every question so the LLM always sees fresh
-        sensor data and community notes.
-        """
+    @classmethod
+    def resolve_categories(cls, prompt: str, toggles: set[str] | None) -> set[str]:
+        """Final active categories = UI toggles + slash keywords + auto-detect."""
+        active = set(toggles) if toggles is not None else set()
+        low = prompt.lower()
+        for kw, cat in cls.SLASH_KEYWORDS.items():
+            if low.startswith(kw):
+                active.add(cat)
+        for cat, words in cls.AUTO_KEYWORDS.items():
+            if any(w in low for w in words):
+                active.add(cat)
+        return active
+
+    @staticmethod
+    def _system_prompt_with_reports(categories: set[str] | None = None) -> str:
+        """System prompt + the node's shared memory digest for the ACTIVE
+        categories only (empty set = bare prompt = full speed)."""
+        if categories is not None and not categories:
+            return config.SYSTEM_PROMPT
         try:
             from reports_reader import read_reports
-            digest = read_reports()
+            digest = read_reports(categories)
         except Exception:
             digest = ""
         if not digest:

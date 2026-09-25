@@ -184,6 +184,9 @@ plain-text "reports" both machines and people can write.
 
 ### Still to do in 2C
 
+- [x] Memory category toggles (🧠/📡/📝) + slash keywords + auto-detect
+      (2026-09-25 evening; fixes the 45 s prompt-eval penalty by keeping
+      the prompt bare unless a category is active).
 - [ ] Cron entry: `* * * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/sensor_pivitals.py`
 - [ ] First real sensor logger (e.g. BME280 on I2C, or meshtastic ingest)
       following the same report format.

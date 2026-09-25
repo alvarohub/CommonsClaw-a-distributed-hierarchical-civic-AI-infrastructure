@@ -21,8 +21,12 @@ REPORTS_DIR = BASE / "reports"
 SENSORS_DIR = BASE / "sensors"
 MEMORY_DIR = BASE / "memory"
 
-MAX_CHARS_PER_FILE = 1500  # keep the prompt small; files are short by design
-MAX_TOTAL_CHARS = 5000
+MAX_CHARS_PER_FILE = 1000  # keep the prompt small; files are short by design
+MAX_TOTAL_CHARS = 3000
+
+# The three memory categories, toggleable per request from the web UI and/or
+# force-enabled with slash keywords (/identity, /sensors, /community).
+CATEGORIES = ("identity", "sensors", "community")
 
 
 def _digest_dir(directory: Path, skip: set[str] = frozenset()) -> list[str]:
@@ -47,22 +51,30 @@ def _digest_dir(directory: Path, skip: set[str] = frozenset()) -> list[str]:
     return parts
 
 
-def read_reports() -> str:
-    """Return the combined digest of memory + sensors + reports, or ""."""
+def read_reports(categories: set[str] | None = None) -> str:
+    """Return the digest for the given categories, or "" if none active.
+
+    categories ⊆ {"identity", "sensors", "community"}; None means all on.
+    """
+    if categories is None:
+        categories = set(CATEGORIES)
+
     sections: list[str] = []
 
-    # Identity first (who the kami is), then the world it senses, then people.
-    identity = _digest_dir(MEMORY_DIR, skip={"journal.md"})
-    if identity:
-        sections.append("## Who you are\n" + "\n\n".join(identity))
+    if "identity" in categories:
+        identity = _digest_dir(MEMORY_DIR, skip={"journal.md"})
+        if identity:
+            sections.append("## Who you are\n" + "\n\n".join(identity))
 
-    sensors = _digest_dir(SENSORS_DIR, skip={"_INDEX.md"})
-    if sensors:
-        sections.append("## Sensor readings\n" + "\n\n".join(sensors))
+    if "sensors" in categories:
+        sensors = _digest_dir(SENSORS_DIR, skip={"_INDEX.md"})
+        if sensors:
+            sections.append("## Sensor readings\n" + "\n\n".join(sensors))
 
-    reports = _digest_dir(REPORTS_DIR, skip={"_INDEX.md"})
-    if reports:
-        sections.append("## Reports and community notes\n" + "\n\n".join(reports))
+    if "community" in categories:
+        reports = _digest_dir(REPORTS_DIR, skip={"_INDEX.md"})
+        if reports:
+            sections.append("## Reports and community notes\n" + "\n\n".join(reports))
 
     digest = "\n\n".join(sections)
     return digest[:MAX_TOTAL_CHARS]

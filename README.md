@@ -1,19 +1,11 @@
-# CommonsClaw: a distributed, hierarchical civic AI infrastructre
+# CommonsClaw: a decentralized, hierarchical civic AI infrastructre
 
-**CommonsClaw is the people's AI network — not one node, but a growing commons
-of many small, local, solar-powered nodes**, built and maintained by communities that share compute, energy, and data. Each node gives a place a voice and
+**CommonsClaw is the people's AI network** — not one node, but a growing commons
+of many small, local, solar-powered nodes, built and maintained by communities that share compute, energy, and data. Each node gives a place a voice and
 answers at the _smallest sufficient scale_; local knowledge stays local, and
-nodes reach upward to a larger datacenter (neighborhood, city) only when a question truly needs it.
+nodes reach upward to a larger datacenter (neighborhood, city) only when a question truly needs it. 
 Energy proportional to the question; negotiated boundaries between tiers and
 between communities (for more check the [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md)).
-
-This repo describes the development of a Level-1 node (public space). This type of node works like a "kami" that inhabit a tree in a park or a stone turtle in a pond. They can be seen as  natural places with the social world worlds translating telemetry into human language and relaying ecosystem of  and relay the conversation to 
-
-
-First steps toward the **Floating Solar Hydrogen Data Centers** vision
-spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
-comlemented by a **Hierarchical Civic AI** infrastructure (aka CommonsClaw) by **Alvaro Cassinelli**, in a recent collaboration with DLX, University of Tokyo. Part of the tech development (including a hardware prototype of a floating solar node) is documented in a sister repository at DLX (by Ido Hoffmann, Federico Trucchia and Yuri Klebanov).
-See [Credits](#credits) at the end.
 
 **Not a personal assistant.** Rather than a local-AI assistant such as OpenClaw
 (one person, one butler, your chat channels), CommonsClaw is a commons:
@@ -24,22 +16,22 @@ mechanics overlap (local model, file-based memory, tool use); the politics
 and topology are opposite. Full comparison:
 [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md).
 
+
+This **decentralized, hierarchical agentic infrastructure** was inspired by the [Floating Solar Hydrogen Data Centers](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center) vision of sustainable, scaled-down sovereign datacenters spearheaded by **Cesar Harada** as well as previous works by **Alvaro Cassinelli and Daniel Saakes** on decentralized [Spatial Physical Computing smart sensor-actuator networks](https://alvarocassinelli.com/gluons/) supporting local governance and community making with the support of Project Ceibal in Uruguay in 2015. 
+
+
 ## Hierarchical Civic AI: Public Spaces (Level 1)
 
 **This repo is Level 1 of the hierarchy — the "kami" node:** a solar-powered,
 sensor-laden Raspberry Pi 5 that gives a voice to a public place. Visitors
-chat with the spirit of the park itself over the node's own Wi-Fi access
-point — no internet needed. The node converses, remembers the community's
-topics, and knows (and can discusse) its local telemetry.
+chat with the "spirit of the place" through a voice interface (no internet needed). The node converses, remembers the community's topics (useful to explore the local usage of AIs), and can discuss and analyse its telemetry data. 
+A system prototype including a floating platform, embedded LLM (RPi5), solar panels and hydrogen production is being developed in a recent collaboration with **DLX, University of Tokyo by Ido Hoffmann, Federico Trucchia and Yuri Klebanov**. 
 
 | Level | What it is                                                                                                                                                                                                               | Example                         |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent and data collection — elemental conversation or no direct conversation at all with humans, but feeds the level 2 | greenhouse control, gemma3:270m |
 | **1** | **Local conversational LLM (this node)** — the kami's voice. A bridge between humans and the environment, a member of the neighborhood, a repository of local, communal knowledge (see below).                           | **llama3.2:1b on a Pi 5**       |
 | 2+    | City / nation / world-scale models, queried only when needed                                                                                                                                                             | routed upward                   |
-
-See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
-for the full vision.
 
 ## How it works
 

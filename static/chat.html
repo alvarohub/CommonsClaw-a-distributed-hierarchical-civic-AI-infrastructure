@@ -171,6 +171,17 @@
         border-radius: 6px;
         padding: 3px 8px;
       }
+      #memtoggles { margin-left: auto; }
+      .memt {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 6px;
+        font-size: 13px;
+        padding: 2px 6px;
+        cursor: pointer;
+        opacity: 0.35;
+      }
+      .memt.on { opacity: 1; border-color: var(--accent); }
       #title {
         font-size: 12px;
         letter-spacing: 2px;
@@ -208,6 +219,11 @@
       <span class="dot" id="dot"></span>
       <select id="modelsel" title="Model"></select>
       <span id="hw"></span>
+      <span id="memtoggles">
+        <button class="memt on" data-cat="identity" title="Kami identity memory">🧠</button>
+        <button class="memt on" data-cat="sensors" title="Sensor readings">📡</button>
+        <button class="memt on" data-cat="community" title="Community notes">📝</button>
+      </span>
     </div>
     <div id="transcript"></div>
     <div id="inputbar">
@@ -398,7 +414,11 @@
           const r = await fetch('/api/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, model: modelSel.value }),
+            body: JSON.stringify({
+              question,
+              model: modelSel.value,
+              memory: activeMemoryCategories(),
+            }),
           });
           if (!r.ok) throw new Error('HTTP ' + r.status);
 
@@ -504,6 +524,15 @@
           addLine('ERROR saving note: ' + err.message, 'error');
         }
       });
+
+      // Memory category toggles (🧠 identity / 📡 sensors / 📝 community).
+      // Sent per-question; slash keywords (/sensors ...) can force one on.
+      function activeMemoryCategories() {
+        return [...document.querySelectorAll('.memt.on')].map((b) => b.dataset.cat);
+      }
+      document.querySelectorAll('.memt').forEach((b) =>
+        b.addEventListener('click', () => b.classList.toggle('on')),
+      );
 
       // Speaker default-on: reflect it in the button state.
       ttsBtn.classList.add('on');
