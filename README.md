@@ -30,6 +30,46 @@ topics, and knows its local telemetry.
 See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
 
+## How it works
+
+```
+                        HIGHER LEVELS (city → nation → world models)
+                                      ▲   (future: routed queries,
+                                      │    negotiated per community)
+                                      │
+ ┌─────────────────────────── THE NODE (Raspberry Pi 5, solar) ───────────────┐
+ │                                                                            │
+ │   PEOPLE side                        MEMORY (plain-text files)             │
+ │                                                                            │
+ │   phone ──Wi-Fi AP "SSAI"──► web chat ──► llm_manager ──► Ollama (LLM)     │
+ │  (browser: typing, 🎤 STT,      (no        ▲   │                           │
+ │   🔊 TTS — the Pi needs      internet)     │   │ reads on every question   │
+ │   no internet at all)                      │   ▼                           │
+ │   📝 Note button ─────────────────────►  reports/community_notes.md        │
+ │                                            reports/pi_vitals.md            │
+ │   SENSORS side                             sensors/<one file per sensor>   │
+ │                                            sensors/SENSOR_REPORT.md        │
+ │   sensors ──► logger processes ──────────► memory/identity.md (who it is)  │
+ │  (I2C, GPIO,    (cron/daemons,            memory/journal.md (its days)     │
+ │   LoRa, ...)     auto-collect; the kami                                    │
+ │                  can ask for more/less)                                    │
+ │                                                                            │
+ │   Loggers run on their own schedule and write files automatically. They    │
+ │   can also be queried directly for a single fresh reading (`--once`), or   │
+ │   — when they are Level-1 agents — asked for a one-line description of     │
+ │   their own data ("warm and humid, rising since noon").                    │
+ └────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Reports and notes** are the node's shared memory, in plain markdown both
+humans and the LLM can read. Sensor reports are time-series observations with
+a self-describing header (what, where, units, logger config the kami may
+suggest tweaking). Community notes are whatever people leave: suggestions,
+poll answers, comments, requests — the kami reads them when answering and can
+tally or summarize them when asked. The persistent memory (`memory/`) is what
+lets the node have continuity: a personality, things it has learned, skills
+it has developed — the beginnings of a soul that persists across reboots.
+
 ## Status
 
 Active prototype, functional end-to-end: phone joins the Pi's Wi-Fi AP →

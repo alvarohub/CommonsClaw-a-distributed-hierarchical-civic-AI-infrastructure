@@ -19,13 +19,16 @@ Reports dir layout:
 
 from __future__ import annotations
 
+import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))  # for config, hardware_monitor
 
 import config
 from hardware_monitor import HardwareMonitor
 
-REPORTS_DIR = Path(__file__).parent / "reports"
+REPORTS_DIR = Path(__file__).parent.parent / "reports"
 REPORT = REPORTS_DIR / "pi_vitals.md"
 MAX_LINES = 60  # keep the report short — the LLM reads it whole
 
@@ -42,6 +45,7 @@ HEADER = """# Report: pi_vitals
 
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
+    (Path(__file__).parent.parent / "sensors").mkdir(exist_ok=True)
     snap = HardwareMonitor().read_snapshot()
     line = (
         f"{time.strftime('%Y-%m-%d %H:%M')}  "
@@ -65,6 +69,16 @@ def main() -> None:
         + "\n".join(body)
         + "\n"
     )
+
+    # Mirror the reading into the per-sensor file (sensors/ layout).
+    sensor_file = Path(__file__).parent.parent / "sensors" / "pi_core_temp.md"
+    if sensor_file.exists():
+        slines = sensor_file.read_text().splitlines()
+        sbody = [l for l in slines if l and not l.startswith("#")]
+        shead = [l for l in slines if l.startswith("#")]
+        sbody = (sbody + [line])[-MAX_LINES:]
+        sensor_file.write_text("\n".join(shead) + "\n" + "\n".join(sbody) + "\n")
+
     print(f"wrote {REPORT}")
 
 

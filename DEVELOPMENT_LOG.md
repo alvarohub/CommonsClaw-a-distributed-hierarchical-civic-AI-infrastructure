@@ -2,6 +2,23 @@
 
 This document records the main work completed on SSAI, organized by date.
 
+## 2026-09-25 (afternoon 3)
+
+- **Sensors folder + dashboard + persistent memory.** `sensors/` holds one
+  self-describing file per sensor + `SENSOR_REPORT.md` (trends/anomalies/
+  kami notes dashboard). `memory/` = the node's persistent identity
+  (`identity.md`: name, personality, learned facts, skills) and `journal.md`
+  (continuity across reboots) — the beginnings of personality for the kami.
+  `reports_reader.py` now digests all three sources (identity → sensors →
+  reports) into the system prompt; `pi_vitals.py` mirrors readings into
+  `sensors/pi_core_temp.md`. README gained an ASCII architecture schematic
+  (people side / sensors side / memory / hierarchy) and prose explaining
+  logger processes and community notes.
+- Researched OpenClaw for comparison (personal assistant gateway, MIT,
+  huge ecosystem) — see notes in chat: our node differs in being communal
+  (shared place memory vs personal), hierarchical (levels negotiate), and
+  embodiment-first (voice of a place, not a channel butler).
+
 ## 2026-09-25 (afternoon 2)
 
 - **Web UI: speaker default-on, per-request model selector.** New

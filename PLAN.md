@@ -166,21 +166,21 @@ plain-text "reports" both machines and people can write.
 
 ### Architecture (as built)
 
-- `reports/` directory = the node's shared memory. Every `.md` file is a
-  report with a `#`-prefixed metadata header (description, logger config,
-  location, units, what's tweakable) + timestamped content.
-  - `reports/_INDEX.md` — how to read reports (for the LLM and humans).
-  - `reports/pi_vitals.md` — written every minute by cron +
-    `loggers/pi_vitals.py` (stand-in for real sensors; BME280/LoRa later).
-  - `reports/community_notes.md` — notes/suggestions/poll answers left via
-    the chat page's 📝 button (`POST /api/note`).
-- `reports_reader.py` compiles a truncated digest (newest content kept);
-  `llm_manager` injects it into the system prompt on EVERY question, so the
-  kami always speaks with fresh local knowledge.
-- Deliberately **not** MCP for now: plain files are readable by cron, the
-  LLM, and humans, with zero extra services. A full MCP interface
-  (`@modelcontextprotocol/server-filesystem` via Node) can replace the
-  reader later without changing the report format.
+- `reports/` + `sensors/` + `memory/` = the node's shared memory, all plain
+  markdown readable by cron, the LLM, and humans.
+  - `reports/` — `community_notes.md` (people's 📝 notes: suggestions, polls,
+    comments), `pi_vitals.md` (node health log).
+  - `sensors/` — one file per sensor (self-describing header + appended
+    readings) + `SENSOR_REPORT.md` (dashboard: trends, anomalies, kami notes).
+  - `memory/` — `identity.md` (who the kami is: personality, learned facts,
+    skills — read at boot, edited rarely) + `journal.md` (dated continuity).
+- `reports_reader.py` compiles a truncated digest (identity → sensors →
+  reports) injected into the system prompt on EVERY question.
+- Loggers are separate processes (cron/daemon) that collect automatically;
+  the kami may suggest config tweaks via the `# logger_config:` header, and
+  loggers can be queried directly (`--once`) — later, Level-1 loggers answer
+  in words. Deliberately **not** MCP for now: zero extra services; MCP
+  (e.g. server-filesystem) can replace the reader without format changes.
 
 ### Still to do in 2C
 
