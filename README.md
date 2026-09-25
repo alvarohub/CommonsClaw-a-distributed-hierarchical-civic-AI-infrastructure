@@ -1,9 +1,13 @@
 # CommonsClaw: a decentralized, hierarchical civic AI infrastructre
 
+<p align="center">
+  <img src="CommonsClaw.png" alt="CommonsClaw" width="480">
+</p>
+
 **CommonsClaw is the people's AI network** — not one node, but a growing commons
 of many small, local, solar-powered nodes, built and maintained by communities that share compute, energy, and data. Each node gives a place a voice and
 answers at the _smallest sufficient scale_; local knowledge stays local, and
-nodes reach upward to a larger datacenter (neighborhood, city) only when a question truly needs it. 
+nodes reach upward to a larger datacenter (neighborhood, city) only when a question truly needs it.
 Energy proportional to the question; negotiated boundaries between tiers and
 between communities (for more check the [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md)).
 
@@ -16,16 +20,14 @@ mechanics overlap (local model, file-based memory, tool use); the politics
 and topology are opposite. Full comparison:
 [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md).
 
-
 This **decentralized, hierarchical agentic infrastructure** was inspired by the [Floating Solar Hydrogen Data Centers](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center) vision of sustainable, scaled-down sovereign datacenters spearheaded by **Cesar Harada** as well as previous works by **Alvaro Cassinelli and Daniel Saakes** on decentralized [Spatial Physical Computing smart sensor-actuator networks](https://alvarocassinelli.com/gluons/) supporting local governance and community making (with the support of Project Ceibal in Uruguay in 2015), and a series of experiments initiated by Alvaro Cassinelli on [Spatialized Social Networks](https://alvarocassinelli.com/memory-blocks-knowledge-voxels/) exploring "the use of technologies that augment sociability using localization as a central reference point".
-
 
 ## Hierarchical Civic AI: Public Spaces (Level 1)
 
 **This repo is Level 1 of the hierarchy — the "kami" node:** a solar-powered,
 sensor-laden Raspberry Pi 5 that gives a voice to a public place. Visitors
-chat with the "spirit of the place" through a voice interface (no internet needed). The node converses, remembers the community's topics (useful to explore the local usage of AIs), and can discuss and analyse its telemetry data. 
-A system prototype including a floating platform, embedded LLM (RPi5), solar panels and hydrogen production is being developed in a recent collaboration with **DLX, University of Tokyo by Ido Hoffmann, Federico Trucchia and Yuri Klebanov**. 
+chat with the "spirit of the place" through a voice interface (no internet needed). The node converses, remembers the community's topics (useful to explore the local usage of AIs), and can discuss and analyse its telemetry data.
+A system prototype including a floating platform, embedded LLM (RPi5), solar panels and hydrogen production is being developed in a recent collaboration with **DLX, University of Tokyo by Ido Hoffmann, Federico Trucchia and Yuri Klebanov**.
 
 | Level | What it is                                                                                                                                                                                                               | Example                         |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
