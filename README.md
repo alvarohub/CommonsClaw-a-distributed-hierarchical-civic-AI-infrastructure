@@ -1,10 +1,16 @@
-# Hierarchical Civic AI: the people's AI network
+# CommonsClaw: a distributed and hierarchical civic AI infrastructre
 
-A sustainable, distributed civic AI infrastructure: many small, local,
-solar-powered nodes that give places a voice — answering at the _smallest
-sufficient scale_, keeping local knowledge local, and reaching upward to
-larger models only when a question truly needs it. Energy proportional to the
-question; privacy firewalls between tiers (for more check [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md).
+**CommonsClaw is a people's AI network — not one node, but a growing commons
+of many small, local, solar-powered nodes**, built and maintained by people
+who share compute, energy, and data. Each node gives a place a voice and
+answers at the _smallest sufficient scale_; local knowledge stays local, and
+nodes reach upward to larger models only when a question truly needs it.
+Energy proportional to the question; negotiated boundaries between tiers and
+between communities (for more check the [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md)).
+
+This repo is **one node** of that network — the Level-1 public-space kami
+(see below) — and the reference implementation others can copy to grow the
+commons.
 
 First steps toward the **Floating Solar Hydrogen Data Centers** vision
 spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
@@ -14,12 +20,13 @@ development is happening in a sister repository at DLX (Ido Hoffmann et al.).
 See [Credits](#credits) at the end.
 
 **Not a personal assistant.** Rather than a local-AI assistant such as OpenClaw
-(one person, one butler, your chat channels), this is a _**Community Claw**_: the node's memory belongs to a
-**place and its community** — everyone who talks to it shares one
-accumulating identity — and it is **embodiment-first**: the node _is_ the
-place, its sensors are its body. The mechanics overlap (local model,
-file-based memory, tool use); the politics and topology are opposite. Full
-comparison: [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md).
+(one person, one butler, your chat channels), CommonsClaw is a commons:
+each node's memory belongs to a **place and its community** — everyone who
+talks to it shares one accumulating identity — and it is
+**embodiment-first**: the node _is_ the place, its sensors are its body. The
+mechanics overlap (local model, file-based memory, tool use); the politics
+and topology are opposite. Full comparison:
+[COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md).
 
 ## Hierarchical Civic AI: Public Spaces (Level 1)
 
@@ -128,7 +135,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
   (neighboring parks, nearby greenhouses) and higher levels (city-scale
   models) — with negotiated transactions when queries cross community
   boundaries. The defining open problem of HCA; see
-  [CIVICCLAW_VS_OPENCLAW.md](CIVICCLAW_VS_OPENCLAW.md) § what HCA must invent.
+  [COMMONSCLAW_VS_OPENCLAW.md](COMMONSCLAW_VS_OPENCLAW.md) § what HCA must invent.
 
 ## Project structure
 
@@ -172,7 +179,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - `benchmark.py` — model benchmarks → `BENCHMARKS.md`.
 
 **Docs:** `PLAN.md` (roadmap), `SETUP_RPI5.md`, `ENVIRONMENT_LOG.md`,
-`TOWARDS_HIERARCHICAL_CIVIC_AI.md` (vision), `CIVICCLAW_VS_OPENCLAW.md`,
+`TOWARDS_HIERARCHICAL_CIVIC_AI.md` (vision), `COMMONSCLAW_VS_OPENCLAW.md`,
 `BENCHMARKS.md`, `CREDITS.md`, `DEVELOPMENT_LOG.md`.
 
 ## Requirements
@@ -315,7 +322,7 @@ The default technician exit shortcut in the graphical interface is
 
 ## Credits
 
-Solar floating datacenters concept: **Cesar Harada**. Concept and lead development of : **Alvaro Cassinelli and Cesar Harada**. Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
+Solar floating datacenters concept: **Cesar Harada**. Concept and lead development of CommonsClaw : **Alvaro Cassinelli and Cesar Harada**. Seed code ("SSAI"): **Ido Hoffmann** et al., DLX,
 University of Tokyo. Full history and credits: [CREDITS.md](CREDITS.md).
 
 ## License
@@ -323,5 +330,3 @@ University of Tokyo. Full history and credits: [CREDITS.md](CREDITS.md).
 - **Hardware:** [CERN Open Hardware Licence, Version 2 — Strongly Reciprocal (CERN-OHL-S v2)](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center/blob/main/LICENSE).
 - **Accompanying software** (firmware, dashboards, data pipelines): see `CONTRIBUTING.md` for the compatible permissive licence (typically a copyleft-compatible OSI licence such as GPLv3) chosen per sub-directory.
 - **Documentation, diagrams, and text in this README:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), unless otherwise marked.
-
-

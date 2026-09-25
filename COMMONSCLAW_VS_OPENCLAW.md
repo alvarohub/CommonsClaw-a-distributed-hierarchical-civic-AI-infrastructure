@@ -1,10 +1,16 @@
-# CivicClaw vs OpenClaw — a comparison
+# CommonsClaw vs OpenClaw — a comparison
 
 _2026-09-25. Written after reviewing [openclaw/openclaw](https://github.com/openclaw/openclaw)
 (390k★, MIT, by Peter Steinberger et al., stewarded by the OpenClaw
 Foundation). This document exists because the overlap is real enough to be
 worth mapping precisely — and the differences are the actual contribution of
-HCA._
+CommonsClaw._
+
+**CommonsClaw is not a single node but a larger network** — the people's AI
+network: a growing commons of nodes built and maintained by people who share
+compute, energy, and data. Each node (like this repo's Level-1 kami) is a
+member of that commons; the name is the political claim: shared place, shared
+memory, shared stewardship.
 
 ## What OpenClaw is
 
@@ -16,11 +22,11 @@ no token, no paid tier), impressively engineered, and explicitly _not_ the
 "servile superintelligence in someone else's cloud" pattern — it is the good
 version of the individualistic assistant.
 
-So the question "is HCA reinventing OpenClaw?" deserves a careful answer.
+So the question "is CommonsClaw reinventing OpenClaw?" deserves a careful answer.
 
 ## Where the mechanics overlap
 
-| Mechanic                   | OpenClaw               | HCA node                             |
+| Mechanic                   | OpenClaw               | CommonsClaw node                             |
 | -------------------------- | ---------------------- | ------------------------------------ |
 | Local model / local state  | ✅ on your devices     | ✅ on the node                       |
 | Persistent memory as files | ✅ workspace files     | ✅ `memory/`, `reports/`, `sensors/` |
@@ -30,7 +36,7 @@ So the question "is HCA reinventing OpenClaw?" deserves a careful answer.
 
 ## Where the politics and topology are opposite
 
-|                        | OpenClaw                                       | HCA                                                                                                                     |
+|                        | OpenClaw                                       | CommonsClaw                                                                                                             |
 | ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | **Whose memory?**      | One person's assistant                         | A **place and its community** — everyone who talks to the node shares one accumulating identity and journal             |
 | **Topology**           | One agent + plugins, flat                      | **Hierarchy of levels** (0 AIoT → 1 kami → 2+ city/nation/world), each summarizing at its own scale                     |
@@ -42,7 +48,7 @@ So the question "is HCA reinventing OpenClaw?" deserves a careful answer.
 **The mechanics overlap; the politics and topology are opposite.** The worry
 about reinvention is actually a good sign: the infrastructure primitives
 (local LLM, file-based memory, tool use) are converging across the field.
-HCA's contribution is the **civic layer** on top of those primitives.
+CommonsClaw's contribution is the **civic layer** on top of those primitives.
 
 ## Could we use OpenClaw code?
 
@@ -64,13 +70,13 @@ Worth a serious look, with eyes open:
   run an OpenClaw instance as a _gateway in front of_ the node — the node
   stays the civic artifact; OpenClaw becomes one of its mouths.
 
-## What HCA still has to invent (that OpenClaw does not have)
+## What CommonsClaw still has to invent (that OpenClaw does not have)
 
 1. **Communal memory with plural authorship** — notes from many people,
    synthesized into one place-identity, with care for whose voice dominates.
 2. **Level negotiation protocol** — how a Level-1 node asks Level-2 for help:
    what context crosses the boundary (privacy firewall), what the transaction
-   costs, who consents. This is the heart of HCA and exists nowhere yet.
+   costs, who consents. This is the heart of CommonsClaw and exists nowhere yet.
 3. **Analyst agents (machintropology link)** — specialized agents reading the
    communal memory to identify the community's recurring needs and
    preoccupations; too heavy for the Pi, so they live at Level 2+ and read
