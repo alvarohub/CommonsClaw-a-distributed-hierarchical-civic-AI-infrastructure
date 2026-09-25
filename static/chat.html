@@ -155,12 +155,20 @@
         outline: none;
         border-color: var(--accent);
       }
+      #modelsel {
+        background: #111;
+        color: var(--dim);
+        border: 1px solid #333;
+        border-radius: 6px;
+        font-size: 12px;
+        max-width: 150px;
+      }
     </style>
   </head>
   <body>
     <div id="statusbar">
       <span class="dot" id="dot"></span>
-      <span id="model">…</span>
+      <select id="modelsel" title="Model"></select>
       <span id="hw"></span>
     </div>
     <div id="transcript"></div>
@@ -168,6 +176,7 @@
       <button id="mic" title="Dictate">🎤</button>
       <input id="q" type="text" placeholder="Ask something…" autocomplete="off" autofocus />
       <button id="send" title="Send">➤</button>
+      <button id="note" title="Leave a note for the community">📝</button>
       <button id="tts" title="Speak answers">🔊</button>
     </div>
     <script>
@@ -177,13 +186,14 @@
       const qInput = document.getElementById('q');
       const micBtn = document.getElementById('mic');
       const sendBtn = document.getElementById('send');
+      const noteBtn = document.getElementById('note');
       const ttsBtn = document.getElementById('tts');
       const dot = document.getElementById('dot');
-      const modelLabel = document.getElementById('model');
+      const modelSel = document.getElementById('modelsel');
       const hwLabel = document.getElementById('hw');
 
       let busy = false;
-      let ttsOn = false;
+      let ttsOn = true; // speaker on by default
       let currentModelDiv = null;
       let gotFirstChunk = false;
       let thinkingDiv = null;
@@ -260,12 +270,30 @@
         try {
           const r = await fetch('/api/status');
           const s = await r.json();
-          modelLabel.textContent = s.model + (s.available ? ' ready' : ' OFFLINE');
-          dot.className = 'dot ' + (s.available ? 'ok' : 'err');
+          dot.className = 'dot ' + (s.available ? 'ok' : 'err') + (s.active ? ' busy' : '');
           hwLabel.textContent = `CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C`;
         } catch {
-          modelLabel.textContent = 'unreachable';
           dot.className = 'dot err';
+        }
+      }
+
+      async function loadModels() {
+        try {
+          const r = await fetch('/api/models');
+          const d = await r.json();
+          modelSel.innerHTML = '';
+          for (const name of d.models) {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            if (name === d.default) opt.selected = true;
+            modelSel.appendChild(opt);
+          }
+          if (!d.models.length) {
+            modelSel.innerHTML = '<option>(no models)</option>';
+          }
+        } catch {
+          modelSel.innerHTML = '<option>?</option>';
         }
       }
 
@@ -330,7 +358,7 @@
           const r = await fetch('/api/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question }),
+            body: JSON.stringify({ question, model: modelSel.value }),
           });
           if (!r.ok) throw new Error('HTTP ' + r.status);
 
@@ -414,6 +442,31 @@
         if (e.key === 'Enter') send();
       });
 
+      // Leave a community note instead of asking a question.
+      noteBtn.addEventListener('click', async () => {
+        const text = qInput.value.trim();
+        if (!text) {
+          addLine('📝 Type a note first, then tap 📝 to leave it.', 'meta');
+          return;
+        }
+        try {
+          const r = await fetch('/api/note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note: text }),
+          });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          addLine('📝 NOTE: ' + text, 'meta');
+          qInput.value = '';
+        } catch (err) {
+          addLine('ERROR saving note: ' + err.message, 'error');
+        }
+      });
+
+      // Speaker default-on: reflect it in the button state.
+      ttsBtn.classList.add('on');
+
+      loadModels();
       refreshStatus();
       setInterval(refreshStatus, 15000);
     </script>

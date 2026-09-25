@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import queue
+import sys
 import threading
 import time
 from typing import Iterator
@@ -45,21 +47,34 @@ class WebApplication:
     # lifecycle
     # ------------------------------------------------------------------
 
-    def run(self, host: str = "0.0.0.0", port: int = 8080) -> None:
+    def run(
+        self,
+        host: str = "0.0.0.0",
+        port: int = 8080,
+        ssl_context: tuple[str, str] | None = None,
+    ) -> None:
         self.llm_manager.check_availability()
         self.status_store.update_model(self.llm_manager.metrics)
         self._start_background_thread()
         app = self._build_app()
+        scheme = "https" if ssl_context else "http"
         try:
             if _HAVE_WAITRESS:
                 # Production WSGI server: robust against dropped/sleeping
                 # clients, which is what killed the Flask dev server.
-                print(f"Serving on http://{host}:{port} (waitress)")
-                waitress.serve(app, host=host, port=port, threads=8)
+                print(f"Serving on {scheme}://{host}:{port} (waitress)")
+                kwargs: dict = {"host": host, "port": port, "threads": 8}
+                if ssl_context:
+                    # waitress has no TLS; terminate via its url_scheme only.
+                    # For real TLS, use the Flask path below instead.
+                    print("WARNING: waitress does not do TLS; using Flask server for HTTPS.")
+                    app.run(host=host, port=port, threaded=True, ssl_context=ssl_context)
+                else:
+                    waitress.serve(app, **kwargs)
             else:
                 print("waitress not installed; falling back to Flask dev server")
                 print("(sudo apt install python3-waitress for a stable server)")
-                app.run(host=host, port=port, threaded=True)
+                app.run(host=host, port=port, threaded=True, ssl_context=ssl_context)
         finally:
             self._shutdown()
 
@@ -87,7 +102,7 @@ class WebApplication:
     # generation worker (single slot)
     # ------------------------------------------------------------------
 
-    def _stream_question(self, question: str) -> Iterator[dict]:
+    def _stream_question(self, question: str, model: str | None = None) -> Iterator[dict]:
         """Yield SSE event dicts for one question.
 
         The caller holds a per-request response stream, so the client that
@@ -118,6 +133,7 @@ class WebApplication:
                 for chunk in self.llm_manager.stream_response(
                     question,
                     on_metrics_update=self.status_store.update_model,
+                    model=model,
                 ):
                     response_parts.append(chunk)
                     yield {"event": "chunk", "data": chunk}
@@ -158,6 +174,55 @@ class WebApplication:
         def index():
             return send_file("static/chat.html")
 
+        # --- Captive-portal probe endpoints ---------------------------------
+        # When the AP runs with wildcard DNS (portal_up.sh), phones probe
+        # these URLs to detect a portal. Answering with the chat page (or a
+        # non-204 redirect) makes the OS pop the chat open automatically.
+        @app.get("/generate_204")          # Android
+        @app.get("/gen_204")               # Android alt
+        def android_probe():
+            from flask import redirect
+            return redirect("/", code=302)
+
+        @app.get("/hotspot-detect.html")   # iOS / macOS
+        @app.get("/library/test/success.html")  # iOS alt
+        def apple_probe():
+            return send_file("static/chat.html")
+
+        @app.get("/ncsi.txt")              # Windows
+        @app.get("/connecttest.txt")       # Windows alt
+        def windows_probe():
+            from flask import redirect
+            return redirect("/", code=302)
+
+        @app.get("/api/models")
+        def models():
+            try:
+                data = requests.get(
+                    f"{self.llm_manager.api_base}/tags",
+                    timeout=config.REQUEST_TIMEOUT_SECONDS,
+                ).json()
+                names = [m.get("name") or m.get("model") for m in data.get("models", [])]
+            except (requests.RequestException, ValueError):
+                names = []
+            return jsonify({"models": names, "default": config.MODEL_NAME})
+
+        @app.post("/api/note")
+        def note():
+            """Append a community note to reports/community_notes.md."""
+            import os
+            from datetime import datetime
+            data = request.get_json(force=True, silent=True) or {}
+            text = (data.get("note") or "").strip()
+            if not text:
+                return jsonify({"error": "empty note"}), 400
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "reports", "community_notes.md")
+            line = f"{datetime.now():%Y-%m-%d %H:%M}  {text}\n"
+            with open(path, "a", encoding="utf-8") as f:
+                f.write(line)
+            return jsonify({"ok": True})
+
         @app.get("/api/status")
         def status():
             snapshot = self.hardware_monitor.read_snapshot()
@@ -175,12 +240,13 @@ class WebApplication:
         def ask():
             data = request.get_json(force=True, silent=True) or {}
             question = (data.get("question") or "").strip()
+            model = (data.get("model") or "").strip() or None
             if not question:
                 return jsonify({"error": "empty question"}), 400
 
             def generate():
                 try:
-                    for event in self._stream_question(question):
+                    for event in self._stream_question(question, model=model):
                         yield f"event: {event['event']}\ndata: {event['data']}\n\n"
                 except Exception:
                     # Never let a generation error kill the HTTP response.
@@ -201,7 +267,19 @@ class WebApplication:
 
 
 def main() -> None:
-    WebApplication().run()
+    # --https: serve over TLS with the self-signed cert from make_cert.sh,
+    # so the in-page microphone (Web Speech API) works in browsers.
+    if "--https" in sys.argv:
+        base = os.path.dirname(os.path.abspath(__file__))
+        ctx = (
+            os.path.join(base, "certs", "selfsigned.pem"),
+            os.path.join(base, "certs", "selfsigned.key"),
+        )
+        if not (os.path.exists(ctx[0]) and os.path.exists(ctx[1])):
+            sys.exit("No certs found. Run: bash make_cert.sh")
+        WebApplication().run(port=8443, ssl_context=ctx)
+    else:
+        WebApplication().run()
 
 
 if __name__ == "__main__":

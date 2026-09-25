@@ -2,6 +2,27 @@
 
 This document records the main work completed on SSAI, organized by date.
 
+## 2026-09-25 (afternoon 2)
+
+- **Web UI: speaker default-on, per-request model selector.** New
+  `GET /api/models` lists installed Ollama models; `/api/ask` accepts a
+  `model` override (LLMManager.stream_response gained a per-call `model`
+  param; metrics track the actual model used). Dropdown in the status bar.
+- **HTTPS option for the in-page mic**: `make_cert.sh` (self-signed cert with
+  SANs for 10.42.0.1/192.168.2.13) + `web_server.py --https` on port 8443.
+  (HTTPS falls back to the Flask server — waitress has no TLS.)
+- **Captive portal (Option B)**: `portal_up.sh`/`portal_down.sh` write a
+  wildcard-DNS dnsmasq snippet for nmcli shared mode; `web_server.py` answers
+  OS portal probes (`/generate_204`, `/hotspot-detect.html`, `/ncsi.txt`) so
+  phones pop the chat open on joining `SSAI`. Needs on-phone test.
+- **Phase 2C scaffolded — shared memory via plain-text reports.**
+  `reports/` (with `_INDEX.md`, `pi_vitals.md`, `community_notes.md`),
+  `loggers/pi_vitals.py` (cron-able), `reports_reader.py` (truncated digest),
+  injected into the system prompt on every question. 📝 button on the page →
+  `POST /api/note` appends to community_notes.md. MCP deferred deliberately —
+  plain files first, MCP can replace the reader without format changes.
+- Verified: compile clean, JS check, note endpoint, digest, prompt injection.
+
 ## 2026-09-25 (night 2)
 
 - **Project renamed: HCA_PublicPlace**, Level 2 of the "Hierarchical Civic AI:

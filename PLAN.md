@@ -135,20 +135,61 @@ pull` before AP-up (or over eth0 sharing).
 - **TTS:** `speechSynthesis` speaks each completed answer; simple on/off
   toggle in the page. Works over plain HTTP, no permissions.
 
-#### 2B.3 Optional extras
+#### 2B.3 Optional extras — BUILT (2026-09-25)
 
-- Captive portal (dnsmasq wildcard DNS) so joining the Wi-Fi pops the chat
-  page open automatically — installation-grade polish.
+- **Captive portal**: `portal_up.sh` / `portal_down.sh` — dnsmasq wildcard
+  DNS via `/etc/NetworkManager/dnsmasq-shared.d/ssai-portal.conf` +
+  probe-answer routes in `web_server.py` (`/generate_204`,
+  `/hotspot-detect.html`, `/ncsi.txt`, ...). Joining `SSAI` should pop the
+  chat open automatically. Needs an on-phone test.
+- **HTTPS (for the in-page 🎤 mic)**: `make_cert.sh` generates a self-signed
+  cert; `python3 web_server.py --https` serves on 8443. (Note: HTTPS uses the
+  Flask server — waitress does no TLS. Fine for the low-traffic portal.)
 - QR code (printed card or shown at boot) encoding `http://10.42.0.1:8080`.
 
 **Acceptance criteria (2B):**
 
 - [x] Phone joins `SSAI` network, opens the page, full Q→A round trip with
       streaming (verified 2026-09-25 evening, country `HK`).
-- [ ] Keyboard dictation works as STT; TTS toggle speaks answers. (Buttons
-      built; needs an on-phone test of 🎤/🔊 — mic may need HTTPS.)
+- [x] Keyboard dictation works as STT (verified). TTS default-on toggle built.
+      In-page 🎤 needs HTTPS (`make_cert.sh` + `--https`) — optional.
 - [ ] Works after an unattended reboot (AP + web server autostart).
       (`install_autostart.sh` ready; needs a reboot test.)
+- [ ] Captive portal pops the chat on join (built; needs on-phone test).
+
+---
+
+## Phase 2C — Shared memory: reports, sensors, community notes (scaffolded 2026-09-25)
+
+**Goal:** the kami is aware of its environment and its community, through
+plain-text "reports" both machines and people can write.
+
+### Architecture (as built)
+
+- `reports/` directory = the node's shared memory. Every `.md` file is a
+  report with a `#`-prefixed metadata header (description, logger config,
+  location, units, what's tweakable) + timestamped content.
+  - `reports/_INDEX.md` — how to read reports (for the LLM and humans).
+  - `reports/pi_vitals.md` — written every minute by cron +
+    `loggers/pi_vitals.py` (stand-in for real sensors; BME280/LoRa later).
+  - `reports/community_notes.md` — notes/suggestions/poll answers left via
+    the chat page's 📝 button (`POST /api/note`).
+- `reports_reader.py` compiles a truncated digest (newest content kept);
+  `llm_manager` injects it into the system prompt on EVERY question, so the
+  kami always speaks with fresh local knowledge.
+- Deliberately **not** MCP for now: plain files are readable by cron, the
+  LLM, and humans, with zero extra services. A full MCP interface
+  (`@modelcontextprotocol/server-filesystem` via Node) can replace the
+  reader later without changing the report format.
+
+### Still to do in 2C
+
+- [ ] Cron entry: `* * * * * /usr/bin/python3 /home/admin/ssai/loggers/pi_vitals.py`
+- [ ] First real sensor logger (e.g. BME280 on I2C, or meshtastic ingest)
+      following the same report format.
+- [ ] Let the LLM *suggest* logger-config tweaks (it can already read the
+      `logger_config` header; applying them stays human-gated).
+- [ ] Polls/decisions: a note type the kami tallies when asked.
 
 ---
 

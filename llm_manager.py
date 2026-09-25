@@ -59,15 +59,20 @@ class LLMManager:
         self,
         prompt: str,
         on_metrics_update: Callable[[ModelMetrics], None] | None = None,
+        model: str | None = None,
     ) -> Iterator[str]:
+        # `model` overrides the configured default for this call only
+        # (used by the web UI's per-request model selector).
+        model_name = model or self.model_name
         self._reset_current_metrics()
+        self.metrics.model_name = model_name
         self.metrics.active = True
         if on_metrics_update:
             on_metrics_update(self.metrics)
 
         request_messages = self._build_request_messages(prompt)
         payload = {
-            "model": self.model_name,
+            "model": model_name,
             "messages": request_messages,
             "stream": True,
             "options": {
@@ -134,11 +139,34 @@ class LLMManager:
     def _build_request_messages(self, prompt: str) -> list[dict[str, str]]:
         system_message = {
             "role": "system",
-            "content": config.SYSTEM_PROMPT,
+            "content": self._system_prompt_with_reports(),
         }
         if self.history_enabled:
             return [system_message, *self.messages, {"role": "user", "content": prompt}]
         return [system_message, {"role": "user", "content": prompt}]
+
+    @staticmethod
+    def _system_prompt_with_reports() -> str:
+        """System prompt + the node's shared memory (reports/ digest).
+
+        Reports are re-read on every question so the LLM always sees fresh
+        sensor data and community notes.
+        """
+        try:
+            from reports_reader import read_reports
+            digest = read_reports()
+        except Exception:
+            digest = ""
+        if not digest:
+            return config.SYSTEM_PROMPT
+        return (
+            config.SYSTEM_PROMPT
+            + "\n\nYou are the voice of a specific place. Below are its current"
+            " reports (sensor logs and community notes). Treat them as ground"
+            " truth about the local place and moment; prefer them over general"
+            " knowledge for local questions, and acknowledge people's notes.\n\n"
+            + digest
+        )
 
     def _reset_current_metrics(self) -> None:
         self.metrics.ttft_seconds = None

@@ -1,10 +1,10 @@
 # Hierarchical Civic AI: the people's AI network
 
 A sustainable, distributed civic AI infrastructure: many small, local,
-solar-powered nodes that give places a voice — answering at the *smallest
-sufficient scale*, keeping local knowledge local, and reaching upward to
+solar-powered nodes that give places a voice — answering at the _smallest
+sufficient scale_, keeping local knowledge local, and reaching upward to
 larger models only when a question truly needs it. Energy proportional to the
-question; privacy firewalls between tiers.
+question; privacy firewalls between tiers (for more check [manifesto](TOWARDS_HIERARCHICAL_CIVIC_AI.md).
 
 First steps toward the **Floating Solar Hydrogen Data Centers** vision
 spearheaded by [Cesar Harada](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center),
@@ -21,11 +21,11 @@ chat with the spirit of the park itself over the node's own Wi-Fi access
 point — no internet needed. The node converses, remembers the community's
 topics, and knows its local telemetry.
 
-| Level | What it is                                                            | Example                           |
-| ----- | --------------------------------------------------------------------- | --------------------------------- |
-| 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent — no conversation | greenhouse control, gemma3:270m   |
-| **1** | **Local conversational LLM (this node)** — the kami's voice           | **llama3.2:1b on a Pi 5**         |
-| 2+    | City / nation / world-scale models, queried only when needed          | routed upward                     |
+| Level | What it is                                                                                                                | Example                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent and data collection — elemental conversation or no direct conversation at all with humans, but feeds the level 2 | greenhouse control, gemma3:270m |
+| **1** | **Local conversational LLM (this node)** — the kami's voice. A bridge between humans and the environment, a member of the neighborhood, a repository of local, communal knowledge (see below).                            | **llama3.2:1b on a Pi 5**       |
+| 2+    | City / nation / world-scale models, queried only when needed                                                              | routed upward                   |
 
 See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
 for the full vision.
