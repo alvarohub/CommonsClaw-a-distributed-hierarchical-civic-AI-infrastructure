@@ -1,21 +1,49 @@
-# SSAI
+# HCA_PublicPlace
 
-SSAI is a local AI conversation system designed for a Raspberry Pi 5. It uses
-Ollama to run a local language model and provides a simple Tkinter interface for
-conversation and system monitoring.
+**A "kami" node: a solar-powered, sensor-laden Raspberry Pi 5 that gives a
+voice to a public place** — visitors chat with the spirit of the park itself
+over a Wi-Fi access point, no internet needed. Part of the larger
+**Hierarchical Civic AI: the people's AI network** project.
+
+This repo is **Level 2** of the hierarchy — a small local LLM (Ollama) that
+converses, remembers the community's topics, and knows its local telemetry:
+
+| Level | What it is | Example |
+|---|---|---|
+| 0 | Engineered AIoT: pattern recognition, ML without language | greenhouse control, anomaly detection |
+| 1 | "Basic trigger" sub-1B models: formatting, classification, intent | gemma3:270m, qwen2.5:0.5b |
+| **2** | **Local conversational LLM (this node)** — the kami's voice | **llama3.2:1b on a Pi 5** |
+| 3+ | City / nation / world-scale models, queried only when needed | routed upward |
+
+Design principle: use the *smallest sufficient scale* — energy proportional
+to the question, privacy firewalls between tiers, local knowledge stays
+local. See [TOWARDS_HIERARCHICAL_CIVIC_AI.md](TOWARDS_HIERARCHICAL_CIVIC_AI.md)
+for the full vision.
+
+*History: this code began as a prototype called "SSAI" (a university intern's
+Tkinter chat script). It has been substantially rebuilt — screenless console
+mode, Wi-Fi AP + web chat with phone-side STT/TTS, benchmark tooling, and
+unattended autostart — toward the vision above. The working name SSAI remains
+in some file/doc references but the project is HCA_PublicPlace. The code will
+eventually move into a subfolder of the larger HCA repo.*
 
 ## Status
 
-This project is an active prototype. The current configuration targets a Linux
-system with a local Ollama server and the `phi3.5:latest` model.
+Active prototype, functional end-to-end: phone joins the Pi's Wi-Fi AP →
+opens a chat page → talks to a local model (default `llama3.2:1b`).
+Benchmarks in [BENCHMARKS.md](BENCHMARKS.md). Roadmap in [PLAN.md](PLAN.md).
+Setup in [SETUP_RPI5.md](SETUP_RPI5.md).
 
 ## Features
 
-- Local conversation with a language model.
-- Streaming model responses in the graphical interface.
-- Optional conversation history.
-- CPU, RAM, and temperature monitoring.
-- A separate terminal control view for hardware and model status.
+- Local conversation with a language model (Ollama, fully offline).
+- Wi-Fi access point + phone web chat (streaming answers).
+- Phone-side STT (Web Speech API) and TTS (speechSynthesis) — the Pi needs
+  no internet.
+- Screenless console mode (auto-fallback when no display).
+- CPU, RAM, and temperature monitoring + terminal control view.
+- Model benchmark harness with shareable results table.
+- Unattended autostart (systemd + AP + boot-to-console).
 
 ## Project structure
 
@@ -42,12 +70,13 @@ system with a local Ollama server and the `phi3.5:latest` model.
 
 The current implementation requires:
 
-- Linux.
-- Python 3.
+- Linux (developed on Raspberry Pi OS Bookworm, Pi 5 16 GB).
+- Python 3 (≥ 3.10).
 - Tkinter (optional — without it, `main.py` runs in console mode).
-- The Python packages `requests` and `psutil`.
+- The Python packages `requests`, `psutil`, `flask`, `waitress`.
 - Ollama running locally at `http://127.0.0.1:11434`.
-- The model `phi3.5:latest` installed in Ollama.
+- An Ollama model installed (default `llama3.2:1b`; see
+  [BENCHMARKS.md](BENCHMARKS.md) for alternatives measured on the Pi 5).
 
 The repository does not currently include a dependency manifest such as
 `requirements.txt` or `pyproject.toml`.

@@ -1,8 +1,8 @@
 # Towards Hierarchical Civic AI Datacenters
 
-*Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the
+_Vision statement by Alvaro Cassinelli, 2026-09-25, recorded during the
 development of SSAI (the "kami" node) — this file preserves the original
-message verbatim, followed by a summary and technical commentary.*
+message verbatim, followed by a summary and technical commentary._
 
 ---
 
@@ -69,20 +69,20 @@ message verbatim, followed by a summary and technical commentary.*
 
 - **The kami node**: a solar-powered Pi in a public space (a stone turtle in
   a Japanese park), hosting a small local LLM with sensors. People chat with
-  the *place itself* — its spirit ("kami") — not with a generic assistant.
+  the _place itself_ — its spirit ("kami") — not with a generic assistant.
 - **Memory of the community**: the node records topics, learns the
   neighborhood's interests, local news, administrative knowledge, crop advice
   from local telemetry and meshtastic-linked weather stations.
-- **Hierarchy of models**: questions are answered at the *smallest sufficient
-  scale*. Local chit-chat and local knowledge → the tiny node model. General
+- **Hierarchy of models**: questions are answered at the _smallest sufficient
+  scale_. Local chit-chat and local knowledge → the tiny node model. General
   questions → routed upward to a city-scale model, then nation-scale, then
   world-scale — only as needed. Energy proportional to the question.
 - **Privacy firewalls**: local information stays local; the giant models are
   never cluttered with (or entrusted with) what only matters to neighbors.
 - **Political/philosophical stance**: the antithesis of the servile
   super-intelligence ("openclaw") model of AI — no darwinian selection of
-  models killed whenever a user is displeased. Instead: intelligence *at the
-  edge*, embedded in the physical world, where humans and machines are agents
+  models killed whenever a user is displeased. Instead: intelligence _at the
+  edge_, embedded in the physical world, where humans and machines are agents
   in one network with a shared interest — a liveable space, evenly
   distributed energy, co-evolution with the ecosystem. A "society of mind"
   embodied in the environment rather than a disembodied super-brain.
@@ -95,14 +95,14 @@ message verbatim, followed by a summary and technical commentary.*
 The vision maps unusually well onto concrete engineering decisions:
 
 1. **Tiny models are a feature, not a compromise.** The kami persona does
-   not need encyclopedic knowledge — it needs *local* knowledge, sensors,
+   not need encyclopedic knowledge — it needs _local_ knowledge, sensors,
    and a voice. Sub-1B models (gemma3:270m, qwen2.5:0.5b) at 20+ tok/s make
    conversation feel alive even on a Pi 5, and leave power budget for sensors.
    "Formatting/basic trigger" (see below) covers exactly the structured
-   sub-tasks (topic logging, sensor summaries) that we can *also* delegate
+   sub-tasks (topic logging, sensor summaries) that we can _also_ delegate
    to the tiny model.
 2. **The system prompt is the soul.** The kami personality, its knowledge of
-   being *this* place, its care for the ecosystem — all live in
+   being _this_ place, its care for the ecosystem — all live in
    `config.py:SYSTEM_PROMPT`. This is the single most important artistic
    artifact of the project, and it can be tuned independently of code.
 3. **Memory = the topics database.** "Record the topics in proper files" →
@@ -117,12 +117,12 @@ The vision maps unusually well onto concrete engineering decisions:
 5. **Sensors as first-class input.** The status infrastructure
    (`HardwareMonitor` → `StatusStore` → dashboards) is already the pattern:
    environmental sensors can be injected into the system prompt ("the air is
-   28°C, humid, the turtle is warm from the sun") so the kami speaks *from*
+   28°C, humid, the turtle is warm from the sun") so the kami speaks _from_
    the place.
 6. **Solar = power-aware operation.** Duty-cycling, a "sleeping kami" low-
    power state, and model-size choice all become power-budget decisions. The
-   benchmark table (BENCHMARKS.md) gains a new column someday: *joules per
-   answer*.
+   benchmark table (BENCHMARKS.md) gains a new column someday: _joules per
+   answer_.
 7. **Phase 3 (mic/speaker) is the embodiment.** Voice is what turns a chat
    box into a presence in the park. The push-to-talk button becomes the
    turtle you touch to wake.
@@ -133,6 +133,6 @@ The vision maps unusually well onto concrete engineering decisions:
 2. Topic memory: who curates it? Does the kami summarize nightly?
 3. Uplink policy: when off-grid/solar, is the hierarchy simply unavailable,
    or queued? (Store-and-forward is very much in the spirit of meshtastic.)
-4. What does the kami *refuse* to answer locally vs route upward?
-5. The persona's relationship to truth: it speaks *for* the place — what
+4. What does the kami _refuse_ to answer locally vs route upward?
+5. The persona's relationship to truth: it speaks _for_ the place — what
    happens when visitors ask it things the place cannot know?

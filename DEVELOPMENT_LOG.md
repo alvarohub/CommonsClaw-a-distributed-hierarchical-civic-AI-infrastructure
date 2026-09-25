@@ -4,6 +4,13 @@ This document records the main work completed on SSAI, organized by date.
 
 ## 2026-09-25 (night 2)
 
+- **Project renamed: HCA_PublicPlace**, Level 2 of the "Hierarchical Civic AI:
+  the people's AI network" project (SSAI was the intern-era prototype name).
+  README rewritten with the vision, the level structure (0 = engineered AIoT,
+  1 = sub-1B trigger models, 2 = this conversational node, 3+ = routed upward),
+  and the design principle (smallest sufficient scale). Code will eventually
+  move into an HCA_PublicPlace/ subfolder of the larger HCA repo (not yet on
+  GitHub). Notion page exists but is private (Augmented Materiality workspace).
 - **Full model ladder benchmarked** (benchmark.py, rigorous 100-token runs):
   gemma3:270m = 35.7 tok/s (TTFT 0.05s), qwen2.5:0.5b = 26.0 (0.04s),
   llama3.2:1b = 8.1 (0.13s), phi3.5 = 5.0 (0.20s). Sub-1B models are ~7x
