@@ -82,7 +82,8 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - `control.py` - Displays shared status in a terminal view.
 - `config.py` - Contains application, model, GUI, and hardware settings.
 - `DEVELOPMENT_LOG.md` - Daily development log describing completed work.
-- `LICENSE` - MIT license.
+- `LICENSE` - License texts (see the License section below).
+- `CREDITS.md` - Project history and credits.
 
 ## Requirements
 
@@ -231,4 +232,11 @@ Full history and credits: [CREDITS.md](CREDITS.md).
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+- **Hardware:** [CERN Open Hardware Licence, Version 2 — Strongly Reciprocal (CERN-OHL-S v2)](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center/blob/main/LICENSE).
+- **Accompanying software** (firmware, dashboards, data pipelines): see `CONTRIBUTING.md` for the compatible permissive licence (typically a copyleft-compatible OSI licence such as GPLv3) chosen per sub-directory.
+- **Documentation, diagrams, and text in this README:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), unless otherwise marked.
+
+Note: the seed code this repo was forked from (dlx-designlab/ssai) is MIT
+licensed; surviving upstream files retain that license and attribution. The
+project's own licensing (above) applies to new work. See [LICENSE](LICENSE)
+and [CREDITS.md](CREDITS.md).

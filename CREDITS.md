@@ -36,7 +36,7 @@
    collaboration.
 2. **Alvaro Cassinelli** pitches the first phase — a small, local,
    conversational civic node — as the bottom-up path toward what he calls
-   the *Hierarchical Civic AI: the people's AI network*.
+   the _Hierarchical Civic AI: the people's AI network_.
 3. DLX assigns an intern, who produces the "SSAI" prototype (Tkinter chat
    over a local Ollama model) over several weeks in Sept 2026.
 4. From 2026-09-17, Alvaro takes over the codebase directly, pair-programming
