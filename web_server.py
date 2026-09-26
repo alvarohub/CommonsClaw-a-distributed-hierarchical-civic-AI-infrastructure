@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations # enables postponed evaluation of type annotations (PEP 563)
 
 import json
 import os

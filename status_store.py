@@ -1,3 +1,25 @@
+"""The node's live bulletin board.
+
+Every frontend (web_server, console, lcd GUI) runs in its own process and
+publishes "what is happening right now" to ONE shared JSON file
+(config.STATUS_FILE, /tmp/commonsclaw_status.json). control.py — the SSH
+dashboard — is a separate process that polls that file and renders it.
+
+Why a file and not, say, a socket or shared memory: it is the simplest
+inter-process channel on a single machine, needs no broker, and the reader
+side needs zero locks (see _write_locked for the atomic-write trick).
+
+IMPORTANT — this is a LIVE PULSE, not a log:
+  - It lives in /tmp, is deleted on clean shutdown (clear()), and control.py
+    treats a file older than STATUS_STALE_AFTER_SECONDS as "process gone".
+  - The node's PERSISTENT memory (the kami's soul) lives elsewhere:
+    memory/ (identity, journal), reports/ (community notes), sensors/.
+    Nothing here survives a reboot, and nothing here should.
+  - Phase 4 idea (see PLAN.md): a logger could periodically fold these live
+    stats (traffic, temperature) into a persistent self-report — this file
+    is the natural source for it.
+"""
+
 from __future__ import annotations
 
 import json
@@ -12,7 +34,17 @@ from llm_manager import ModelMetrics
 
 
 class StatusStore:
-    """Thread-safe status shared with the separate SSH control process."""
+    """Thread-safe publisher of the node's live status to the shared file.
+
+    Writers (any frontend) call update_hardware / update_model /
+    submit_question / complete_turn; the reader (control.py) just reads the
+    file. All mutating methods take the same Lock because the web server
+    writes from multiple waitress threads at once.
+
+    Snapshot discipline: we store COPIES (HardwareSnapshot(**vars(...)),
+    ModelMetrics(**vars(...))) so a caller that keeps mutating its own
+    dataclass instance cannot silently corrupt the stored state.
+    """
 
     def __init__(self, path: str = config.STATUS_FILE):
         self.path = Path(path)
@@ -46,6 +78,9 @@ class StatusStore:
         error: str | None = None,
     ) -> None:
         with self._lock:
+            # The dashboard's scrollback: question + answer + the hardware and
+            # model metrics AT THE MOMENT of completion (snapshotted now, so
+            # later activity does not rewrite history).
             self._completed_turn = {
                 "question": self._current_question,
                 "answer": answer,
@@ -87,6 +122,10 @@ class StatusStore:
             "completed_turn": self._completed_turn,
         }
 
+        # ATOMIC WRITE: dump to a temp file in the same directory, then
+        # os.replace() — a rename is atomic on POSIX, so control.py either
+        # sees the previous complete JSON or the new complete JSON, never a
+        # torn half-write. This is why the reader needs no lock at all.
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with NamedTemporaryFile(
             mode="w",
