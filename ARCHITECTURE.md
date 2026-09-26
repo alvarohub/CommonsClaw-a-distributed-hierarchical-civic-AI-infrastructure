@@ -5,17 +5,41 @@ Written 2026-09-26; keep updated as the system evolves.*
 
 ## The one-paragraph version
 
-A person talks to the kami through a web page served by the node itself.
-The page POSTs the question to `web_server.py`, which hands it to
+A person talks to the kami through one of three frontends, all converging on
+the same path: the **web page** (phone/laptop browser — the main one),
+**console.py** (typing over SSH), or **lcd_gui.py + main.py** (the original
+keyboard + attached-monitor Tkinter GUI). Each frontend hands the question to
 `llm_manager.py` — the only file that talks to the model. The LLM manager
 assembles a system prompt (personality + active memory categories), POSTs it
 to Ollama's `/api/chat` with `stream=True`, and yields each token chunk back
-as a generator. The web server forwards chunks to the browser as SSE events;
-the browser appends them to the page. Meanwhile every frontend also publishes
-live status (hardware, model metrics, current question) to a single JSON file
-via `status_store.py`, which `control.py` renders over SSH. Separate logger
-processes (cron) append sensor readings to plain-text files; those files are
-read back into the system prompt on the next question.
+as a generator. The frontend renders chunks as they arrive (SSE to the
+browser / stdout in the console / a Tk queue in the GUI). Meanwhile every
+frontend also publishes live status (hardware, model metrics, current
+question) to a single JSON file via `status_store.py`, which `control.py`
+renders over SSH. Separate logger processes (cron) append sensor readings to
+plain-text files; those files are read back into the system prompt on the
+next question.
+
+## Why the model is a *server*, not an object
+
+A first-timer's question: why does our Python code call the model over HTTP
+instead of just importing it as a library/object?
+
+1. **The model is huge and slow to load — load it once, share it.** A
+   1–4 GB model takes seconds to load into RAM. If it were an object inside
+   each program, every frontend (web, console, GUI) would hold its own copy
+   (the Pi would suffocate) and every process restart would pay the load
+   cost. Ollama keeps the model warm; our web server restarts on every code
+   push and the model never notices.
+2. **Anything can talk to it.** The browser page, Python, a cron job, a
+   `curl` one-liner — one HTTP POST, no language bindings. (This is exactly
+   how `benchmark.py` and my debug probes work.)
+3. **It's the field's standard pattern.** Ollama, OpenAI's API, every LLM
+   service: same shape. In C++ terms — not a static library linked into every
+   binary, but one daemon everyone sends messages to. A model is closer to a
+   *database* than to a library.
+
+The cost is an HTTP round-trip on localhost — microseconds. Nothing.
 
 ## The cast
 
@@ -78,6 +102,23 @@ control.py (SSH dashboard)  ◄── reads the status file
    turn completed) to `/tmp/commonsclaw_status.json` using temp-file +
    atomic rename. `control.py` polls it from an SSH session. Ephemeral by
    design — it is a pulse, not a memory.
+
+### The keyboard path (original frontend, still present)
+
+`main.py` + `lcd_gui.py` — the Tkinter GUI from the seed project, used when a
+monitor+keyboard is attached. A Tk `Entry` widget captures typing; `<Return>`
+calls `on_submit` → `_handle_prompt` → the same
+`LLMManager.stream_response()`. Because generation runs in a background
+thread and Tk widgets may only be touched from the main thread, chunks cross
+through a thread-safe `queue.Queue`; Tk's event loop polls it every 40 ms
+(`GUI_STREAM_POLL_MS`) and appends text. On a headless boot `main.py`
+auto-falls back to `console.py` instead.
+
+### The console path
+
+`console.py` — plain stdin/stdout over SSH: `input()` → `stream_response()` →
+chunks printed with `flush=True`. The simplest frontend; useful when
+debugging.
 
 ## The memory loop (what makes it a kami)
 
