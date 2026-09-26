@@ -170,7 +170,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - `push_to_pi.sh` — rsync dev workflow (Mac → Pi).
 - `benchmark.py` — model benchmarks → `BENCHMARKS.md`.
 
-**Docs:** `PLAN.md` (roadmap), `SETUP_RPI5.md`, `ENVIRONMENT_LOG.md`,
+**Docs:** `PLAN.md` (roadmap), `ARCHITECTURE.md` (how a question flows through the system), `SETUP_RPI5.md`, `ENVIRONMENT_LOG.md`,
 `TOWARDS_HIERARCHICAL_CIVIC_AI.md` (vision), `COMMONSCLAW_VS_OPENCLAW.md`,
 `REFERENCES.md` (research landscape), `BENCHMARKS.md`, `CREDITS.md`,
 `DEVELOPMENT_LOG.md`.

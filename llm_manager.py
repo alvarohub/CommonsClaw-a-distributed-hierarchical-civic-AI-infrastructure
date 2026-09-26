@@ -1,3 +1,22 @@
+"""The model's front door.
+
+Every question the kami answers — from the web chat, the console, or the LCD
+GUI — flows through this one class. Nothing else in the codebase talks to
+Ollama. The call path, top to bottom:
+
+    frontend (web_server / console / main)
+        -> LLMManager.stream_response(prompt, model, memory_categories)
+            -> resolve_categories()          # which memory sections enter
+            -> _build_request_messages()     # system prompt + digest + history
+            -> _system_prompt_with_reports() # config.SYSTEM_PROMPT + reports/
+            -> HTTP POST 127.0.0.1:11434/api/chat  (stream=True)  <- THE MODEL CALL
+            -> yield each token chunk as it arrives (a generator)
+            -> _apply_final_metrics()        # tok/s from Ollama's own counters
+        -> frontend renders chunks as they arrive (SSE / stdout / Tk queue)
+
+Metrics measured here feed the dashboards (status_store) and BENCHMARKS.md.
+"""
+
 from dataclasses import dataclass
 import json
 import time
@@ -10,17 +29,32 @@ import config
 
 @dataclass
 class ModelMetrics:
+    """One generation's vital signs, displayed on the dashboards.
+
+    ttft = time to first token (model load + prompt evaluation) — on the Pi
+    this dominates wall time when the prompt is large. tokens_per_second is
+    pure generation speed (Ollama's own eval_duration counter).
+    """
+
     model_name: str = config.MODEL_NAME
     ttft_seconds: float | None = None
     total_response_seconds: float | None = None
     prompt_tokens: int | None = None
     output_tokens: int | None = None
     tokens_per_second: float | None = None
-    active: bool = False
-    available: bool = False
+    active: bool = False      # True while a generation is streaming
+    available: bool = False   # True when Ollama has the model and answers
 
 
 class LLMManager:
+    """Owns the Ollama connection, the conversation history, and the metrics.
+
+    One instance per frontend process. `self.messages` is the conversation
+    history (in RAM; lost on restart — persistent memory lives in files, see
+    reports_reader). History is replayed into every request, which is why
+    prompt-eval time grows over a long chat on the Pi.
+    """
+
     def __init__(self):
         self.model_name = config.MODEL_NAME
         self.api_base = config.OLLAMA_API_BASE.rstrip("/")
@@ -29,6 +63,7 @@ class LLMManager:
         self.metrics = ModelMetrics(model_name=self.model_name)
 
     def check_availability(self) -> tuple[bool, str]:
+        """Ask Ollama /api/tags whether our configured model is installed."""
         try:
             response = requests.get(
                 f"{self.api_base}/tags",
@@ -62,10 +97,16 @@ class LLMManager:
         model: str | None = None,
         memory_categories: set[str] | None = None,
     ) -> Iterator[str]:
-        # `model` overrides the configured default for this call only
-        # (used by the web UI's per-request model selector).
-        # `memory_categories` limits which memory sections enter the prompt
-        # (None = all on, as before; empty set = bare prompt).
+        """THE generation path. A GENERATOR: yields each text chunk as Ollama
+        produces it, so the caller renders token-by-token (typewriter feel)
+        instead of waiting for the full answer.
+
+        - model: per-call override (the web UI's model dropdown).
+        - memory_categories: which memory sections enter the system prompt
+          for THIS question (None = all on; empty set = bare prompt = fastest).
+          Resolved by the caller via resolve_categories() (UI toggles + slash
+          keywords + auto-detect).
+        """
         model_name = model or self.model_name
         self._reset_current_metrics()
         self.metrics.model_name = model_name
@@ -89,6 +130,9 @@ class LLMManager:
         final_data: dict = {}
 
         try:
+            # ── THE MODEL CALL ───────────────────────────────────────────
+            # POST /api/chat with stream=True. Ollama answers with one JSON
+            # object PER LINE (NDJSON), each carrying a small content chunk.
             with requests.post(
                 f"{self.api_base}/chat",
                 json=payload,
@@ -110,6 +154,7 @@ class LLMManager:
                     chunk = message.get("content") or ""
 
                     if chunk:
+                        # First chunk arrived → TTFT = load + prompt-eval time.
                         if first_token_time is None:
                             first_token_time = time.perf_counter()
                             self.metrics.ttft_seconds = first_token_time - start_time
@@ -117,15 +162,17 @@ class LLMManager:
                                 on_metrics_update(self.metrics)
 
                         response_parts.append(chunk)
-                        yield chunk
+                        yield chunk          # ← out to the frontend NOW
 
                     if data.get("done"):
-                        final_data = data
+                        final_data = data    # last line carries the counters
 
             end_time = time.perf_counter()
             self.metrics.total_response_seconds = end_time - start_time
             self._apply_final_metrics(final_data)
 
+            # Append this turn to the in-RAM conversation history (replayed
+            # into every future request while this process lives).
             assistant_text = "".join(response_parts)
             if self.history_enabled:
                 self.messages.append({"role": "user", "content": prompt})
