@@ -199,52 +199,68 @@ plain-text "reports" both machines and people can write.
 ## Phase 3 — On-device voice (microphone + speaker on the Pi)
 
 **Goal:** the Pi listens and speaks by itself; the phone becomes optional.
-_This phase is for later — decisions below are starting points, to be
-revisited with Phase 1 measurements in hand._
 
-### 3.1 Hardware decision (pick one, record choice here)
+### 3.1 Hardware — DECIDED (2026-09-27)
 
-| Option                         | Pros                                     | Cons                                   |
-| ------------------------------ | ---------------------------------------- | -------------------------------------- |
-| USB speakerphone (Jabra-style) | Zero drivers, built-in echo cancellation | Bulky, looks like office gear          |
-| ReSpeaker 2-Mic HAT (WM8960)   | Cheap, speaker + mic, GPIO passthrough   | Driver overlay fiddly; no hardware AEC |
-| ReSpeaker 4-Mic Array          | Far-field mics, LED ring                 | More setup; overkill for near-field    |
-| USB mic + Pi HDMI/USB audio    | Simplest mic                             | Separate speaker path; no AEC          |
+- **Mic: ReSpeaker USB Mic Array v2.1** (already owned). USB audio class →
+  appears as a sound card, no drivers. The onboard XMOS does beamforming,
+  noise suppression, AEC, and DOA *in hardware* — the Pi receives clean,
+  voice-focused audio, which matters more for Whisper accuracy than compute.
+  Bonus: DOA tells the kami *where* the speaker stands (embodiment flourish).
+- **Speaker:** any small USB/HDMI speaker (Pi 5 has no 3.5 mm jack). TBD
+  what's on hand.
+- **Trigger:** start with push-to-talk over SSH, then a GPIO button on the
+  turtle. Wake word (openWakeWord) and barge-in are stretch goals.
 
-Note: the Pi 5 has **no 3.5 mm jack** — audio out is HDMI, USB, or HAT.
+### 3.2 Software stack — DECIDED
 
-### 3.2 Software stack
+- **STT:** `faster-whisper` (CTranslate2, int8) with `tiny` or `base` model —
+  fastest CPU path on Pi 5 (~2-4× realtime for tiny), Python-native (drops
+  into our pipeline), multilingual (Japanese+English). Alternative:
+  `whisper.cpp` with ARM NEON build. Benchmark both.
+- **TTS:** `piper` (Home Assistant voice stack) — faster than realtime on
+  Pi 5, small voices, has Japanese. Fallback: `espeak-ng` (robotic, instant).
+- **Sequencing** (his correct instinct): STT → LLM → TTS never compete —
+  total added CPU per turn is seconds. Memory check: whisper tiny (~150 MB)
+  + piper voice (~50 MB) + llama3.2 (~800 MB) ≈ fine in 16 GB.
 
-- **STT:** Vosk (small English model, offline, proven on Pi, streaming
-  partials) as default; `faster-whisper` tiny/base as quality alternative —
-  benchmark both on the Pi 5.
-- **TTS:** Piper (natural, fast on Pi 5) as default; eSpeak-ng as
-  zero-dependency fallback.
-- **Turn-taking:** start with **push-to-talk** (a physical button on GPIO —
-  installation-proof, no echo problem). Wake word (openWakeWord) and
-  barge-in are stretch goals.
-- **Pipeline:** button → record → STT → `LLMManager` → sentence-chunked TTS
-  while the answer is still streaming → speaker. Echo cancellation only
-  becomes critical if the mic stays open during playback.
+### 3.3 Pipeline
 
-### 3.3 Latency reality check
+```
+button → record (ReSpeaker, clean beamformed audio)
+       → faster-whisper tiny (~1-2 s for a short question)
+       → text into LLMManager.stream_response()  (same path as everything)
+       → TTS starts on first sentence, speaks while the rest streams
+```
 
-phi3.5 on Pi 5 CPU ≈ 1–3 tok/s → a 50-word answer takes 30–60 s to
-generate fully. For voice this dominates everything else. Options, to be
-decided with Phase 1 numbers:
+Voice answers also flow to the phone page as usual (web UI keeps working;
+phone TTS and Pi TTS are independent outputs).
 
-- Switch to a 1–2 B model (e.g. `llama3.2:1b`, `qwen2.5:1.5b`) for ~2–3×
-  speed at lower answer quality.
-- Keep phi3.5 and design the interaction around the pause (LED, sound,
-  personality of a slow thinker).
-- Start TTS on the first sentence so speaking begins early.
+### 3.4 Latency budget (measured baseline in hand)
+
+llama3.2:1b ≈ 8 tok/s. Voice turn = record (2-4 s) + STT (1-2 s) + TTFT
+(~1-5 s warm) + answer (~10-15 s at 50 words, TTS overlapping). Realistic
+total to first spoken word: ~5-8 s. The kami as a *slow, calm presence* is a
+design feature here, not a bug — but the two-tier model idea (decision 9)
+becomes more attractive for voice chit-chat.
+
+### 3.5 Build order (each step independently testable)
+
+1. ReSpeaker visible as ALSA device; `arecord` captures clean audio.
+2. `faster-whisper` tiny transcribes a recorded clip (SSH).
+3. Push-to-talk over SSH: hold Enter to record, release → transcript.
+4. Full loop: voice question → kami text answer (printed + on web).
+5. Piper on the Pi speaks the answer (sentence-chunked, while streaming).
+6. GPIO button on the turtle; LED/sound feedback for listening/thinking.
+7. Stretch: openWakeWord, DOA "the kami turns toward you", barge-in.
 
 **Acceptance criteria:**
 
 - [ ] Button press → spoken question → spoken answer, fully offline.
-- [ ] Round-trip time measured and recorded; compared against Phase 1
-      baseline.
+- [ ] Round-trip time measured and recorded (target: <10 s to first spoken
+      word for a short question).
 - [ ] Runs unattended for a day without audio drift/crashes.
+- [ ] Benchmark table gains rows: STT (seconds per 3 s clip), TTS (RTF).
 
 ---
 

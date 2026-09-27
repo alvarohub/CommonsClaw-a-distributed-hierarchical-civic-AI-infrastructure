@@ -1,7 +1,7 @@
 # Architecture — how a question becomes an answer
 
-*A reading guide to the codebase, following one question through the system.
-Written 2026-09-26; keep updated as the system evolves.*
+_A reading guide to the codebase, following one question through the system.
+Written 2026-09-26; keep updated as the system evolves._
 
 ## The one-paragraph version
 
@@ -20,7 +20,7 @@ renders over SSH. Separate logger processes (cron) append sensor readings to
 plain-text files; those files are read back into the system prompt on the
 next question.
 
-## Why the model is a *server*, not an object
+## Why the model is a _server_, not an object
 
 A first-timer's question: why does our Python code call the model over HTTP
 instead of just importing it as a library/object?
@@ -37,7 +37,7 @@ instead of just importing it as a library/object?
 3. **It's the field's standard pattern.** Ollama, OpenAI's API, every LLM
    service: same shape. In C++ terms — not a static library linked into every
    binary, but one daemon everyone sends messages to. A model is closer to a
-   *database* than to a library.
+   _database_ than to a library.
 
 The cost is an HTTP round-trip on localhost — microseconds. Nothing.
 
@@ -79,23 +79,23 @@ control.py (SSH dashboard)  ◄── reads the status file
    resolves memory categories (`toggles + slash keywords + auto-detect` via
    `LLMManager.resolve_categories`), and — under a single-slot lock (the Pi
    can only generate one answer at a time) — streams `_stream_question()`'s
-   events back on the *same* HTTP response. The asker always gets its own
+   events back on the _same_ HTTP response. The asker always gets its own
    answer; a second concurrent asker gets a `busy` event. This same process
    also serves `/api/status`, `/api/models`, `/api/note`, the dashboard's
    `/api/files`, and the captive-portal probe answers.
 
 3. **LLM manager** — `llm_manager.py`: `stream_response()` builds the
    message list — system prompt (personality from `config.SYSTEM_PROMPT`
-   + the active memory digest from `reports_reader`) + in-RAM conversation
-   history + the question — and POSTs to Ollama. Ollama answers with one JSON
-   object per line (NDJSON); each `content` chunk is yielded immediately.
-   The final line carries Ollama's own counters (prompt tokens, eval count,
-   eval duration) → metrics. The turn is then appended to history.
+   - the active memory digest from `reports_reader`) + in-RAM conversation
+     history + the question — and POSTs to Ollama. Ollama answers with one JSON
+     object per line (NDJSON); each `content` chunk is yielded immediately.
+     The final line carries Ollama's own counters (prompt tokens, eval count,
+     eval duration) → metrics. The turn is then appended to history.
 
 4. **Ollama / llama.cpp** — the actual model (default `llama3.2:1b`), running
    as a systemd service, loaded in RAM, quantized, CPU-only. Two phases per
-   request: *prompt evaluation* (reading everything — dominates wall time
-   when the prompt is large) and *generation* (the tok/s we benchmark).
+   request: _prompt evaluation_ (reading everything — dominates wall time
+   when the prompt is large) and _generation_ (the tok/s we benchmark).
 
 5. **Status store** — `status_store.py`: alongside the answer path, the web
    server publishes every stage (question submitted, model metrics updates,
