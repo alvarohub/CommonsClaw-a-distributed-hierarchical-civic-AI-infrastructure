@@ -13,7 +13,7 @@ IMPORTANT — this is a LIVE PULSE, not a log:
   - It lives in /tmp, is deleted on clean shutdown (clear()), and control.py
     treats a file older than STATUS_STALE_AFTER_SECONDS as "process gone".
   - The node's PERSISTENT memory (the kami's soul) lives elsewhere:
-    memory/ (identity, journal), reports/ (community notes), sensors/.
+    identity/ (identity, journal), community/ (notes), sensors/.
     Nothing here survives a reboot, and nothing here should.
   - Phase 4 idea (see PLAN.md): a logger could periodically fold these live
     stats (traffic, temperature) into a persistent self-report — this file

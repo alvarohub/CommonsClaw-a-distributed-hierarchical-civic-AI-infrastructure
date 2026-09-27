@@ -166,9 +166,9 @@ plain-text "reports" both machines and people can write.
 
 ### Architecture (as built)
 
-- `reports/` + `sensors/` + `memory/` = the node's shared memory, all plain
+- `identity/` + `sensors/` + `community/ = the node's shared memory, all plain
   markdown readable by cron, the LLM, and humans.
-  - `reports/` — `community_notes.md` (people's 📝 notes: suggestions, polls,
+  - `community/` — `notes.md` (people's 📝 notes: suggestions, polls,
     comments), `pi_vitals.md` (node health log).
   - `sensors/` — one file per sensor (self-describing header + appended
     readings) + `SENSOR_REPORT.md` (dashboard: trends, anomalies, kami notes).
@@ -278,7 +278,7 @@ and talks to other agents with other knowledge in other places.
 
 ### 4.1 Self-observation (the node knows its own metabolism)
 
-The node's identity (`memory/identity.md`) should carry _measured_ facts
+The node's identity (`identity/identity.md`) should carry _measured_ facts
 about itself, updated by loggers:
 
 - Energy: solar input, battery, consumption, duty cycle (dark hours policy).

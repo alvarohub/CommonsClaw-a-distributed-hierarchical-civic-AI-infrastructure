@@ -28,9 +28,8 @@ import config
 from hardware_monitor import HardwareMonitor
 
 BASE = Path(__file__).parent.parent
-REPORTS_DIR = BASE / "reports"
 SENSORS_DIR = BASE / "sensors"
-REPORT = REPORTS_DIR / "sensor_pivitals_log.md"
+COMMUNITY_DIR = BASE / "community"
 SENSOR_FILE = SENSORS_DIR / "sensor_pivitals.md"
 MAX_LINES = 60  # keep the files short — the LLM reads them whole
 
@@ -46,7 +45,6 @@ HEADER = """# Report: sensor_pivitals
 
 
 def main() -> None:
-    REPORTS_DIR.mkdir(exist_ok=True)
     SENSORS_DIR.mkdir(exist_ok=True)
     snap = HardwareMonitor().read_snapshot()
     line = (
@@ -56,31 +54,17 @@ def main() -> None:
         f"temp={snap.temperature_c if snap.temperature_c is not None else '--'}C"
     )
 
-    body = []
-    if REPORT.exists():
-        lines = REPORT.read_text().splitlines()
-        # keep existing sample lines (those without the '# ' header prefix)
-        body = [l for l in lines if l and not l.startswith("#")]
-
-    body.append(line)
-    body = body[-MAX_LINES:]
-
-    REPORT.write_text(
-        HEADER.format(updated=time.strftime("%Y-%m-%d %H:%M:%S"))
-        + "\n"
-        + "\n".join(body)
-        + "\n"
-    )
-
-    # Mirror the reading into the per-sensor file (sensors/ layout).
+    # Append to the per-sensor file (single source of truth).
     if SENSOR_FILE.exists():
         slines = SENSOR_FILE.read_text().splitlines()
         sbody = [l for l in slines if l and not l.startswith("#")]
         shead = [l for l in slines if l.startswith("#")]
         sbody = (sbody + [line])[-MAX_LINES:]
         SENSOR_FILE.write_text("\n".join(shead) + "\n" + "\n".join(sbody) + "\n")
+    else:
+        SENSOR_FILE.write_text(HEADER + "\n" + line + "\n")
 
-    print(f"wrote {REPORT}")
+    print(f"wrote {SENSOR_FILE}")
 
 
 if __name__ == "__main__":

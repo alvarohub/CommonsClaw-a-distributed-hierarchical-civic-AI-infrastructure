@@ -31,7 +31,7 @@ import wave
 from pathlib import Path
 
 BASE = Path(__file__).parent.parent
-CALIB_LOG = BASE / "reports" / "mic_calibration.md"
+CALIB_LOG = BASE / "sensors" / "mic_calibration.md"
 DEFAULT_SECONDS = 5
 RATE = 16000  # whisper expects 16 kHz mono 16-bit
 TARGET_PEAK = 5000
@@ -89,7 +89,7 @@ def log_result(text: str) -> None:
     CALIB_LOG.parent.mkdir(exist_ok=True)
     if not CALIB_LOG.exists():
         CALIB_LOG.write_text(
-            "# Report: mic_calibration\n"
+            "# sensor: mic_calibration\n"
             "# description: Microphone setup history for the kami node\n"
             "#   (device, gain, levels, STT results). Appended by\n"
             "#   voice/mic_setup.py so hardware tweaks are never lost.\n"

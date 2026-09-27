@@ -65,6 +65,23 @@
       .dim {
         color: var(--dim);
       }
+      .catbox {
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 8px 0;
+      }
+      .cattitle {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: var(--fg);
+      }
+      .cattitle .what {
+        font-weight: normal;
+        color: var(--dim);
+        font-size: 11px;
+      }
     </style>
   </head>
   <body>
@@ -91,19 +108,37 @@
         }
       }
 
+      const CATS = {
+        identity: { icon: '🧠', title: 'Identity', what: 'who the kami is, its journal' },
+        sensors: { icon: '📡', title: 'Sensors', what: 'telemetry from its body and the place' },
+        community: { icon: '📝', title: 'Community', what: 'notes, suggestions, polls from people' },
+      };
+
       async function loadFiles() {
         const d = await (await fetch('/api/files')).json();
         filesDiv.innerHTML = '';
-        for (const f of d.files) {
-          const b = document.createElement('button');
-          b.className = 'filebtn' + (f === current ? ' active' : '');
-          b.textContent = f;
-          b.onclick = () => {
-            current = f;
-            loadFile(f);
-            loadFiles();
-          };
-          filesDiv.appendChild(b);
+        for (const [cat, meta] of Object.entries(CATS)) {
+          const box = document.createElement('div');
+          box.className = 'catbox';
+          const title = document.createElement('div');
+          title.className = 'cattitle';
+          title.innerHTML = `${meta.icon} ${meta.title} <span class="what">— ${meta.what}</span>`;
+          box.appendChild(title);
+          const files = d.files.filter((f) => f.startsWith(cat + '/'));
+          if (!files.length) {
+            const none = document.createElement('span');
+            none.className = 'dim';
+            none.textContent = '(nothing yet)';
+            box.appendChild(none);
+          }
+          for (const f of files) {
+            const b = document.createElement('button');
+            b.className = 'filebtn' + (f === current ? ' active' : '');
+            b.textContent = f.split('/')[1]; // plain name, no folder prefix
+            b.onclick = () => { current = f; loadFile(f); loadFiles(); };
+            box.appendChild(b);
+          }
+          filesDiv.appendChild(box);
         }
       }
 

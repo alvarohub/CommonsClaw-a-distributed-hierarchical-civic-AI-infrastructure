@@ -50,11 +50,11 @@ A system prototype including a floating platform, embedded LLM (RPi5), solar pan
  │  (browser: typing, 🎤 STT,      (no        ▲   │                           │
  │   🔊 TTS — the Pi needs      internet)     │   │ reads on every question   │
  │   no internet at all)                      │   ▼                           │
- │   📝 Note button ─────────────────────►  reports/community_notes.md        │
- │                                            reports/sensor_*_log.md         │
+ │   📝 Note button ─────────────────────►  community/notes.md        │
+ │                                            sensors/sensor_*.md (merged)         │
  │   SENSORS side                             sensors/sensor_*.md (per-sensor)│
- │                                            sensors/SENSOR_REPORT.md        │
- │   sensors ──► logger processes ──────────► memory/identity.md (who it is)  │
+ │                                            sensors/index.md        │
+ │   sensors ──► logger processes ──────────► identity/identity.md (who it is)  │
  │  (I2C, GPIO,    (cron/daemons,            memory/journal.md (its days)     │
  │   LoRa, ...)     auto-collect; the kami                                    │
  │                  can ask for more/less)                                    │
@@ -114,7 +114,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 - **Community notes:** visitors leave suggestions, poll answers and comments
   via the 📝 button; the kami reads them when answering and can tally or
   summarize them on request.
-- **Persistent memory:** `memory/identity.md` (personality, learned facts,
+- **Persistent memory:** `identity/identity.md` (personality, learned facts,
   skills) + `memory/journal.md` (day-to-day continuity) — the node's soul
   persists across reboots.
 - Screenless console mode (auto-fallback when no display).
@@ -135,7 +135,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 
 - `llm_manager.py` — Ollama availability, streaming responses, per-request
   model override; injects the memory digest into the system prompt.
-- `reports_reader.py` — compiles `memory/` + `sensors/` + `reports/` into the
+- `reports_reader.py` — compiles `identity/` + `sensors/` + `community/` into the
   prompt digest.
 - `config.py` — application, model, GUI, and hardware settings.
 - `status_store.py` — live status JSON (`/tmp/commonsclaw_status.json`, ephemeral).
@@ -158,7 +158,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
   the INA219 is wired).
 - `sensors/` — one self-describing file per sensor + `SENSOR_REPORT.md`
   dashboard.
-- `reports/` — community notes + running sensor logs.
+- `community/` — people's notes (suggestions, polls, comments).
 - `memory/` — `identity.md` (who the kami is) + `journal.md` (continuity).
 
 **Operations:**

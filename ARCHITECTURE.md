@@ -6,7 +6,7 @@ Written 2026-09-26; keep updated as the system evolves._
 ## 0. The big picture — who is a process, who talks to whom
 
 This is the diagram that matters. **Four kinds of things**: humans, frontend
-*processes*, Ollama (the model server, its own systemd service), and plain
+_processes_, Ollama (the model server, its own systemd service), and plain
 files. Every frontend is a **separate process containing its own copy of
 `LLMManager`** — there is no central "manager in the middle". Each frontend
 calls Ollama directly, as a peer of the others.
@@ -40,7 +40,7 @@ calls Ollama directly, as a peer of the others.
    └────────────────────┘                  │
    ┌────────────────────┐                  │
    │ PROCESSES: loggers/│ (cron, separate) │
-   │  sensor_*.py       │ ──append──► sensors/ reports/ memory/ (plain .md)
+   │  sensor_*.py       │ ──append──► sensors/ community/ identity/ (plain .md)
    └────────────────────┘                   ▲
                      ▲                      │ read into every prompt
                      └──────── reports_reader.py (called by each LLMManager)
@@ -48,19 +48,19 @@ calls Ollama directly, as a peer of the others.
 
 **What flows over which channel:**
 
-| Channel | Kind | What crosses it |
-|---|---|---|
-| browser ↔ `web_server.py` | HTTP + SSE | questions, streamed answers, status, notes |
-| each frontend → Ollama | HTTP POST `/api/chat` | the full prompt; NDJSON token stream back |
-| each frontend → status file | atomic file write | "I'm alive, here's my current question/metrics" |
-| `control.py`, web `/api/status` ← status file | file read | the bulletin board (display only!) |
-| loggers → `sensors/` `reports/` | file append | sensor readings, notes |
-| `reports_reader` ← those dirs | file read | memory digest → into the system prompt |
+| Channel                                       | Kind                  | What crosses it                                 |
+| --------------------------------------------- | --------------------- | ----------------------------------------------- |
+| browser ↔ `web_server.py`                     | HTTP + SSE            | questions, streamed answers, status, notes      |
+| each frontend → Ollama                        | HTTP POST `/api/chat` | the full prompt; NDJSON token stream back       |
+| each frontend → status file                   | atomic file write     | "I'm alive, here's my current question/metrics" |
+| `control.py`, web `/api/status` ← status file | file read             | the bulletin board (display only!)              |
+| loggers → `sensors/` `reports/`               | file append           | sensor readings, notes                          |
+| `reports_reader` ← those dirs                 | file read             | memory digest → into the system prompt          |
 
 **The key insight you were missing:** the voice pipeline does NOT go "mic →
-manager → browser". `voice/talk.py` is a *frontend* — it transcribes locally,
-calls Ollama itself, and then simply *posts the finished turn on the bulletin
-board*. The phone page polls `/api/status` (every 15 s) and *renders* the
+manager → browser". `voice/talk.py` is a _frontend_ — it transcribes locally,
+calls Ollama itself, and then simply _posts the finished turn on the bulletin
+board_. The phone page polls `/api/status` (every 15 s) and _renders_ the
 voice turn it finds there. Display, not control.
 
 ## The one-paragraph version
@@ -110,7 +110,7 @@ static/chat.html (browser)          llm_manager.py ─────────�
 static/dashboard.html                    │   (only file that        (llama.cpp,
 console.py  (SSH chat)                   │    talks to the model)    127.0.0.1:11434)
 main.py + lcd_gui.py (monitor)           │
-                                         ├─ reports_reader.py  ◄── memory/, sensors/, reports/
+                                         ├─ reports_reader.py  ◄── identity/, sensors/, community/
                                          │     (plain-text memory digest into the prompt)
                                          │
                                          ├─ config.py (all settings, one place)
@@ -120,7 +120,7 @@ main.py + lcd_gui.py (monitor)           │
 
 SEPARATE PROCESSES                    OPS
 ─────────────────                     ───
-loggers/sensor_*.py (cron)  ──► sensors/ + reports/   (persistent, plain text)
+loggers/sensor_*.py (cron)  ──► sensors/ (plain text)   (persistent, plain text)
 control.py (SSH dashboard)  ◄── reads the status file
                                   benchmark.py → BENCHMARKS.md
                                   ap_up/portal_up/install_autostart/make_cert/push_to_pi.sh
@@ -193,14 +193,14 @@ voice conversations (see "Following one voice question").
 
 Nothing here is an "event bus". Each process is one simple loop:
 
-| Process | Loop | Triggered by |
-|---|---|---|
-| `web_server.py` | waitress serves HTTP requests; one background thread samples hardware every 15 s | browser requests; timer |
-| `console.py` / `talk.py` | blocking `input()`/record → answer → repeat | you, typing or speaking |
-| `main.py` (LCD) | Tk event loop; a queue polled every 40 ms | keypresses; timer |
-| loggers | cron fires them; they write one line and exit | clock |
-| `control.py` | reads the status file, redraws, sleeps 0.5 s | clock |
-| browser page | polls `/api/status` every 15 s; SSE only while an answer streams | timers + your taps |
+| Process                  | Loop                                                                             | Triggered by            |
+| ------------------------ | -------------------------------------------------------------------------------- | ----------------------- |
+| `web_server.py`          | waitress serves HTTP requests; one background thread samples hardware every 15 s | browser requests; timer |
+| `console.py` / `talk.py` | blocking `input()`/record → answer → repeat                                      | you, typing or speaking |
+| `main.py` (LCD)          | Tk event loop; a queue polled every 40 ms                                        | keypresses; timer       |
+| loggers                  | cron fires them; they write one line and exit                                    | clock                   |
+| `control.py`             | reads the status file, redraws, sleeps 0.5 s                                     | clock                   |
+| browser page             | polls `/api/status` every 15 s; SSE only while an answer streams                 | timers + your taps      |
 
 ## Following one voice question (the part that confused you)
 
@@ -211,7 +211,7 @@ Nothing here is an "event bus". Each process is one simple loop:
 3. When the turn completes, `talk.py` writes it to the bulletin board file
    (`completed_turn` + `question_count`).
 4. Up to 15 s later, the phone's page polls `/api/status`; the web server
-   reads the bulletin board *file* (not its own memory — talk.py is a
+   reads the bulletin board _file_ (not its own memory — talk.py is a
    different process) and includes the voice turn.
 5. The page sees a new `turn_id`, renders `🎤 question` + `KAMI: answer`,
    and speaks it if TTS is on.
@@ -223,9 +223,9 @@ the voice loop is complete without it.
 ## The memory loop (what makes it a kami)
 
 ```
-  sensors ──(cron: loggers/sensor_*.py)──► sensors/*.md, reports/*_log.md
-  people  ──(💾 button: /api/note)──────► reports/community_notes.md
-  humans  ──(hand edits)────────────────► memory/identity.md, journal.md
+  sensors ──(cron: loggers/sensor_*.py)──► sensors/*.md, (in the sensor file itself)
+  people  ──(💾 button: /api/note)──────► community/notes.md
+  humans  ──(hand edits)────────────────► identity/identity.md, journal.md
         │
         ▼  reports_reader.py digest, filtered by category toggles/keywords
   next question's system prompt
@@ -240,7 +240,7 @@ identity curation stays human-gated on purpose.
 - **Files are the memory**: plain markdown, readable by humans, cron, and the
   LLM. No database, no broker, no MCP server (yet — the format is MCP-ready).
 - **Ephemeral vs persistent**: `/tmp/commonsclaw_status.json` = live pulse;
-  `memory/` `sensors/` `reports/` = the persistent commons.
+  `identity/` `sensors/` `community/` = the persistent commons.
 - **Single-slot generation**: one answer at a time; concurrency is handled by
   refusing gracefully, not by queueing magic.
 - **Every push restarts**: `./push_to_pi.sh` rsyncs and restarts

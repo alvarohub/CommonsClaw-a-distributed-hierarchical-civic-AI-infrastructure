@@ -1,10 +1,10 @@
 """Reads the node's plain-text memory into a prompt-ready digest.
 
-Three sources, all plain markdown files both humans and the LLM can read:
+Three category folders, all plain markdown readable by humans and the LLM:
 
-- reports/  — sensor loggers (cron) and people's notes (the 📝 button)
-- sensors/  — one file per sensor + the SENSOR_REPORT.md dashboard
-- memory/   — the node's persistent identity and journal (who it is)
+- identity/   — who the kami is (identity.md) + its journal
+- sensors/    — one file per sensor + index.md (the cross-sensor dashboard)
+- community/  — notes.md (people's 📝 notes: suggestions, polls, comments)
 
 Deliberately simple: whole files, truncated per-file, newest content kept.
 No MCP server, no database. (A full MCP interface, e.g.
@@ -17,12 +17,12 @@ from __future__ import annotations
 from pathlib import Path
 
 BASE = Path(__file__).parent
-REPORTS_DIR = BASE / "reports"
+IDENTITY_DIR = BASE / "identity"
 SENSORS_DIR = BASE / "sensors"
-MEMORY_DIR = BASE / "memory"
+COMMUNITY_DIR = BASE / "community"
 
-MAX_CHARS_PER_FILE = 1000  # keep the prompt small; files are short by design
-MAX_TOTAL_CHARS = 3000
+MAX_CHARS_PER_FILE = 900  # keep the prompt small; files are short by design
+MAX_TOTAL_CHARS = 4000
 
 # The three memory categories, toggleable per request from the web UI and/or
 # force-enabled with slash keywords (/identity, /sensors, /community).
@@ -62,19 +62,19 @@ def read_reports(categories: set[str] | None = None) -> str:
     sections: list[str] = []
 
     if "identity" in categories:
-        identity = _digest_dir(MEMORY_DIR, skip={"journal.md"})
+        identity = _digest_dir(IDENTITY_DIR, skip={"journal.md"})
         if identity:
             sections.append("## Who you are\n" + "\n\n".join(identity))
 
     if "sensors" in categories:
-        sensors = _digest_dir(SENSORS_DIR, skip={"_INDEX.md"})
+        sensors = _digest_dir(SENSORS_DIR)
         if sensors:
             sections.append("## Sensor readings\n" + "\n\n".join(sensors))
 
     if "community" in categories:
-        reports = _digest_dir(REPORTS_DIR, skip={"_INDEX.md"})
+        reports = _digest_dir(COMMUNITY_DIR)
         if reports:
-            sections.append("## Reports and community notes\n" + "\n\n".join(reports))
+            sections.append("## Community notes\n" + "\n\n".join(reports))
 
     digest = "\n\n".join(sections)
     return digest[:MAX_TOTAL_CHARS]

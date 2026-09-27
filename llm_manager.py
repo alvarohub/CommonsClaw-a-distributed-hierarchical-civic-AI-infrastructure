@@ -8,7 +8,7 @@ Ollama. The call path, top to bottom:
         -> LLMManager.stream_response(prompt, model, memory_categories)
             -> resolve_categories()          # which memory sections enter
             -> _build_request_messages()     # system prompt + digest + history
-            -> _system_prompt_with_reports() # config.SYSTEM_PROMPT + reports/
+            -> _system_prompt_with_reports() # config.SYSTEM_PROMPT + the digest
             -> HTTP POST 127.0.0.1:11434/api/chat  (stream=True)  <- THE MODEL CALL
             -> yield each token chunk as it arrives (a generator)
             -> _apply_final_metrics()        # tok/s from Ollama's own counters

@@ -206,7 +206,7 @@ class WebApplication:
             return send_file("static/dashboard.html")
 
         # Memory files the dashboard can read (relative to the repo root).
-        _MEM_DIRS = ("reports", "sensors", "memory")
+        _MEM_DIRS = ("identity", "sensors", "community")
 
         @app.get("/api/files")
         def list_files():
@@ -250,7 +250,7 @@ class WebApplication:
 
         @app.post("/api/note")
         def note():
-            """Append a community note to reports/community_notes.md."""
+            """Append a community note to community/notes.md."""
             import os
             from datetime import datetime
             data = request.get_json(force=True, silent=True) or {}
@@ -258,7 +258,7 @@ class WebApplication:
             if not text:
                 return jsonify({"error": "empty note"}), 400
             path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "reports", "community_notes.md")
+                                "community", "notes.md")
             line = f"{datetime.now():%Y-%m-%d %H:%M}  {text}\n"
             with open(path, "a", encoding="utf-8") as f:
                 f.write(line)
