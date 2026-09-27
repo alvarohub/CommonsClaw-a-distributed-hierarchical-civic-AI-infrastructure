@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 760" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="13">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#888"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2e9e5b"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b7dd8"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="760" fill="#ffffff"/>
+  <text x="490" y="30" text-anchor="middle" font-size="19" font-weight="700">CommonsClaw node — how a question becomes an answer</text>
+  <text x="490" y="50" text-anchor="middle" fill="#666">every frontend is its own process with its own LLMManager; they are peers, not layers</text>
+
+  <!-- humans -->
+  <g>
+    <rect x="30" y="80" width="170" height="52" rx="26" fill="#fdf3e0" stroke="#d6a14a"/>
+    <text x="115" y="103" text-anchor="middle">🙂 visitor, phone</text>
+    <text x="115" y="121" text-anchor="middle" fill="#777" font-size="11">types or taps</text>
+
+    <rect x="30" y="300" width="170" height="52" rx="26" fill="#fdf3e0" stroke="#d6a14a"/>
+    <text x="115" y="323" text-anchor="middle">🎤 visitor, voice</text>
+    <text x="115" y="341" text-anchor="middle" fill="#777" font-size="11">speaks at the mic</text>
+
+    <rect x="30" y="470" width="170" height="52" rx="26" fill="#fdf3e0" stroke="#d6a14a"/>
+    <text x="115" y="493" text-anchor="middle">🛠 you, over SSH</text>
+    <text x="115" y="511" text-anchor="middle" fill="#777" font-size="11">console / dashboard</text>
+  </g>
+
+  <!-- frontend processes -->
+  <g>
+    <rect x="250" y="70" width="230" height="120" rx="10" fill="#eef4fd" stroke="#3b7dd8" stroke-width="1.5"/>
+    <text x="365" y="92" text-anchor="middle" font-weight="700">PROCESS web_server.py</text>
+    <text x="365" y="111" text-anchor="middle" font-size="11" fill="#555">waitress, port 8080</text>
+    <rect x="266" y="122" width="198" height="26" rx="5" fill="#fff" stroke="#9bb9e8"/>
+    <text x="365" y="139" text-anchor="middle" font-size="11">LLMManager + StatusStore</text>
+    <text x="365" y="166" text-anchor="middle" font-size="11" fill="#555">serves chat.html + dashboard.html</text>
+    <text x="365" y="182" text-anchor="middle" font-size="11" fill="#555">/api/ask streams SSE back</text>
+
+    <rect x="250" y="290" width="230" height="120" rx="10" fill="#eef4fd" stroke="#3b7dd8" stroke-width="1.5"/>
+    <text x="365" y="312" text-anchor="middle" font-weight="700">PROCESS voice/talk.py</text>
+    <text x="365" y="331" text-anchor="middle" font-size="11" fill="#555">arecord → faster-whisper (local)</text>
+    <rect x="266" y="342" width="198" height="26" rx="5" fill="#fff" stroke="#9bb9e8"/>
+    <text x="365" y="359" text-anchor="middle" font-size="11">LLMManager + StatusStore</text>
+    <text x="365" y="386" text-anchor="middle" font-size="11" fill="#555">push-to-talk or --wake kami</text>
+    <text x="365" y="402" text-anchor="middle" font-size="11" fill="#555">prints the answer in its terminal</text>
+
+    <rect x="250" y="460" width="230" height="86" rx="10" fill="#eef4fd" stroke="#3b7dd8" stroke-width="1.5"/>
+    <text x="365" y="482" text-anchor="middle" font-weight="700">PROCESS console.py</text>
+    <rect x="266" y="492" width="198" height="26" rx="5" fill="#fff" stroke="#9bb9e8"/>
+    <text x="365" y="509" text-anchor="middle" font-size="11">LLMManager + StatusStore</text>
+    <text x="365" y="536" text-anchor="middle" font-size="11" fill="#555">input() → stdout, simplest path</text>
+  </g>
+
+  <!-- ollama -->
+  <rect x="640" y="150" width="290" height="132" rx="10" fill="#e9f7ee" stroke="#2e9e5b" stroke-width="2"/>
+  <text x="785" y="174" text-anchor="middle" font-weight="700">SERVICE ollama (systemd)</text>
+  <text x="785" y="194" text-anchor="middle" font-size="11" fill="#555">llama.cpp · model resident in RAM</text>
+  <text x="785" y="212" text-anchor="middle" font-size="11" fill="#555">HTTP 127.0.0.1:11434</text>
+  <rect x="660" y="222" width="250" height="46" rx="6" fill="#fff" stroke="#8fd0a8"/>
+  <text x="785" y="240" text-anchor="middle" font-size="11">POST /api/chat  (stream=true)</text>
+  <text x="785" y="257" text-anchor="middle" font-size="11" fill="#555">answers one JSON line per token</text>
+
+  <!-- arrows humans -> processes -->
+  <line x1="200" y1="106" x2="245" y2="115" stroke="#888" marker-end="url(#a)"/>
+  <line x1="200" y1="326" x2="245" y2="330" stroke="#888" marker-end="url(#a)"/>
+  <line x1="200" y1="496" x2="245" y2="500" stroke="#888" marker-end="url(#a)"/>
+
+  <!-- arrows processes -> ollama (green) -->
+  <path d="M480 120 C 560 120, 570 200, 635 205" fill="none" stroke="#2e9e5b" stroke-width="1.6" marker-end="url(#ag)"/>
+  <path d="M480 330 C 570 330, 580 250, 635 235" fill="none" stroke="#2e9e5b" stroke-width="1.6" marker-end="url(#ag)"/>
+  <path d="M480 495 C 600 495, 610 280, 635 262" fill="none" stroke="#2e9e5b" stroke-width="1.6" marker-end="url(#ag)"/>
+  <text x="556" y="150" font-size="11" fill="#2e9e5b">prompt →</text>
+  <text x="556" y="300" font-size="11" fill="#2e9e5b">← tokens</text>
+
+  <!-- memory files -->
+  <rect x="600" y="360" width="340" height="190" rx="10" fill="#fdf0f4" stroke="#c96b8e" stroke-width="1.5"/>
+  <text x="770" y="383" text-anchor="middle" font-weight="700">MEMORY — plain files (the commons)</text>
+  <rect x="616" y="395" width="100" height="44" rx="6" fill="#fff" stroke="#e0a8bd"/>
+  <text x="666" y="413" text-anchor="middle" font-size="11">🧠 identity/</text>
+  <text x="666" y="429" text-anchor="middle" font-size="10" fill="#777">identity, journal</text>
+  <rect x="726" y="395" width="100" height="44" rx="6" fill="#fff" stroke="#e0a8bd"/>
+  <text x="776" y="413" text-anchor="middle" font-size="11">📡 sensors/</text>
+  <text x="776" y="429" text-anchor="middle" font-size="10" fill="#777">one file / sensor</text>
+  <rect x="836" y="395" width="92" height="44" rx="6" fill="#fff" stroke="#e0a8bd"/>
+  <text x="882" y="413" text-anchor="middle" font-size="11">📝 community/</text>
+  <text x="882" y="429" text-anchor="middle" font-size="10" fill="#777">notes</text>
+  <rect x="616" y="452" width="312" height="38" rx="6" fill="#fff" stroke="#e0a8bd"/>
+  <text x="772" y="469" text-anchor="middle" font-size="11">identity/turn_log.jsonl — append-only, every turn</text>
+  <text x="772" y="483" text-anchor="middle" font-size="10" fill="#777">safe for many writers; how the page learns about mic turns</text>
+  <text x="770" y="510" text-anchor="middle" font-size="11" fill="#555">reports_reader.py builds the digest →</text>
+  <text x="770" y="527" text-anchor="middle" font-size="11" fill="#555">injected in the system prompt (only toggled categories)</text>
+  <text x="770" y="543" text-anchor="middle" font-size="10" fill="#999">/tmp/commonsclaw_status.json = live pulse, ephemeral, NOT memory</text>
+
+  <!-- loggers -->
+  <rect x="250" y="600" width="230" height="86" rx="10" fill="#f3f0fb" stroke="#7d63c4" stroke-width="1.5"/>
+  <text x="365" y="622" text-anchor="middle" font-weight="700">PROCESS sensors_boot.py</text>
+  <text x="365" y="641" text-anchor="middle" font-size="11" fill="#555">reads sensors.json registry,</text>
+  <text x="365" y="657" text-anchor="middle" font-size="11" fill="#555">spawns one supervisor per sensor</text>
+  <text x="365" y="675" text-anchor="middle" font-size="11" fill="#555">each logger appends on its interval</text>
+
+  <rect x="30" y="600" width="170" height="86" rx="10" fill="#fdf3e0" stroke="#d6a14a"/>
+  <text x="115" y="628" text-anchor="middle">🌡 the place</text>
+  <text x="115" y="650" text-anchor="middle" font-size="11" fill="#777">sensors, solar,</text>
+  <text x="115" y="666" text-anchor="middle" font-size="11" fill="#777">the node's own body</text>
+  <line x1="200" y1="640" x2="245" y2="640" stroke="#888" marker-end="url(#a)"/>
+
+  <!-- file arrows (blue dashed) -->
+  <path d="M480 640 C 560 640, 580 500, 610 480" fill="none" stroke="#3b7dd8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ab)"/>
+  <path d="M480 150 C 530 150, 545 430, 595 440" fill="none" stroke="#3b7dd8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ab)"/>
+  <path d="M595 455 C 540 470, 520 400, 482 372" fill="none" stroke="#3b7dd8" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ab)"/>
+  <text x="497" y="596" font-size="11" fill="#3b7dd8">append readings</text>
+  <text x="520" y="245" font-size="11" fill="#3b7dd8">read digest / write turns</text>
+
+  <!-- legend -->
+  <rect x="30" y="180" width="170" height="96" rx="8" fill="#fafafa" stroke="#ddd"/>
+  <text x="44" y="200" font-size="11" font-weight="700">legend</text>
+  <line x1="44" y1="214" x2="74" y2="214" stroke="#2e9e5b" stroke-width="1.6"/>
+  <text x="80" y="218" font-size="11">HTTP to model</text>
+  <line x1="44" y1="234" x2="74" y2="234" stroke="#3b7dd8" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="80" y="238" font-size="11">file read / write</text>
+  <line x1="44" y1="254" x2="74" y2="254" stroke="#888"/>
+  <text x="80" y="258" font-size="11">human action</text>
+
+  <text x="490" y="726" text-anchor="middle" font-size="11" fill="#777">No message bus, no orchestrator. Each process runs its own simple loop; files are how they gossip.</text>
+  <text x="490" y="744" text-anchor="middle" font-size="11" fill="#777">Consolidation (turning logs into understanding) is deliberately absent here — it belongs to Level 2. See PLAN.md.</text>
+</svg>

@@ -38,6 +38,17 @@ systemctl enable --now commonsclaw-sensors.service
 ( crontab -l 2>/dev/null | grep -v journal_writer ; \
   echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' ) | crontab -
 
+# 1d. keep the model resident: Ollama evicts it 5 min after the last question
+# by default, which costs ~8 s of reload on the next visitor. A kami should
+# answer instantly. (~1 GB RAM held permanently; undo by deleting this file.)
+mkdir -p /etc/systemd/system/ollama.service.d
+cat > /etc/systemd/system/ollama.service.d/keepalive.conf <<'EOF'
+[Service]
+Environment="OLLAMA_KEEP_ALIVE=-1"
+EOF
+systemctl daemon-reload
+systemctl restart ollama
+
 # 2. boot to console (no desktop) — saves ~250 MB RAM
 systemctl set-default multi-user.target
 

@@ -3,6 +3,8 @@
 _A reading guide to the codebase, following one question through the system.
 Written 2026-09-26; keep updated as the system evolves._
 
+<img src="docs/architecture.svg" alt="CommonsClaw node architecture" width="100%">
+
 ## 0. The big picture — who is a process, who talks to whom
 
 This is the diagram that matters. **Four kinds of things**: humans, frontend
@@ -101,6 +103,19 @@ instead of just importing it as a library/object?
 
 The cost is an HTTP round-trip on localhost — microseconds. Nothing.
 
+### Is the model loaded once, or every time?
+
+Neither per-run nor forever, by default. Ollama loads the weights into RAM on
+the **first** request and keeps them there for **5 minutes after the last
+one**, then evicts (`ollama ps` shows what is resident). That is exactly the
+cold/warm gap we measure: ~8.5 s TTFT on the first question after a pause,
+~0.8 s while warm. Restarting our Python processes changes nothing — the
+model lives in Ollama, not in them.
+
+For an installation that must answer a visitor instantly, eviction is wrong,
+so `install_autostart.sh` drops in `OLLAMA_KEEP_ALIVE=-1` (never unload).
+Cost: ~1 GB of the Pi's 16 GB held permanently.
+
 ## The cast
 
 ```
@@ -191,16 +206,35 @@ voice conversations (see "Following one voice question").
 
 ## Loops and events — what runs when
 
-Nothing here is an "event bus". Each process is one simple loop:
+There is **no event bus and no scheduler**. Each process is one plain loop,
+and every loop is either _blocked waiting for a human_ or _sleeping on a
+timer_. That is the whole concurrency model. Written as pseudocode:
 
-| Process                  | Loop                                                                             | Triggered by            |
-| ------------------------ | -------------------------------------------------------------------------------- | ----------------------- |
-| `web_server.py`          | waitress serves HTTP requests; one background thread samples hardware every 15 s | browser requests; timer |
-| `console.py` / `talk.py` | blocking `input()`/record → answer → repeat                                      | you, typing or speaking |
-| `main.py` (LCD)          | Tk event loop; a queue polled every 40 ms                                        | keypresses; timer       |
-| loggers                  | cron fires them; they write one line and exit                                    | clock                   |
-| `control.py`             | reads the status file, redraws, sleeps 0.5 s                                     | clock                   |
-| browser page             | polls `/api/status` every 15 s; SSE only while an answer streams                 | timers + your taps      |
+```
+web_server.py          voice/talk.py            sensors_boot.py
+─────────────          ─────────────            ─────────────
+loop forever:          loop forever:            per sensor, loop forever:
+  wait for HTTP          wait for Enter/wake       run its logger script
+  → answer it            record until pause        sleep(interval_seconds)
+                         transcribe
++ a 2nd thread:          ask the model
+loop forever:            print the answer        journal_writer.py (cron)
+  sample hardware        append to turn_log      ─────────────────
+  sleep(15 s)                                    once a day at 23:55:
+                       control.py                  read today's logs
+the browser page       ──────────                  write one journal block
+────────────────       loop forever:
+loop forever:            read status file
+  GET /api/status        redraw
+  sleep(5 s)             sleep(0.5 s)
++ while an answer
+  streams: read SSE
+  chunks as they come
+```
+
+The only "event" in the system is an HTTP request. Everything else is a
+timer or a blocking read. Nothing schedules anything else; nothing waits on
+another process. If you kill any box above, the others keep running.
 
 ## Following one voice question (the part that confused you)
 
@@ -208,24 +242,28 @@ Nothing here is an "event bus". Each process is one simple loop:
    `arecord`, transcribes with whisper — all local, no model call yet.
 2. `talk.py`'s **own** `LLMManager` POSTs the text to Ollama and streams the
    answer, printing it in that terminal. The phone is not involved yet.
-3. When the turn completes, `talk.py` writes it to the bulletin board file
-   (`completed_turn` + `question_count`).
-4. Up to 15 s later, the phone's page polls `/api/status`; the web server
-   reads the bulletin board _file_ (not its own memory — talk.py is a
-   different process) and includes the voice turn.
-5. The page sees a new `turn_id`, renders `🎤 question` + `KAMI: answer`,
-   and speaks it if TTS is on.
+3. When the turn completes, `talk.py` appends one JSON line to
+   `identity/turn_log.jsonl`, tagged `"source": "voice"`.
+4. Within 5 s the phone's page polls `/api/status`; the web server reads the
+   **last line of that log** and returns it. (It must be the log, not the
+   status file: every frontend rewrites the status file wholesale from its
+   own memory, so the web server's 15 s hardware tick would erase a voice
+   turn before anyone saw it. Append-only is what makes many writers safe —
+   this bug actually happened, 2026-09-28.)
+5. The page renders `🎤🙂 question` + `🐢 answer`, deduping on the timestamp
+   and skipping turns whose source is `web` (those already streamed in).
 
-So the phone shows the voice conversation **by watching the bulletin board**,
-never by participating in the model call. If nobody is looking at a phone,
-the voice loop is complete without it.
-
+So the phone shows the voice conversation **by reading the log**, never by
+participating in the model call. If nobody is looking at a phone, the voice
+loop is complete without it.
 ## The memory loop (what makes it a kami)
 
 ```
-  sensors ──(cron: loggers/sensor_*.py)──► sensors/*.md, (in the sensor file itself)
-  people  ──(💾 button: /api/note)──────► community/notes.md
-  humans  ──(hand edits)────────────────► identity/identity.md, journal.md
+  sensors ──(sensors_boot.py supervisors)──► sensors/sensor_*.md
+  people  ──(💾 button: /api/note)─────────► community/notes.md
+  everyone─(every completed turn)──────────► identity/turn_log.jsonl
+  clock   ──(cron 23:55 journal_writer)────► identity/journal.md
+  humans  ──(hand edits)───────────────────► identity/identity.md
         │
         ▼  reports_reader.py digest, filtered by category toggles/keywords
   next question's system prompt
@@ -234,11 +272,66 @@ the voice loop is complete without it.
 The kami reads its world through files and writes nothing itself (yet) —
 identity curation stays human-gated on purpose.
 
+## The missing organ: consolidation
+
+Everything above is **accumulation**: logs grow, notes pile up, the journal
+gains a block a day. None of it is *understanding*. Consolidation is the step
+that turns a month of `temp=27.4C` lines into "the pond runs warm after the
+rains, and the children come earlier on those days" — and this node does not
+do it.
+
+That is deliberate, not an omission. Consolidation means re-reading a large
+body of text and rewriting a small one, which is precisely the workload a
+1 B model on a CPU is worst at. A wrong consolidation is also worse than
+none: it silently poisons every future answer.
+
+**Where it belongs.** Conceptually this is the kami's own metabolism — a
+Level-1 job. Practically the Pi 5 cannot host the model that would do it
+well, which is an honest finding about the hardware, not about the design:
+_a place-node that must also reflect needs more than a Pi 5, or it must
+borrow a bigger mind from Level 2._ The current plan borrows: the journal
+format is a handoff, and the neighborhood tier (Level 2) reads many kami's
+journals and writes back.
+
+**How OpenClaw does it** (verified 2026-09-28, see
+[OPENCLAW_MEMORY_RESEARCH.md](OPENCLAW_MEMORY_RESEARCH.md)) — the most
+mature file-based implementation to learn from:
+
+- Memory is plain Markdown in a workspace: `MEMORY.md` (curated core),
+  `USER.md` (capped at 4k), `memory/YYYY-MM-DD.md` (episodic). SQLite holds
+  only a derived index (FTS5 + vectors), never the source of truth.
+- Consolidation is a nightly cron sweep they call **"dreaming"** (default
+  `0 3 * * *`), in three phases — light → REM → deep — and only the deep
+  phase may rewrite the curated core.
+- Promotion is gated by a **deterministic score** (relevance, frequency,
+  query diversity, recency, consolidation, richness) computed *before* any
+  model call — the model is asked only about what already passed the gate.
+- The model returns **merge/supersede operations, not prose**, validated
+  against a ≤25% prior-entry-loss rule, mandatory `Source:` anchors, and a
+  budget; failure falls back to plain append. Writes are atomic renames.
+- Retrieval at inference is hybrid: always-on injection of the curated tier
+  plus ranked search (`relevance × recency decay × importance`), with **zero
+  query-time model calls** — cheap by construction.
+
+**What we would borrow, and what we cannot.** The deterministic gate before
+the model call, operations-not-prose, the loss-bounded validation, atomic
+writes, and `Source:` provenance are all directly applicable and cheap — they
+are the reason their consolidation is trustworthy. What does *not* transfer:
+OpenClaw scopes memory **per agent, per user** — a gateway is explicitly "one
+trust domain", and group/channel sessions are *excluded* from durable
+memory. There is no notion of a place, and no notion of many authors writing
+one shared identity. That gap is exactly the problem CommonsClaw exists to
+solve, so the communal half (whose voice counts, how a commons avoids being
+captured by its loudest visitor) has to be invented here.
+
 ## Design rules worth knowing before changing anything
 
 - **One model door**: only `llm_manager.py` talks to Ollama. Frontends never do.
 - **Files are the memory**: plain markdown, readable by humans, cron, and the
   LLM. No database, no broker, no MCP server (yet — the format is MCP-ready).
+- **Append-only for anything many processes write** (`turn_log.jsonl`).
+  Whole-document writes are single-writer only (the status file) — mixing
+  the two is what made voice turns vanish on 2026-09-28.
 - **Ephemeral vs persistent**: `/tmp/commonsclaw_status.json` = live pulse;
   `identity/` `sensors/` `community/` = the persistent commons.
 - **Single-slot generation**: one answer at a time; concurrency is handled by

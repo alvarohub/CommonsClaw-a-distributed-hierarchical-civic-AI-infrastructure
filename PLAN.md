@@ -323,6 +323,84 @@ model.)
 
 ---
 
+## Phase 5 — Consolidation, and the neighborhood tier (design, not built)
+
+### 5.0 The levels, precisely
+
+| Level | Who                  | What it does                                                        | Hardware                     |
+| ----- | -------------------- | ------------------------------------------------------------------- | ---------------------------- |
+| **0** | the loggers          | sense and record; at most tiny ML pattern recognition (classic AIoT) | MCU / the Pi's own processes |
+| **1** | the **place** kami   | converses, holds the place's memory _(this repo)_                    | Pi 5 — see the caveat below  |
+| **2** | the **neighborhood** | gathers and consolidates across _several_ kami in several places     | a real machine               |
+| 3+    | city → nation → world| answers what no neighborhood can                                      | shared datacenters           |
+
+Level 2 is **not** "the city": it is the first tier that sees more than one
+place. A neighborhood kami talks to the park turtle, the greenhouse, the
+riverbank — and only what survives that consolidation travels further up.
+
+### 5.1 What consolidation actually is
+
+Accumulation is what we built: logs grow, notes pile up, one journal block
+per day. Consolidation is the opposite motion — reading a lot and writing a
+little:
+
+1. **Per-sensor trends** (Level 0 → 1): a month of `temp=27.4C` lines
+   becomes "runs 2–3 °C warmer after rain; coldest hour is 05:00".
+2. **Cross-sensor state of the place** (Level 1): the sensor trends plus
+   the community notes become "the pond is recovering; people ask about
+   the fish again".
+3. **Identity promotion** (Level 1): recurring, corroborated facts graduate
+   from the journal into `identity/identity.md` — the kami's stable
+   self-knowledge. This is the dangerous one: a bad promotion poisons every
+   later answer.
+4. **Across places** (Level 2): several kami's consolidations become the
+   neighborhood's picture, and it writes back what each place should know.
+
+### 5.2 The honest hardware finding
+
+Consolidation is conceptually the kami's own metabolism — a Level-1 job. But
+it is exactly the workload a 1 B model on a CPU is worst at (read much,
+write little, be right). **So either a place-node that reflects needs more
+than a Pi 5, or Level 1 borrows a bigger mind from Level 2.** The current
+plan borrows. Recording this as a finding: _the Pi 5 is sufficient for a
+conversing node, insufficient for a reflecting one._
+
+### 5.3 What to borrow from OpenClaw
+
+Their nightly "dreaming" sweep is the most mature file-based implementation
+(verified 2026-09-28 — details and URLs in
+[OPENCLAW_MEMORY_RESEARCH.md](OPENCLAW_MEMORY_RESEARCH.md)):
+
+- markdown is the source of truth; SQLite only ever a **derived index**
+- a nightly cron sweep (`0 3 * * *`), phased light → REM → deep; only the
+  deep phase may rewrite the curated core
+- a **deterministic score gate before any model call** (relevance,
+  frequency, query diversity, recency, consolidation, richness) — the model
+  is asked only about candidates that already passed
+- the model returns **merge/supersede operations, not prose**, validated
+  against a ≤25% prior-entry-loss rule, mandatory `Source:` anchors and a
+  budget; on failure it falls back to plain append; writes are atomic renames
+- retrieval with **zero query-time model calls** (ranked search + injection)
+
+All of that transfers. What does not: OpenClaw scopes memory **per agent /
+per user** — "a gateway is one trust domain", and group sessions are
+explicitly excluded from durable memory. Nothing there knows what a _place_
+is, or how many authors share one identity. That is the part CommonsClaw has
+to invent: whose voice counts, and how a commons resists capture by its
+loudest visitor.
+
+### 5.4 Acceptance criteria (when we get there)
+
+- [ ] A month of sensor data produces a per-sensor trend paragraph a human
+      agrees with.
+- [ ] Identity promotion is loss-bounded, source-anchored, and reversible
+      (git history of `identity/`).
+- [ ] A second node exists and the two consolidate through a Level-2 tier.
+- [ ] Nothing crosses a community boundary without a logged, revocable
+      decision.
+
+---
+
 ## Open decisions (numbered for easy reference in discussion)
 
 1. Phase 2 web framework: Flask (default) vs FastAPI.
