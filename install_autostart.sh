@@ -46,9 +46,14 @@ else
   echo "NOTE: no ~/voice-venv — skipping the voice service (run setup_voice.sh first)."
 fi
 
-# 1c. daily journal entry (23:55) — the mechanical memory writer
-( crontab -l 2>/dev/null | grep -v journal_writer ; \
-  echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' ) | crontab -
+# 1c. daily journal entry (23:55) — the mechanical memory writer.
+# Guarded: with `set -e -o pipefail`, an empty crontab makes `crontab -l | grep`
+# fail and would abort the whole install (it did, silently, on 2026-09-28).
+CRON_TMP="$(mktemp)"
+{ crontab -l 2>/dev/null || true; } | grep -v journal_writer > "$CRON_TMP" || true
+echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' >> "$CRON_TMP"
+crontab "$CRON_TMP"
+rm -f "$CRON_TMP"
 
 # 1d. keep the model resident: Ollama evicts it 5 min after the last question
 # by default, which costs ~8 s of reload on the next visitor. A kami should

@@ -13,12 +13,12 @@ Controls (default: push-to-talk):
     Ctrl+C       — exit.
 
 Wake-word mode:
-    ~/voice-venv/bin/python voice/talk.py --wake kami
+    ~/voice-venv/bin/python voice/talk.py --wake turtle
 
     The mic listens continuously in short windows; when the whisper
-    transcript contains the wake word (default "kami"), recording continues
+    transcript contains the wake word (default "turtle"), recording continues
     until a pause, and the remainder after the wake word becomes the
-    question. Saying just "kami" wakes it for the NEXT utterance.
+    question. Saying just "turtle" wakes it for the NEXT utterance.
 
 Design: this is a FRONTEND, exactly like console.py — it captures the
 question (by voice instead of keyboard) and hands it to the same
@@ -29,7 +29,12 @@ turn is published to the status store, so the web dashboard sees it too.
 from __future__ import annotations
 
 import argparse
+import difflib
+import errno
+import fcntl
 import os
+import re
+import signal
 import subprocess
 import sys
 import tempfile
@@ -47,6 +52,84 @@ from voice.mic_setup import find_capture_card
 
 MODEL_SIZE = "tiny"
 WHISPER: object | None = None  # lazy-loaded on first use
+
+WAKE_SIMILARITY = 0.7
+
+# --- one microphone, one owner ---------------------------------------------
+# A USB mic can only be captured by one process. Two voice loops running at
+# once means both get garbage and nothing ever works, with no error message
+# to explain it (this happened on 2026-09-28: a hand-started loop and the
+# systemd service were fighting). An flock is used rather than a PID file
+# because the kernel releases it even if we are killed -9: no stale locks.
+LOCK_PATH = Path("/tmp/commonsclaw_voice.lock")
+_LOCK_FILE = None  # kept open for the process lifetime, or the lock is lost
+STOP = threading.Event()
+
+
+def claim_microphone(takeover: bool = True) -> None:
+    """Acquire the exclusive voice lock, stopping whoever else holds it."""
+    global _LOCK_FILE
+    _LOCK_FILE = LOCK_PATH.open("a+")
+    for attempt in range(2):
+        try:
+            fcntl.flock(_LOCK_FILE, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            _LOCK_FILE.seek(0)
+            _LOCK_FILE.truncate()
+            _LOCK_FILE.write(f"{os.getpid()}\n")
+            _LOCK_FILE.flush()
+            return
+        except OSError as exc:
+            if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                raise
+            _LOCK_FILE.seek(0)
+            holder = _LOCK_FILE.read().strip() or "?"
+            if not takeover or attempt:
+                sys.exit(f"Another voice loop is running (pid {holder}). "
+                         f"Stop it first, or run with --takeover.")
+            print(f"(another voice loop holds the microphone, pid {holder} "
+                  f"— stopping it)")
+            _terminate(holder)
+    sys.exit("Could not claim the microphone.")
+
+
+def _terminate(pid_text: str) -> None:
+    try:
+        pid = int(pid_text)
+    except ValueError:
+        return
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.kill(pid, sig)
+        except ProcessLookupError:
+            return
+        except PermissionError:
+            sys.exit(f"pid {pid} belongs to another user — stop it by hand "
+                     f"(sudo systemctl stop commonsclaw-voice).")
+        for _ in range(30):             # up to 3 s per signal
+            time.sleep(0.1)
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return
+
+
+def _on_signal(_sig, _frame) -> None:
+    STOP.set()
+
+
+def split_on_wake(text: str, wake: str) -> tuple[bool, str]:
+    """Was the wake word said, and what followed it?
+
+    Fuzzy on purpose: whisper-tiny writes "kami" as commie, cami, khami,
+    karmi... Exact matching made the wake word feel broken.
+    """
+    words = re.findall(r"[\w']+", text.lower())
+    wake = wake.lower()
+    for i, word in enumerate(words):
+        if (word == wake
+                or difflib.SequenceMatcher(None, word, wake).ratio() >= WAKE_SIMILARITY):
+            return True, " ".join(words[i + 1:]).strip()
+    return False, ""
 
 
 def get_whisper():
@@ -212,7 +295,7 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
     """
     print(f'(wake word: "{wake_word}" — say it to get the kami\'s attention)')
     armed = False
-    while True:
+    while not STOP.is_set():
         clip = new_clip()
         # Short window to catch the wake word; once armed, listen for a full
         # sentence and stop on the speaker's pause.
@@ -261,7 +344,7 @@ def serve_loop(llm, status, card, dev) -> None:
     armed = False                      # wake word heard, awaiting the question
     last_request = node_settings.load()["listen_request"]
 
-    while True:
+    while not STOP.is_set():
         settings = node_settings.load()
         voice = settings["voice"]
         requested = settings["listen_request"] > last_request
@@ -307,17 +390,21 @@ def serve_loop(llm, status, card, dev) -> None:
         if armed:
             question = text
         else:
-            wake = voice["wake_word"].lower()
-            if wake not in text.lower():
+            hit, rest = split_on_wake(text, voice["wake_word"])
+            if not hit:
                 print(f'(ignored: "{text}")')
+                node_settings.publish_voice_state(
+                    "waking", f'say "{voice["wake_word"]}"', heard=text)
                 continue
-            question = text.lower().split(wake, 1)[1].strip(" ,.?!")
+            question = rest
             if not question:            # just the wake word: listen next round
                 armed = True
                 print("KAMI: yes? (listening...)\n")
+                node_settings.publish_voice_state(
+                    "awake", "yes? I'm listening", heard=text)
                 continue
 
-        node_settings.publish_voice_state("thinking", question[:60])
+        node_settings.publish_voice_state("thinking", question[:60], heard=text)
         answer(llm, status, question, stt_s)
         armed = False
 
@@ -325,10 +412,16 @@ def serve_loop(llm, status, card, dev) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--wake", metavar="WORD", default=None,
-                    help='wake-word mode (e.g. --wake kami)')
+                    help='wake-word mode (e.g. --wake turtle)')
     ap.add_argument("--serve", action="store_true",
                     help="obey the web page's voice settings (recommended)")
+    ap.add_argument("--no-takeover", action="store_true",
+                    help="refuse to start if another voice loop is running")
     args = ap.parse_args()
+
+    signal.signal(signal.SIGTERM, _on_signal)
+    signal.signal(signal.SIGINT, _on_signal)
+    claim_microphone(takeover=not args.no_takeover)
 
     found = find_capture_card()
     if not found:
@@ -355,6 +448,7 @@ def main() -> None:
     finally:
         node_settings.publish_voice_state("offline")
         status.clear()
+        print("voice loop stopped.")
 
 
 if __name__ == "__main__":

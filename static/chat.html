@@ -58,6 +58,19 @@
         font-size: 10px;
         color: #666;
       }
+      .heard {
+        font-size: 10px;
+        color: #8ab4ff;
+        font-style: italic;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 45vw;
+      }
+      .heard.wake {
+        color: var(--accent);
+        font-style: normal;
+      }
       .dot {
         width: 8px;
         height: 8px;
@@ -262,10 +275,13 @@
       <div class="row">
         <span class="rlabel">voice</span>
         <button class="box" id="vmic" title="Turn the Pi's microphone on or off">🎙 mic</button>
-        <button class="box" id="vwake" title="Always listening for the wake word">wake word</button>
+        <button class="box" id="vwake" title="Always listening for the wake word — tap again to change the word">
+          wake word
+        </button>
         <button class="box" id="vpress" title="Only listens when you press Listen">press</button>
         <button class="box" id="vlisten" title="Listen to one question now">🎤 listen</button>
         <span class="hint" id="vstate">offline</span>
+        <span class="heard" id="vheard"></span>
       </div>
     </header>
     <div id="transcript"></div>
@@ -387,6 +403,10 @@
           if (s.voice) {
             vState.textContent =
               (VOICE_LABEL[s.voice.state] || s.voice.state) + (s.voice.detail ? ' · ' + s.voice.detail : '');
+            // What whisper actually transcribed — the only way to tell a deaf
+            // microphone from a wake word that simply didn't match.
+            vHeard.textContent = s.voice.heard ? '“' + s.voice.heard + '”' : '';
+            vHeard.classList.toggle('wake', s.voice.state === 'awake');
           }
 
           // Turns that happened at the microphone (or the SSH console) are
@@ -638,18 +658,20 @@
       const vPress = document.getElementById('vpress');
       const vListen = document.getElementById('vlisten');
       const vState = document.getElementById('vstate');
+      const vHeard = document.getElementById('vheard');
 
       const VOICE_LABEL = {
         offline: 'voice process not running on the Pi',
         off: 'microphone off',
         ready: 'ready — press listen',
         waking: 'listening for the wake word',
+        awake: '🐢 yes? — ask now',
         listening: '● recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
       };
 
-      let voiceCfg = { enabled: false, mode: 'wake', wake_word: 'kami' };
+      let voiceCfg = { enabled: false, mode: 'wake', wake_word: 'turtle' };
       let voiceHeldUntil = 0;
 
       function renderVoice() {
@@ -672,7 +694,14 @@
         } catch {}
       }
       vMic.addEventListener('click', () => postVoice({ enabled: !voiceCfg.enabled }));
-      vWake.addEventListener('click', () => postVoice({ enabled: true, mode: 'wake' }));
+      vWake.addEventListener('click', () => {
+        if (voiceCfg.enabled && voiceCfg.mode === 'wake') {
+          const w = prompt('Wake word — say this to get the kami’s attention:', voiceCfg.wake_word);
+          if (w && w.trim()) postVoice({ enabled: true, mode: 'wake', wake_word: w.trim() });
+          return;
+        }
+        postVoice({ enabled: true, mode: 'wake' });
+      });
       vPress.addEventListener('click', () => postVoice({ enabled: true, mode: 'button' }));
       vListen.addEventListener('click', async () => {
         vListen.classList.add('on');
@@ -688,7 +717,16 @@
 
       loadModels();
       refreshStatus();
-      setInterval(refreshStatus, 5000);
+      // Faster while the microphone is live, so "heard" feels immediate.
+      (function poll() {
+        setTimeout(
+          async () => {
+            await refreshStatus();
+            poll();
+          },
+          voiceCfg.enabled ? 1500 : 5000,
+        );
+      })();
     </script>
   </body>
 </html>

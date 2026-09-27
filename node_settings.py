@@ -48,7 +48,7 @@ PATH = Path(__file__).parent / "node_settings.json"
 DEFAULTS: dict[str, object] = {
     "memory": ["identity"],
     "model": None,
-    "voice": {"enabled": False, "mode": "wake", "wake_word": "kami"},
+    "voice": {"enabled": False, "mode": "wake", "wake_word": "turtle"},
     "listen_request": 0.0,
 }
 
@@ -121,13 +121,25 @@ def save(**patch) -> dict:
 HEARTBEAT = Path("/tmp/commonsclaw_voice.json")
 HEARTBEAT_STALE_S = 12.0
 
+# The last thing whisper transcribed, sticky across states. Without it there
+# is no way to tell "the microphone is deaf" from "the wake word didn't match".
+_LAST_HEARD = {"text": "", "ts": 0.0}
 
-def publish_voice_state(state: str, detail: str = "") -> None:
+
+def publish_voice_state(state: str, detail: str = "",
+                        heard: str | None = None) -> None:
+    if heard is not None:
+        _LAST_HEARD["text"] = heard
+        _LAST_HEARD["ts"] = time.time()
     try:
         tmp = HEARTBEAT.with_suffix(".tmp")
-        tmp.write_text(json.dumps(
-            {"ts": time.time(), "state": state, "detail": detail}),
-            encoding="utf-8")
+        tmp.write_text(json.dumps({
+            "ts": time.time(),
+            "state": state,
+            "detail": detail,
+            "heard": _LAST_HEARD["text"],
+            "heard_ts": _LAST_HEARD["ts"],
+        }), encoding="utf-8")
         os.replace(tmp, HEARTBEAT)
     except OSError:
         pass
@@ -139,8 +151,10 @@ def voice_state() -> dict:
         data = json.loads(HEARTBEAT.read_text(encoding="utf-8"))
         if time.time() - float(data.get("ts", 0)) < HEARTBEAT_STALE_S:
             return {"state": str(data.get("state", "?")),
-                    "detail": str(data.get("detail", ""))}
+                    "detail": str(data.get("detail", "")),
+                    "heard": str(data.get("heard", "")),
+                    "heard_ts": float(data.get("heard_ts", 0) or 0)}
     except (OSError, ValueError, TypeError):
         pass
-    return {"state": "offline", "detail": ""}
+    return {"state": "offline", "detail": "", "heard": "", "heard_ts": 0}
 
