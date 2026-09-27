@@ -52,22 +52,67 @@ def get_whisper():
     return WHISPER
 
 
-def record_until_enter(card: int, dev: int, path: Path) -> bool:
-    """Record from the ReSpeaker until Enter is pressed. Returns False if
-    nothing usable was captured (arecord failed or the file is empty)."""
+def record_until_silence(card: int, dev: int, path: Path,
+                         max_seconds: float = 15.0) -> bool:
+    """Record until the speaker pauses (silence) or max_seconds.
+
+    Records in 0.5 s chunks via a long-running arecord piped through a
+    silence watcher: stops after SILENCE_AFTER_S below threshold, having
+    heard speech at least once. Returns False if nothing usable captured.
+    """
+    SILENCE_AFTER_S = 1.6
+    THRESHOLD = 800  # 16-bit amplitude; quiet room < ~300
+
     proc = subprocess.Popen(
         ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
-         "-r", "16000", "-c", "1", str(path)],
-        stderr=subprocess.DEVNULL,
+         "-r", "16000", "-c", "1", "-t", "raw", str(path) + ".raw"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
-    input()  # block until Enter
-    proc.terminate()          # SIGINT-ish: lets arecord write the WAV header
+    raw_path = Path(str(path) + ".raw")
+    heard_speech = False
+    silent_for = 0.0
+    t0 = time.time()
+    last_size = 0
+    while time.time() - t0 < max_seconds:
+        time.sleep(0.25)
+        if not raw_path.exists():
+            continue
+        size = raw_path.stat().st_size
+        chunk = size - last_size
+        last_size = size
+        if chunk > 0:
+            with raw_path.open("rb") as f:
+                f.seek(size - chunk)
+                data = f.read(chunk)
+            samples = [int.from_bytes(data[i:i+2], "little", signed=True)
+                       for i in range(0, len(data) - 1, 2)]
+            if samples and max(abs(s) for s in samples) > THRESHOLD:
+                heard_speech = True
+                silent_for = 0.0
+            else:
+                silent_for += 0.25
+        if heard_speech and silent_for >= SILENCE_AFTER_S:
+            break
+    proc.terminate()
     try:
         proc.wait(timeout=3)
     except subprocess.TimeoutExpired:
-        proc.kill()
-        proc.wait()
-    return path.exists() and path.stat().st_size > 1000  # header + some audio
+        proc.kill(); proc.wait()
+
+    # wrap the raw PCM in a WAV header so whisper can read it
+    if not heard_speech or last_size < 2000:
+        raw_path.unlink(missing_ok=True)
+        return False
+    import wave as _wave
+    with raw_path.open("rb") as f:
+        pcm = f.read()
+    with _wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(pcm)
+    raw_path.unlink(missing_ok=True)
+    return True
 
 
 def transcribe(path: Path) -> str:
@@ -89,15 +134,23 @@ def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
 
 def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> None:
     """One full turn: publish, stream the kami's answer, record metrics."""
-    print(f'YOU (heard, {stt_s:.1f}s): {text}')
-    status.submit_question(text)
+    print(f'🙂 YOU (heard, {stt_s:.1f}s): {text}')
+    status.submit_question(text)   # question visible on the web right away
 
-    print("KAMI: ", end="", flush=True)
+    print("🐢 KAMI is thinking...", end="", flush=True)
     parts: list[str] = []
+    first = True
     for chunk in llm.stream_response(text, on_metrics_update=status.update_model):
+        if first:
+            print("\r🐢 KAMI: " + chunk, end="", flush=True)
+            first = False
+        else:
+            print(chunk, end="", flush=True)
         parts.append(chunk)
-        print(chunk, end="", flush=True)
-    print()
+    if first:
+        print("\r🐢 KAMI: (silence)")
+    else:
+        print()
     status.complete_turn("".join(parts), success=True)
     m = llm.metrics
     print(f"[stt {stt_s:.1f}s | ttft {m.ttft_seconds:.1f}s | "
@@ -106,18 +159,22 @@ def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> Non
 
 def push_to_talk_loop(llm, status, card, dev) -> None:
     while True:
-        input(">>> press Enter and speak ")
+        input(">>> press Enter, speak, then just pause ")
         clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
-        if not record_until_enter(card, dev, clip):
-            print("(recording failed — mic busy or unplugged?)\n")
+        print("🎤 listening...", end="", flush=True)
+        ok = record_until_silence(card, dev, clip)
+        print("\r🎤 (transcribing...)      ", end="", flush=True)
+        if not ok:
+            print("\r(no speech heard — try again)      \n")
             clip.unlink(missing_ok=True)
             continue
         t0 = time.perf_counter()
         text = transcribe(clip)
         stt_s = time.perf_counter() - t0
         clip.unlink(missing_ok=True)
+        print("\r" + " " * 30 + "\r", end="")
         if not text:
-            print("(heard nothing — try again, a bit louder)\n")
+            print("(heard nothing intelligible — try again)\n")
             continue
         answer(llm, status, text, stt_s)
 

@@ -24,7 +24,7 @@ calls Ollama directly, as a peer of the others.
    │ (waitress, :8080)  │ │ (SSH terminal)   │ │ (ReSpeaker mic)      │
    │  ├ LLMManager      │ │  ├ LLMManager    │ │  ├ arecord (capture) │
    │  ├ StatusStore ─┐  │ │  ├ StatusStore ─┐│ │  ├ faster-whisper    │
-   │  └ Flask routes  │  │ │  └ input() loop││ │  ├ LLMManager        │
+   │  └ Flask routes │  │ │  └ input() loop││ │  ├ LLMManager        │
    └───────▲─────────│──┘ └───────▲────────│┘ │  └ StatusStore ─┐    │
            │ HTTP    │            │ stdin  │  └─────────────────│────┘
            │ /api/*  │            │ stdout │                    │

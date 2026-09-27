@@ -64,7 +64,7 @@
         font-weight: 600;
       }
       .model {
-        color: #ccc;
+        color: var(--accent); /* the kami speaks in turtle green */
       }
       .meta {
         color: var(--dim);
@@ -187,6 +187,12 @@
         opacity: 1;
         border-color: var(--accent);
       }
+      #memlegend {
+        font-size: 10px;
+        color: var(--dim);
+        padding: 2px 12px 6px;
+        border-bottom: 1px solid #1a1a1a;
+      }
       #title {
         font-size: 12px;
         letter-spacing: 2px;
@@ -229,6 +235,10 @@
         <button class="memt on" data-cat="sensors" title="Sensor readings">📡</button>
         <button class="memt on" data-cat="community" title="Community notes">📝</button>
       </span>
+    </div>
+    <div id="memlegend">
+      kami reads: 🧠 its identity · 📡 its sensors · 📝 community notes
+      &nbsp;(tap to toggle; off = faster, bare answers)
     </div>
     <div id="transcript"></div>
     <div id="inputbar">
@@ -290,11 +300,11 @@
       }
 
       function addUser(text) {
-        addLine('ME: ' + text, 'me');
+        addLine('🙂 ' + text, 'me');
       }
 
       function startModel() {
-        currentModelDiv = addLine('MODEL: ', 'model');
+        currentModelDiv = addLine('🐢 ', 'model');
         return currentModelDiv;
       }
 
@@ -313,7 +323,7 @@
           );
         }
         if (ttsOn && currentModelDiv) {
-          speak(currentModelDiv.textContent.replace(/^MODEL:\s*/, ''));
+          speak(currentModelDiv.textContent.replace(/^🐢\s*/, ''));
         }
         resetBusy();
       }
@@ -335,19 +345,21 @@
           hwLabel.textContent = `CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C`;
 
           // A voice turn (someone talking to the kami via the mic) shows up
-          // here — render it once per turn id.
-          if (s.voice_turn && s.turn_id > lastTurnId && !busy) {
-            lastTurnId = s.turn_id;
-            const t = s.voice_turn;
-            if (t.question) {
-              addLine('🎤 ' + t.question, 'me');
-              if (t.success && t.answer) {
-                addLine('KAMI: ' + t.answer, 'model');
-                if (ttsOn) speak(t.answer);
-              } else if (!t.success) {
-                addLine('KAMI: (could not answer)', 'error');
-              }
+          // here. The question appears the moment it's heard; the answer
+          // replaces the thinking dots when the turn completes.
+          if (s.turn_id > lastTurnId && !busy) {
+            if (s.voice_turn && s.voice_turn.question && s.voice_turn.answer) {
+              // completed turn — render both
+              lastTurnId = s.turn_id;
+              addLine('🎤🙂 ' + s.voice_turn.question, 'me');
+              addLine('🐢 ' + s.voice_turn.answer, 'model');
+              if (ttsOn) speak(s.voice_turn.answer);
             }
+          }
+          // live "heard but still thinking" — the question is in the status
+          // file before the answer exists (current question, no answer yet)
+          if (s.current_question && s.turn_id === lastTurnId + 1 && !busy && !s.voice_turn) {
+            // will be rendered when complete; skip partial to avoid dupes
           }
         } catch {
           dot.className = 'dot err';
