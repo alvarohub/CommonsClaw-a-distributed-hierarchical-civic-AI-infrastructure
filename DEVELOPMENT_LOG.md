@@ -3,6 +3,17 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-09-27
+
+- **Phase 3 steps 1-2 DONE: the node hears.** ReSpeaker 4 Mic Array detected
+  as card 3 (`ArrayUAC10`, UAC1.0 firmware — no hardware AEC/DOA in this
+  variant; flashable later). `voice/mic_setup.py` written: finds the card,
+  sets gain (`--gain 90`), records, judges levels, transcribes — and logs
+  everything to `reports/mic_calibration.md` (tweaks never lost; the kami
+  can read its own hearing history). faster-whisper `tiny` in
+  `~/voice-venv`: **0.8 s for a 4 s clip (~5× realtime)**, correct English
+  transcript on first try.
+
 ## 2026-09-25 (evening 3)
 
 - **Memory categories with toggles + keyword routing.** Diagnosed a 45 s

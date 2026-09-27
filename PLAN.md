@@ -204,9 +204,9 @@ plain-text "reports" both machines and people can write.
 
 - **Mic: ReSpeaker USB Mic Array v2.1** (already owned). USB audio class →
   appears as a sound card, no drivers. The onboard XMOS does beamforming,
-  noise suppression, AEC, and DOA *in hardware* — the Pi receives clean,
+  noise suppression, AEC, and DOA _in hardware_ — the Pi receives clean,
   voice-focused audio, which matters more for Whisper accuracy than compute.
-  Bonus: DOA tells the kami *where* the speaker stands (embodiment flourish).
+  Bonus: DOA tells the kami _where_ the speaker stands (embodiment flourish).
 - **Speaker:** any small USB/HDMI speaker (Pi 5 has no 3.5 mm jack). TBD
   what's on hand.
 - **Trigger:** start with push-to-talk over SSH, then a GPIO button on the
@@ -222,7 +222,7 @@ plain-text "reports" both machines and people can write.
   Pi 5, small voices, has Japanese. Fallback: `espeak-ng` (robotic, instant).
 - **Sequencing** (his correct instinct): STT → LLM → TTS never compete —
   total added CPU per turn is seconds. Memory check: whisper tiny (~150 MB)
-  + piper voice (~50 MB) + llama3.2 (~800 MB) ≈ fine in 16 GB.
+  - piper voice (~50 MB) + llama3.2 (~800 MB) ≈ fine in 16 GB.
 
 ### 3.3 Pipeline
 
@@ -240,19 +240,21 @@ phone TTS and Pi TTS are independent outputs).
 
 llama3.2:1b ≈ 8 tok/s. Voice turn = record (2-4 s) + STT (1-2 s) + TTFT
 (~1-5 s warm) + answer (~10-15 s at 50 words, TTS overlapping). Realistic
-total to first spoken word: ~5-8 s. The kami as a *slow, calm presence* is a
+total to first spoken word: ~5-8 s. The kami as a _slow, calm presence_ is a
 design feature here, not a bug — but the two-tier model idea (decision 9)
 becomes more attractive for voice chit-chat.
 
 ### 3.5 Build order (each step independently testable)
 
-1. ReSpeaker visible as ALSA device; `arecord` captures clean audio.
-2. `faster-whisper` tiny transcribes a recorded clip (SSH).
-3. Push-to-talk over SSH: hold Enter to record, release → transcript.
-4. Full loop: voice question → kami text answer (printed + on web).
-5. Piper on the Pi speaks the answer (sentence-chunked, while streaming).
-6. GPIO button on the turtle; LED/sound feedback for listening/thinking.
-7. Stretch: openWakeWord, DOA "the kami turns toward you", barge-in.
+1. ✅ ReSpeaker visible as ALSA device; `arecord` captures clean audio
+   (2026-09-27: card 3, gain 90, peak >4000).
+2. ✅ `faster-whisper` tiny transcribes a recorded clip (0.8 s for a 4 s
+   clip — ~5× realtime, correct on first try).
+3. ⬜ Push-to-talk over SSH: hold Enter to record, release → transcript.
+4. ⬜ Full loop: voice question → kami text answer (printed + on web).
+5. ⬜ Piper on the Pi speaks the answer (sentence-chunked, while streaming).
+6. ⬜ GPIO button on the turtle; LED/sound feedback for listening/thinking.
+7. ⬜ Stretch: openWakeWord, DOA "the kami turns toward you", barge-in.
 
 **Acceptance criteria:**
 
