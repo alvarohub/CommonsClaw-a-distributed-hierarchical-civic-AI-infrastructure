@@ -250,8 +250,11 @@ becomes more attractive for voice chit-chat.
    (2026-09-27: card 3, gain 90, peak >4000).
 2. ✅ `faster-whisper` tiny transcribes a recorded clip (0.8 s for a 4 s
    clip — ~5× realtime, correct on first try).
-3. ⬜ Push-to-talk over SSH: hold Enter to record, release → transcript.
-4. ⬜ Full loop: voice question → kami text answer (printed + on web).
+3. ✅ Push-to-talk over SSH: Enter to record, Enter → transcript + kami
+   answer (`voice/talk.py`), turn published to status store and shown in the
+   web UI (`/api/status` carries the latest turn; page dedupes by turn id).
+4. ✅ Full loop: voice question → kami text answer (printed + on web).
+   Wake-word mode: `voice/talk.py --wake kami`.
 5. ⬜ Piper on the Pi speaks the answer (sentence-chunked, while streaming).
 6. ⬜ GPIO button on the turtle; LED/sound feedback for listening/thinking.
 7. ⬜ Stretch: openWakeWord, DOA "the kami turns toward you", barge-in.

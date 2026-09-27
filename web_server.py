@@ -268,6 +268,18 @@ class WebApplication:
         def status():
             snapshot = self.hardware_monitor.read_snapshot()
             metrics = self.llm_manager.metrics
+            # Voice turns come from ANOTHER process (voice/talk.py), so we
+            # read the shared status FILE rather than our in-memory store.
+            # The page dedupes on question_count.
+            voice_turn = None
+            turn_id = 0
+            try:
+                with open(config.STATUS_FILE, encoding="utf-8") as f:
+                    shared = json.load(f)
+                turn_id = shared.get("question_count", 0)
+                voice_turn = shared.get("completed_turn")
+            except (OSError, ValueError):
+                pass
             return jsonify({
                 "model": metrics.model_name,
                 "available": metrics.available,
@@ -275,6 +287,8 @@ class WebApplication:
                 "cpu_percent": snapshot.cpu_percent,
                 "ram_percent": snapshot.ram_percent,
                 "temperature_c": snapshot.temperature_c,
+                "turn_id": turn_id,
+                "voice_turn": voice_turn,
             })
 
         @app.post("/api/ask")

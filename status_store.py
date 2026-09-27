@@ -91,6 +91,18 @@ class StatusStore:
             }
             self._write_locked()
 
+    @property
+    def question_count(self) -> int:
+        """Number of questions submitted so far (used as a turn id by the
+        web UI to dedupe voice turns)."""
+        with self._lock:
+            return self._question_count
+
+    def latest_turn(self) -> dict | None:
+        """A copy of the most recent completed turn (or None)."""
+        with self._lock:
+            return dict(self._completed_turn) if self._completed_turn else None
+
     def _hardware_data_locked(self) -> dict:
         return {
             "cpu_percent": self._hardware.cpu_percent,

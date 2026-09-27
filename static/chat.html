@@ -257,6 +257,7 @@
       let gotFirstChunk = false;
       let thinkingDiv = null;
       let lastUserMsg = null; // remembered so 💾 can commit it to memory
+      let lastTurnId = 0;   // dedupe for voice turns from other frontends
 
       function resetBusy() {
         busy = false;
@@ -332,6 +333,22 @@
           const s = await r.json();
           dot.className = 'dot ' + (s.available ? 'ok' : 'err') + (s.active ? ' busy' : '');
           hwLabel.textContent = `CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C`;
+
+          // A voice turn (someone talking to the kami via the mic) shows up
+          // here — render it once per turn id.
+          if (s.voice_turn && s.turn_id > lastTurnId && !busy) {
+            lastTurnId = s.turn_id;
+            const t = s.voice_turn;
+            if (t.question) {
+              addLine('🎤 ' + t.question, 'me');
+              if (t.success && t.answer) {
+                addLine('KAMI: ' + t.answer, 'model');
+                if (ttsOn) speak(t.answer);
+              } else if (!t.success) {
+                addLine('KAMI: (could not answer)', 'error');
+              }
+            }
+          }
         } catch {
           dot.className = 'dot err';
         }

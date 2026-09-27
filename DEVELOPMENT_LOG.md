@@ -5,6 +5,16 @@ SSAI prototype), organized by date.
 
 ## 2026-09-27
 
+- **Phase 3 steps 3-4 DONE: the full voice loop.** `voice/talk.py` — a
+  frontend like console.py, but voice-first: Enter→speak→Enter, whisper
+  transcribes, `LLMManager.stream_response()` answers token by token, and the
+  turn is published to the status store. **Voice turns now appear in the web
+  UI**: `/api/status` carries the latest completed turn + question_count id
+  (read from the shared status FILE, since talk.py is a separate process);
+  the page dedupes and renders them as 🎤 question / KAMI answer lines (and
+  speaks them if TTS is on). **Wake-word mode**: `--wake kami` — 2.5 s
+  listening windows, whisper spots the wake word, the remainder of the
+  utterance (or the next one) becomes the question.
 - **Phase 3 steps 1-2 DONE: the node hears.** ReSpeaker 4 Mic Array detected
   as card 3 (`ArrayUAC10`, UAC1.0 firmware — no hardware AEC/DOA in this
   variant; flashable later). `voice/mic_setup.py` written: finds the card,
