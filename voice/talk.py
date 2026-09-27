@@ -52,18 +52,22 @@ def get_whisper():
     return WHISPER
 
 
-def record_until_enter(card: int, dev: int, path: Path) -> None:
-    """Record from the ReSpeaker until Enter is pressed."""
+def record_until_enter(card: int, dev: int, path: Path) -> bool:
+    """Record from the ReSpeaker until Enter is pressed. Returns False if
+    nothing usable was captured (arecord failed or the file is empty)."""
     proc = subprocess.Popen(
-        ["arecord", "-q", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
+        ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
          "-r", "16000", "-c", "1", str(path)],
+        stderr=subprocess.DEVNULL,
     )
     input()  # block until Enter
-    proc.terminate()
+    proc.terminate()          # SIGINT-ish: lets arecord write the WAV header
     try:
-        proc.wait(timeout=2)
+        proc.wait(timeout=3)
     except subprocess.TimeoutExpired:
         proc.kill()
+        proc.wait()
+    return path.exists() and path.stat().st_size > 1000  # header + some audio
 
 
 def transcribe(path: Path) -> str:
@@ -72,13 +76,15 @@ def transcribe(path: Path) -> str:
     return " ".join(s.text for s in segments).strip()
 
 
-def record_fixed(card: int, dev: int, path: Path, seconds: float) -> None:
-    """Record exactly `seconds` of audio (used by wake-word listening)."""
+def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
+    """Record exactly `seconds` of audio (used by wake-word listening).
+    Returns False if nothing usable was captured."""
     subprocess.run(
-        ["arecord", "-q", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
+        ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
          "-r", "16000", "-c", "1", "-d", str(seconds), str(path)],
-        check=True,
+        stderr=subprocess.DEVNULL,
     )
+    return path.exists() and path.stat().st_size > 1000
 
 
 def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> None:
@@ -101,8 +107,11 @@ def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> Non
 def push_to_talk_loop(llm, status, card, dev) -> None:
     while True:
         input(">>> press Enter and speak ")
-        clip = Path(tempfile.mktemp(suffix=".wav", prefix="kami_"))
-        record_until_enter(card, dev, clip)
+        clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
+        if not record_until_enter(card, dev, clip):
+            print("(recording failed — mic busy or unplugged?)\n")
+            clip.unlink(missing_ok=True)
+            continue
         t0 = time.perf_counter()
         text = transcribe(clip)
         stt_s = time.perf_counter() - t0
@@ -124,8 +133,12 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
     print(f'(wake word: "{wake_word}" — say it to get the kami\'s attention)')
     armed = False
     while True:
-        clip = Path(tempfile.mktemp(suffix=".wav", prefix="kami_"))
-        record_fixed(card, dev, clip, 8.0 if armed else 2.5)
+        clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
+        if not record_fixed(card, dev, clip, 8.0 if armed else 2.5):
+            print("(recording failed — mic busy or unplugged?)")
+            clip.unlink(missing_ok=True)
+            time.sleep(1)
+            continue
         t0 = time.perf_counter()
         text = transcribe(clip).lower()
         stt_s = time.perf_counter() - t0
