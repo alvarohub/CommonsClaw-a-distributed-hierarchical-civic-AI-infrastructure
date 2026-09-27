@@ -303,6 +303,7 @@ class WebApplication:
                 "temperature_c": snapshot.temperature_c,
                 "last_turn": last_turn,
                 "settings": node_settings.load(),
+                "voice": node_settings.voice_state(),
             })
 
         @app.post("/api/settings")
@@ -317,6 +318,26 @@ class WebApplication:
             if isinstance(data.get("model"), str) and data["model"]:
                 patch["model"] = data["model"]
             return jsonify(node_settings.save(**patch))
+
+        @app.post("/api/voice")
+        def set_voice():
+            """Turn the microphone on/off and choose wake-word vs press-to-talk.
+            The voice process polls these settings; nothing is started here."""
+            data = request.get_json(force=True, silent=True) or {}
+            patch: dict[str, object] = {}
+            if "enabled" in data:
+                patch["enabled"] = bool(data["enabled"])
+            if data.get("mode") in node_settings.VOICE_MODES:
+                patch["mode"] = data["mode"]
+            word = (data.get("wake_word") or "").strip()
+            if word:
+                patch["wake_word"] = word
+            return jsonify(node_settings.save(voice=patch))
+
+        @app.post("/api/listen")
+        def listen_now():
+            """Arm exactly one capture (the page's press-to-talk button)."""
+            return jsonify(node_settings.save(listen_request=time.time()))
 
         @app.post("/api/ask")
         def ask():

@@ -119,11 +119,11 @@ Cost: ~1 GB of the Pi's 16 GB held permanently.
 ### What "one LLMManager per process" actually means
 
 This wording confused me too, so precisely: `LLMManager` is **not** the
-model. It is a *client* — a few hundred bytes holding the API URL, the
+model. It is a _client_ — a few hundred bytes holding the API URL, the
 default model name, the conversation history and the last metrics. Each
 frontend process (web, voice, console) constructs its own because each is a
 separate Python program; they could not share a Python object even if we
-wanted them to. What they *do* share is the thing behind the socket: one
+wanted them to. What they _do_ share is the thing behind the socket: one
 model, in one place, in RAM.
 
 So "a copy of the manager" costs nothing. But it used to cost something
@@ -140,14 +140,14 @@ process happens to be talking._
 
 There is a second reason, measured on the Pi 5 (first token, `llama3.2:1b`):
 
-| system prompt                  | 1st time | repeated |
-| ------------------------------ | -------- | -------- |
-| bare (no memory)               | 0.4 s    | 0.4 s    |
-| + identity (~1 kB)             | 5.2 s    | 0.45 s   |
-| + identity + sensors           | 18.3 s   | —        |
-| back to identity after a bare turn | **5.1 s** | —    |
+| system prompt                      | 1st time  | repeated |
+| ---------------------------------- | --------- | -------- |
+| bare (no memory)                   | 0.4 s     | 0.4 s    |
+| + identity (~1 kB)                 | 5.2 s     | 0.45 s   |
+| + identity + sensors               | 18.3 s    | —        |
+| back to identity after a bare turn | **5.1 s** | —        |
 
-Ollama caches the *evaluated prompt prefix*, and keeps essentially one such
+Ollama caches the _evaluated prompt prefix_, and keeps essentially one such
 cache per model. Repeating a prompt is nearly free; **alternating** between
 two different system prompts evicts the cache each time, so every switch
 pays the full re-evaluation again. That last row is the whole story: it is

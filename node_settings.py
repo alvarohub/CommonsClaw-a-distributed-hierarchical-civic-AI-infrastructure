@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 
 PATH = Path(__file__).parent / "node_settings.json"
@@ -40,22 +41,51 @@ PATH = Path(__file__).parent / "node_settings.json"
 # caches the prompt prefix). sensors+community push it to ~18 s, so they
 # stay off until asked for.
 # model: None = whatever config.MODEL_NAME says.
-DEFAULTS: dict[str, object] = {"memory": ["identity"], "model": None}
+# voice: the microphone loop obeys these — enabled on/off, and "wake" (always
+#        listening for the wake word) vs "button" (only when the page asks).
+# listen_request: a timestamp. Bumping it arms exactly one capture; that is
+#        how the page's "Listen" button reaches across to the voice process.
+DEFAULTS: dict[str, object] = {
+    "memory": ["identity"],
+    "model": None,
+    "voice": {"enabled": False, "mode": "wake", "wake_word": "kami"},
+    "listen_request": 0.0,
+}
+
+VOICE_MODES = ("wake", "button")
+
+
+def _sanitize(data: object) -> dict:
+    """Validated settings: anything missing or malformed falls back to DEFAULTS.
+
+    Used on the way in AND on the way out, so a bad value can never be
+    written to disk and then quietly masked on every later read.
+    """
+    out = json.loads(json.dumps(DEFAULTS))  # deep copy, no shared nested dict
+    if not isinstance(data, dict):
+        return out
+    if isinstance(data.get("memory"), list):
+        out["memory"] = [c for c in data["memory"] if isinstance(c, str)]
+    if isinstance(data.get("model"), str) and data["model"]:
+        out["model"] = data["model"]
+    if isinstance(data.get("listen_request"), (int, float)):
+        out["listen_request"] = float(data["listen_request"])
+    voice = data.get("voice")
+    if isinstance(voice, dict):
+        out["voice"]["enabled"] = bool(voice.get("enabled", False))
+        if voice.get("mode") in VOICE_MODES:
+            out["voice"]["mode"] = voice["mode"]
+        if isinstance(voice.get("wake_word"), str) and voice["wake_word"].strip():
+            out["voice"]["wake_word"] = voice["wake_word"].strip()
+    return out
 
 
 def load() -> dict:
     """Current settings, falling back to DEFAULTS for anything missing."""
-    out = dict(DEFAULTS)
     try:
-        data = json.loads(PATH.read_text(encoding="utf-8"))
+        return _sanitize(json.loads(PATH.read_text(encoding="utf-8")))
     except (OSError, ValueError):
-        return out
-    if isinstance(data, dict):
-        if isinstance(data.get("memory"), list):
-            out["memory"] = [c for c in data["memory"] if isinstance(c, str)]
-        if isinstance(data.get("model"), str) and data["model"]:
-            out["model"] = data["model"]
-    return out
+        return _sanitize(None)
 
 
 def memory_categories() -> set[str]:
@@ -70,8 +100,47 @@ def model() -> str | None:
 def save(**patch) -> dict:
     """Merge `patch` into the settings and write atomically."""
     current = load()
-    current.update({k: v for k, v in patch.items() if k in DEFAULTS})
+    for key, value in patch.items():
+        if key not in DEFAULTS:
+            continue
+        if key == "voice" and isinstance(value, dict):
+            current["voice"].update(value)
+        else:
+            current[key] = value
+    current = _sanitize(current)
     tmp = PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, PATH)  # atomic: readers never see a half-written file
     return current
+
+
+# --- voice heartbeat -------------------------------------------------------
+# The voice loop is a separate process that may not even be running. It
+# publishes what it is doing here; the page reads it and can say "offline"
+# honestly instead of pretending the microphone is there.
+HEARTBEAT = Path("/tmp/commonsclaw_voice.json")
+HEARTBEAT_STALE_S = 12.0
+
+
+def publish_voice_state(state: str, detail: str = "") -> None:
+    try:
+        tmp = HEARTBEAT.with_suffix(".tmp")
+        tmp.write_text(json.dumps(
+            {"ts": time.time(), "state": state, "detail": detail}),
+            encoding="utf-8")
+        os.replace(tmp, HEARTBEAT)
+    except OSError:
+        pass
+
+
+def voice_state() -> dict:
+    """{"state": ...} — "offline" if the voice process isn't heartbeating."""
+    try:
+        data = json.loads(HEARTBEAT.read_text(encoding="utf-8"))
+        if time.time() - float(data.get("ts", 0)) < HEARTBEAT_STALE_S:
+            return {"state": str(data.get("state", "?")),
+                    "detail": str(data.get("detail", ""))}
+    except (OSError, ValueError, TypeError):
+        pass
+    return {"state": "offline", "detail": ""}
+

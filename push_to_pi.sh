@@ -25,8 +25,14 @@ rsync -av --delete \
   --exclude 'sensors/*.md' \
   "$SRC" "$DEST"
 
-# Restart the web server so the Pi always runs the pushed code.
-# (No-op with a hint if the systemd service isn't installed yet.)
-ssh "$PI_HOST" 'sudo systemctl restart commonsclaw-web 2>/dev/null && echo "commonsclaw-web restarted." || echo "(commonsclaw-web service not installed — run: sudo bash install_autostart.sh — or restart web_server.py by hand)"'
+# Restart the services so the Pi always runs the pushed code.
+# (No-op with a hint if the systemd units aren't installed yet.)
+ssh "$PI_HOST" '
+  sudo -n systemctl restart commonsclaw-web 2>/dev/null && echo "commonsclaw-web restarted." \
+    || echo "(commonsclaw-web service not installed — run: sudo bash install_autostart.sh — or restart web_server.py by hand)"
+  if systemctl list-unit-files | grep -q commonsclaw-voice; then
+    sudo -n systemctl restart commonsclaw-voice 2>/dev/null && echo "commonsclaw-voice restarted."
+  fi
+'
 
 echo "Done."

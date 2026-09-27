@@ -18,6 +18,8 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ "${1:-}" == "--uninstall" ]]; then
   systemctl disable --now commonsclaw-web.service 2>/dev/null || true
   rm -f /etc/systemd/system/commonsclaw-web.service
+  systemctl disable --now commonsclaw-voice.service 2>/dev/null || true
+  rm -f /etc/systemd/system/commonsclaw-voice.service
   systemctl daemon-reload
   echo "commonsclaw-web service removed. (AP profile 'commonsclaw-ap' left in place;"
   echo " remove with: nmcli con delete commonsclaw-ap)"
@@ -34,6 +36,16 @@ cp "$SRC_DIR/commonsclaw-sensors.service" /etc/systemd/system/commonsclaw-sensor
 systemctl daemon-reload
 systemctl enable --now commonsclaw-sensors.service
 
+# 1b2. voice loop — idle until the web page turns the microphone on.
+# Needs the voice venv (setup_voice.sh); skipped cleanly if it isn't there.
+if [ -x /home/admin/voice-venv/bin/python ]; then
+  cp "$SRC_DIR/commonsclaw-voice.service" /etc/systemd/system/commonsclaw-voice.service
+  systemctl daemon-reload
+  systemctl enable --now commonsclaw-voice.service
+else
+  echo "NOTE: no ~/voice-venv — skipping the voice service (run setup_voice.sh first)."
+fi
+
 # 1c. daily journal entry (23:55) — the mechanical memory writer
 ( crontab -l 2>/dev/null | grep -v journal_writer ; \
   echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' ) | crontab -
@@ -48,6 +60,14 @@ Environment="OLLAMA_KEEP_ALIVE=-1"
 EOF
 systemctl daemon-reload
 systemctl restart ollama
+
+# 1e. let ./push_to_pi.sh restart the services without a password prompt.
+# Scoped to exactly these commands — not a general sudo grant.
+cat > /etc/sudoers.d/commonsclaw-restart <<'EOF'
+admin ALL=(root) NOPASSWD: /usr/bin/systemctl restart commonsclaw-web, /usr/bin/systemctl restart commonsclaw-voice, /usr/bin/systemctl restart commonsclaw-sensors
+EOF
+chmod 0440 /etc/sudoers.d/commonsclaw-restart
+visudo -c -q || { echo "BAD sudoers file — removing"; rm -f /etc/sudoers.d/commonsclaw-restart; }
 
 # 2. boot to console (no desktop) — saves ~250 MB RAM
 systemctl set-default multi-user.target

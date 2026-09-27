@@ -2,7 +2,11 @@
 """Push-to-talk / wake-word voice loop for the kami node (Phase 3, steps 3-4).
 
 Run ON THE PI with the voice venv (needs faster-whisper + requests):
-    ~/voice-venv/bin/python voice/talk.py
+    ~/voice-venv/bin/python voice/talk.py --serve
+
+`--serve` is the normal mode: the microphone does whatever the web page
+says (off / wake word / press-to-talk), re-read from node_settings.json
+every cycle. The two manual modes below still exist for debugging.
 
 Controls (default: push-to-talk):
     Enter        — start recording; Enter again — stop; the kami answers.
@@ -25,6 +29,7 @@ turn is published to the status store, so the web dashboard sees it too.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import tempfile
@@ -122,6 +127,14 @@ def transcribe(path: Path) -> str:
     return " ".join(s.text for s in segments).strip()
 
 
+def new_clip() -> Path:
+    """A fresh temp .wav path. mkstemp hands back an OPEN fd; closing it is
+    not optional — leaking one per recording exhausts the process in minutes."""
+    fd, name = tempfile.mkstemp(suffix=".wav", prefix="kami_")
+    os.close(fd)
+    return Path(name)
+
+
 def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
     """Record a fixed window (used by wake-word listening).
     Returns False if nothing usable was captured."""
@@ -170,7 +183,7 @@ def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> Non
 def push_to_talk_loop(llm, status, card, dev) -> None:
     while True:
         input(">>> press Enter, speak, then just pause ")
-        clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
+        clip = new_clip()
         print("🎤 listening...", end="", flush=True)
         ok = record_until_silence(card, dev, clip)
         print("\r🎤 (transcribing...)      ", end="", flush=True)
@@ -200,7 +213,7 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
     print(f'(wake word: "{wake_word}" — say it to get the kami\'s attention)')
     armed = False
     while True:
-        clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
+        clip = new_clip()
         # Short window to catch the wake word; once armed, listen for a full
         # sentence and stop on the speaker's pause.
         ok = (record_until_silence(card, dev, clip, max_seconds=12.0)
@@ -237,10 +250,84 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
             print(f'(ignored: "{text}")')
 
 
+def serve_loop(llm, status, card, dev) -> None:
+    """Microphone as a service: the web page decides what it does.
+
+    Reads node_settings every cycle — off, wake-word, or button (record only
+    when the page asks) — and publishes a heartbeat so the page can tell the
+    difference between "idle" and "not running at all".
+    """
+    print("(serving — control the microphone from the web page)")
+    armed = False                      # wake word heard, awaiting the question
+    last_request = node_settings.load()["listen_request"]
+
+    while True:
+        settings = node_settings.load()
+        voice = settings["voice"]
+        requested = settings["listen_request"] > last_request
+
+        if not voice["enabled"] and not requested:
+            node_settings.publish_voice_state("off")
+            armed = False
+            time.sleep(0.4)
+            continue
+
+        # A press on the page always wins, in either mode.
+        if requested:
+            last_request = settings["listen_request"]
+            armed = True
+
+        if voice["mode"] == "button" and not armed:
+            node_settings.publish_voice_state("ready", "press to talk")
+            time.sleep(0.3)
+            continue
+
+        clip = new_clip()
+        if armed:
+            node_settings.publish_voice_state("listening", "speak now")
+            ok = record_until_silence(card, dev, clip, max_seconds=12.0)
+        else:
+            node_settings.publish_voice_state(
+                "waking", f'say "{voice["wake_word"]}"')
+            ok = record_fixed(card, dev, clip, 3)
+        if not ok:
+            clip.unlink(missing_ok=True)
+            armed = False   # one press (or one wake word) = one chance to speak
+            continue
+
+        node_settings.publish_voice_state("transcribing")
+        t0 = time.perf_counter()
+        text = transcribe(clip).strip()
+        stt_s = time.perf_counter() - t0
+        clip.unlink(missing_ok=True)
+        if not text:
+            armed = False
+            continue
+
+        if armed:
+            question = text
+        else:
+            wake = voice["wake_word"].lower()
+            if wake not in text.lower():
+                print(f'(ignored: "{text}")')
+                continue
+            question = text.lower().split(wake, 1)[1].strip(" ,.?!")
+            if not question:            # just the wake word: listen next round
+                armed = True
+                print("KAMI: yes? (listening...)\n")
+                continue
+
+        node_settings.publish_voice_state("thinking", question[:60])
+        answer(llm, status, question, stt_s)
+        armed = False
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--wake", metavar="WORD", default=None,
                     help='wake-word mode (e.g. --wake kami)')
+    ap.add_argument("--serve", action="store_true",
+                    help="obey the web page's voice settings (recommended)")
     args = ap.parse_args()
 
     found = find_capture_card()
@@ -256,7 +343,9 @@ def main() -> None:
     print(f"CommonsClaw voice loop (mic: card {card}, model: {config.MODEL_NAME})")
 
     try:
-        if args.wake:
+        if args.serve:
+            serve_loop(llm, status, card, dev)
+        elif args.wake:
             wake_word_loop(llm, status, card, dev, args.wake)
         else:
             print("Enter to talk, Enter to stop, Ctrl+C to quit.\n")
@@ -264,6 +353,7 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nbye")
     finally:
+        node_settings.publish_voice_state("offline")
         status.clear()
 
 
