@@ -64,6 +64,31 @@ WAKE_SIMILARITY = 0.7
 LOCK_PATH = Path("/tmp/commonsclaw_voice.lock")
 _LOCK_FILE = None  # kept open for the process lifetime, or the lock is lost
 STOP = threading.Event()
+CLIP_PREFIX = "kami_"
+
+
+def _die_with_parent() -> None:
+    """Ask the kernel to kill this child when its parent dies.
+
+    Without it, `kill -9` on the voice loop leaves arecord running and
+    holding the microphone forever — a silent, invisible failure: every
+    later recording fails with EBUSY and nothing is ever transcribed.
+    (Exactly what happened on 2026-09-28, for 52 minutes.)
+    """
+    try:
+        import ctypes
+        PR_SET_PDEATHSIG = 1
+        ctypes.CDLL("libc.so.6", use_errno=True).prctl(
+            PR_SET_PDEATHSIG, signal.SIGKILL)
+    except Exception:
+        pass  # not Linux, or no libc: fall back to ordinary cleanup
+
+
+def _kill_stray_recorders() -> None:
+    """Kill leftover arecord processes from an earlier, crashed voice loop.
+    Matched on our own temp-file prefix so nobody else's recording dies."""
+    subprocess.run(["pkill", "-f", f"arecord.*{CLIP_PREFIX}"],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def claim_microphone(takeover: bool = True) -> None:
@@ -77,6 +102,9 @@ def claim_microphone(takeover: bool = True) -> None:
             _LOCK_FILE.truncate()
             _LOCK_FILE.write(f"{os.getpid()}\n")
             _LOCK_FILE.flush()
+            _kill_stray_recorders()
+            for old in Path(tempfile.gettempdir()).glob(f"{CLIP_PREFIX}*"):
+                old.unlink(missing_ok=True)
             return
         except OSError as exc:
             if exc.errno not in (errno.EACCES, errno.EAGAIN):
@@ -156,6 +184,7 @@ def record_until_silence(card: int, dev: int, path: Path,
         ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
          "-r", "16000", "-c", "1", "-t", "raw", str(path) + ".raw"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        preexec_fn=_die_with_parent,
     )
     raw_path = Path(str(path) + ".raw")
     heard_speech = False
@@ -204,16 +233,41 @@ def record_until_silence(card: int, dev: int, path: Path,
     return True
 
 
+PAD_SECONDS = 0.5
+
+
+def _padded_audio(path: Path):
+    """Clip as float32, with silence glued to both ends.
+
+    Whisper-tiny SWALLOWS THE FIRST WORD when speech starts at sample zero:
+    "turtle, how warm is the pond?" transcribed as "How warm is the pond?" —
+    which silently broke the wake word entirely. Padding fixes it (verified
+    2026-09-28). An initial_prompt does NOT: it made matters worse.
+    """
+    import numpy as np
+    import wave
+    with wave.open(str(path)) as w:
+        rate = w.getframerate()
+        pcm = w.readframes(w.getnframes())
+    samples = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
+    silence = np.zeros(int(rate * PAD_SECONDS), dtype=np.float32)
+    return np.concatenate([silence, samples, silence])
+
+
 def transcribe(path: Path) -> str:
     model = get_whisper()
-    segments, _info = model.transcribe(str(path))
+    try:
+        audio = _padded_audio(path)
+    except Exception:
+        audio = str(path)   # any surprise: fall back to the raw file
+    segments, _info = model.transcribe(audio)
     return " ".join(s.text for s in segments).strip()
 
 
 def new_clip() -> Path:
     """A fresh temp .wav path. mkstemp hands back an OPEN fd; closing it is
     not optional — leaking one per recording exhausts the process in minutes."""
-    fd, name = tempfile.mkstemp(suffix=".wav", prefix="kami_")
+    fd, name = tempfile.mkstemp(suffix=".wav", prefix=CLIP_PREFIX)
     os.close(fd)
     return Path(name)
 
@@ -222,12 +276,14 @@ def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
     """Record a fixed window (used by wake-word listening).
     Returns False if nothing usable was captured."""
     # arecord -d takes whole seconds only; 2.5 makes it exit immediately.
-    subprocess.run(
+    result = subprocess.run(
         ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
          "-r", "16000", "-c", "1", "-d", str(max(1, int(round(seconds)))),
          str(path)],
-        stderr=subprocess.DEVNULL,
+        stderr=subprocess.PIPE, text=True, preexec_fn=_die_with_parent,
     )
+    if result.returncode != 0:
+        print(f"arecord failed: {result.stderr.strip()}", flush=True)
     return path.exists() and path.stat().st_size > 1000
 
 
@@ -399,9 +455,10 @@ def serve_loop(llm, status, card, dev) -> None:
             question = rest
             if not question:            # just the wake word: listen next round
                 armed = True
-                print("KAMI: yes? (listening...)\n")
+                print("KAMI: yes? (listening...)\n", flush=True)
                 node_settings.publish_voice_state(
                     "awake", "yes? I'm listening", heard=text)
+                time.sleep(0.7)   # let the page chime and the speaker draw breath
                 continue
 
         node_settings.publish_voice_state("thinking", question[:60], heard=text)

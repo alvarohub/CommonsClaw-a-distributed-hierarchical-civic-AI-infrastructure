@@ -71,6 +71,64 @@
         color: var(--accent);
         font-style: normal;
       }
+      /* Mode picker: exactly one of off / wake / push is lit. */
+      .seg {
+        display: inline-flex;
+        gap: 0;
+      }
+      .seg .box {
+        border-radius: 0;
+        border-left-width: 0;
+      }
+      .seg .box:first-child {
+        border-radius: 6px 0 0 6px;
+        border-left-width: 1px;
+      }
+      .seg .box:last-child {
+        border-radius: 0 6px 6px 0;
+      }
+      .box.act {
+        margin-left: 10px;
+      }
+      .box[disabled] {
+        opacity: 0.2;
+        cursor: not-allowed;
+      }
+      .box.act.live {
+        background: var(--error);
+        border-color: var(--error);
+        color: var(--fg);
+        opacity: 1;
+      }
+      #voicebanner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        background: #0d2a16;
+        border-bottom: 1px solid #1c5c31;
+        color: var(--accent);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      #voicebanner .pulse {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 1s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.35;
+          transform: scale(0.7);
+        }
+      }
       .dot {
         width: 8px;
         height: 8px;
@@ -274,16 +332,19 @@
       </div>
       <div class="row">
         <span class="rlabel">voice</span>
-        <button class="box" id="vmic" title="Turn the Pi's microphone on or off">🎙 mic</button>
-        <button class="box" id="vwake" title="Always listening for the wake word — tap again to change the word">
-          wake word
-        </button>
-        <button class="box" id="vpress" title="Only listens when you press Listen">press</button>
-        <button class="box" id="vlisten" title="Listen to one question now">🎤 listen</button>
+        <span class="seg" id="vmode">
+          <button class="box" data-mode="off" title="The Pi's microphone is not used">off</button>
+          <button class="box" data-mode="wake" id="vwake" title="Always listening — tap again to change the word">
+            wake “turtle”
+          </button>
+          <button class="box" data-mode="button" title="Listens only when you press the talk button">push</button>
+        </span>
+        <button class="box act" id="vlisten" title="Press, then speak" disabled>🎤 talk</button>
         <span class="hint" id="vstate">offline</span>
         <span class="heard" id="vheard"></span>
       </div>
     </header>
+    <div id="voicebanner" class="hidden"><span class="pulse"></span><span id="vbtext"></span></div>
     <div id="transcript"></div>
     <div id="inputbar">
       <button id="mic" title="Dictate" class="hidden">🎤</button>
@@ -401,12 +462,23 @@
             renderVoice();
           }
           if (s.voice) {
-            vState.textContent =
-              (VOICE_LABEL[s.voice.state] || s.voice.state) + (s.voice.detail ? ' · ' + s.voice.detail : '');
+            const st = s.voice.state;
+            vState.textContent = (VOICE_LABEL[st] || st) + (s.voice.detail ? ' · ' + s.voice.detail : '');
             // What whisper actually transcribed — the only way to tell a deaf
             // microphone from a wake word that simply didn't match.
             vHeard.textContent = s.voice.heard ? '“' + s.voice.heard + '”' : '';
-            vHeard.classList.toggle('wake', s.voice.state === 'awake');
+            vHeard.classList.toggle('wake', st === 'awake');
+
+            const open = st === 'listening' || st === 'awake';
+            vBanner.classList.toggle('hidden', !open);
+            vBanText.textContent = st === 'awake' ? '🐢 yes? — ask now' : '🎤 listening — speak now';
+            vListen.classList.toggle('live', open || st === 'transcribing');
+
+            if (st !== prevVoiceState) {
+              if (st === 'awake') beep(1046, 130);
+              else if (st === 'listening') beep(880, 90);
+              prevVoiceState = st;
+            }
           }
 
           // Turns that happened at the microphone (or the SSH console) are
@@ -653,33 +725,59 @@
       // Nothing is started or stopped here: the voice process polls these
       // settings and reports back what it is doing — or doesn't, if it isn't
       // running at all, and then the state honestly reads "offline".
-      const vMic = document.getElementById('vmic');
+      // MODE (off/wake/push) and ACTION (talk) are deliberately separate
+      // controls: the action only exists in push mode.
+      const vModeBar = document.getElementById('vmode');
       const vWake = document.getElementById('vwake');
-      const vPress = document.getElementById('vpress');
       const vListen = document.getElementById('vlisten');
       const vState = document.getElementById('vstate');
       const vHeard = document.getElementById('vheard');
+      const vBanner = document.getElementById('voicebanner');
+      const vBanText = document.getElementById('vbtext');
 
       const VOICE_LABEL = {
         offline: 'voice process not running on the Pi',
         off: 'microphone off',
-        ready: 'ready — press listen',
-        waking: 'listening for the wake word',
-        awake: '🐢 yes? — ask now',
-        listening: '● recording…',
+        ready: 'ready — press talk',
+        waking: 'waiting for the wake word',
+        awake: 'yes? — ask now',
+        listening: 'recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
       };
 
       let voiceCfg = { enabled: false, mode: 'wake', wake_word: 'turtle' };
       let voiceHeldUntil = 0;
+      let prevVoiceState = '';
 
+      // A short tone, so you know it is listening without watching the screen.
+      let audioCtx = null;
+      function beep(freq, ms) {
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          const t = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.3, t + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + ms / 1000 + 0.02);
+        } catch {}
+      }
+
+      function currentMode() {
+        return voiceCfg.enabled ? voiceCfg.mode : 'off';
+      }
       function renderVoice() {
-        vMic.classList.toggle('on', voiceCfg.enabled);
-        vMic.textContent = voiceCfg.enabled ? '🎙 mic on' : '🎙 mic off';
+        const mode = currentMode();
+        vModeBar.querySelectorAll('.box').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
         vWake.textContent = 'wake “' + voiceCfg.wake_word + '”';
-        vWake.classList.toggle('on', voiceCfg.enabled && voiceCfg.mode === 'wake');
-        vPress.classList.toggle('on', voiceCfg.enabled && voiceCfg.mode === 'button');
+        vListen.disabled = mode !== 'button';
       }
       async function postVoice(patch) {
         voiceHeldUntil = Date.now() + 3000;
@@ -693,22 +791,22 @@
           });
         } catch {}
       }
-      vMic.addEventListener('click', () => postVoice({ enabled: !voiceCfg.enabled }));
-      vWake.addEventListener('click', () => {
-        if (voiceCfg.enabled && voiceCfg.mode === 'wake') {
+      vModeBar.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.box');
+        if (!btn) return;
+        const mode = btn.dataset.mode;
+        if (mode === 'off') return postVoice({ enabled: false });
+        // Tapping the already-active wake button edits the word.
+        if (mode === 'wake' && currentMode() === 'wake') {
           const w = prompt('Wake word — say this to get the kami’s attention:', voiceCfg.wake_word);
           if (w && w.trim()) postVoice({ enabled: true, mode: 'wake', wake_word: w.trim() });
           return;
         }
-        postVoice({ enabled: true, mode: 'wake' });
+        postVoice({ enabled: true, mode });
       });
-      vPress.addEventListener('click', () => postVoice({ enabled: true, mode: 'button' }));
-      vListen.addEventListener('click', async () => {
-        vListen.classList.add('on');
-        setTimeout(() => vListen.classList.remove('on'), 1200);
-        try {
-          await fetch('/api/listen', { method: 'POST' });
-        } catch {}
+      vListen.addEventListener('click', () => {
+        beep(880, 90); // also unlocks the AudioContext on iOS
+        fetch('/api/listen', { method: 'POST' }).catch(() => {});
       });
       renderVoice();
 
