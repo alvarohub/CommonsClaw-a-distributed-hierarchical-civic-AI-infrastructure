@@ -29,6 +29,15 @@ cp "$SRC_DIR/commonsclaw-web.service" /etc/systemd/system/commonsclaw-web.servic
 systemctl daemon-reload
 systemctl enable --now commonsclaw-web.service
 
+# 1b. sensor loggers service (registry-driven, sensors.json)
+cp "$SRC_DIR/commonsclaw-sensors.service" /etc/systemd/system/commonsclaw-sensors.service
+systemctl daemon-reload
+systemctl enable --now commonsclaw-sensors.service
+
+# 1c. daily journal entry (23:55) — the mechanical memory writer
+( crontab -l 2>/dev/null | grep -v journal_writer ; \
+  echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' ) | crontab -
+
 # 2. boot to console (no desktop) — saves ~250 MB RAM
 systemctl set-default multi-user.target
 
@@ -43,6 +52,7 @@ fi
 echo
 echo "=== autostart installed ==="
 systemctl is-enabled commonsclaw-web.service
+systemctl is-enabled commonsclaw-sensors.service
 echo "Default boot target: $(systemctl get-default)"
 echo "Reboot to verify: sudo reboot"
 echo "After reboot the chat should be at http://10.42.0.1:8080 (via AP)"

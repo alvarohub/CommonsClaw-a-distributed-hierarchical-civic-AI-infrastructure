@@ -1,0 +1,14 @@
+[Unit]
+Description=CommonsClaw sensor loggers (sensors.json registry)
+After=multi-user.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/commonsclaw
+ExecStart=/usr/bin/python3 /home/admin/commonsclaw/sensors_boot.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

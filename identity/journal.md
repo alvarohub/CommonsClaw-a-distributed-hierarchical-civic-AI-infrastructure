@@ -9,3 +9,7 @@
 # updated: never (empty)
 
 (Empty. The first entry will appear here.)
+
+## 2026-09-27
+- world: (no sensor data today)
+- talk: no conversations recorded

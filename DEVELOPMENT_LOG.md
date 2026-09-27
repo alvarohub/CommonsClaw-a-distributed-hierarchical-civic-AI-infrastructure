@@ -3,6 +3,29 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-09-27 (2)
+
+- **Memory folders reorganized to match the three toggle categories**:
+  `identity/` (identity.md + journal.md), `sensors/` (one file per sensor +
+  `index.md` dashboard + mic_calibration.md), `community/` (notes.md).
+  `reports/` and `memory/` dissolved; duplicate sensor log removed; the
+  dashboard groups files into labeled, rounded category boxes (icon + title +
+  one-liner), plain filenames inside.
+- **Sensor registry**: `sensors.json` (machine-readable: id, logger, log
+  file, interval, active flag, params) + `sensors_boot.py` (spawns one
+  supervisor per active logger at boot; crash-isolated) +
+  `commonsclaw-sensors.service` (in install_autostart.sh).
+- **Mechanical journal**: every completed turn is appended to
+  `identity/turn_log.jsonl` by the status store; `journal_writer.py` (cron
+  23:55) writes the day's entry — world: per-sensor min/max/avg; talk:
+  question count + top topic words. The LLM-consolidation layer (per-sensor
+  analyst reports, global state-of-place synthesis) is deferred to Level 2+
+  by design — the journal format is the handoff.
+- Voice UX: push-to-talk is now Enter→speak→pause (silence stops recording),
+  with listening/transcribing/thinking status in the console; 🙂/🐢 speaker
+  icons and turtle-green answers in the web UI; voice turns render live on
+  connected pages.
+
 ## 2026-09-27
 
 - **Phase 3 steps 3-4 DONE: the full voice loop.** `voice/talk.py` — a

@@ -287,6 +287,22 @@ about itself, updated by loggers:
   candidates or fine-tuning data).
 - Uptime / health / thermal history.
 
+**Mechanics (built 2026-09-27):** `sensors.json` = the machine-readable
+registry (per sensor: id, logger script, log file, interval, active flag,
+params); `sensors_boot.py` spawns one supervisor per active entry at boot
+(`commonsclaw-sensors.service`). Each completed turn is also appended to
+`identity/turn_log.jsonl` (machine-readable), and `journal_writer.py` (cron
+23:55) folds the day into `identity/journal.md`: world half = per-sensor
+min/max/mean; talk half = question count + top topic words.
+
+**Deferred by design (the LLM consolidation layer):** per-sensor *analytic*
+reports by Level-0 agents (trend extraction) and a global "state of the
+place" synthesis across sensors — real pattern discovery over days — require
+a bigger model than this Pi can host. That consolidation is a Level-2+ job
+reading the journal, and the journal format is designed for that handoff.
+(OpenClaw does the same shape: files + periodic consolidation by a larger
+model.)
+
 ### 4.2 Adaptive behavior from self-observation
 
 - **Caching**: frequent question types get cached/canned answers (huge
