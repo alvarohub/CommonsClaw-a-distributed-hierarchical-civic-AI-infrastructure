@@ -231,14 +231,14 @@
       <select id="modelsel" title="Model"></select>
       <span id="hw"></span>
       <span id="memtoggles">
-        <button class="memt" data-cat="identity" title="Kami identity memory">🧠</button>
+        <button class="memt on" data-cat="identity" title="Kami identity memory">🧠</button>
         <button class="memt" data-cat="sensors" title="Sensor readings">📡</button>
         <button class="memt" data-cat="community" title="Community notes">📝</button>
       </span>
     </div>
     <div id="memlegend">
-      kami reads: 🧠 its identity · 📡 its sensors · 📝 community notes &nbsp;(off by default = fast; tap one to let it
-      remember)
+      kami reads: 🧠 its identity · 📡 its sensors · 📝 community notes &nbsp;(shared by the
+      phone, the microphone and the console — more memory, slower answers)
     </div>
     <div id="transcript"></div>
     <div id="inputbar">
@@ -343,6 +343,15 @@
           const s = await r.json();
           dot.className = 'dot ' + (s.available ? 'ok' : 'err') + (s.active ? ' busy' : '');
           hwLabel.textContent = `CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C`;
+
+          // The toggles are NODE settings, not page settings: another phone
+          // (or the voice loop) may have changed them. Mirror, don't fight.
+          if (s.settings && !busy && Date.now() > settingsHeldUntil) {
+            const on = new Set(s.settings.memory || []);
+            document.querySelectorAll('.memt').forEach((b) => {
+              b.classList.toggle('on', on.has(b.dataset.cat));
+            });
+          }
 
           // Turns that happened at the microphone (or the SSH console) are
           // published to the append-only turn log; show them here. Our own
@@ -556,11 +565,32 @@
       });
 
       // Memory category toggles (🧠 identity / 📡 sensors / 📝 community).
-      // Sent per-question; slash keywords (/sensors ...) can force one on.
+      // These are NODE-wide: saved on the Pi, so the microphone and the
+      // console read exactly the same memory as this page.
+      let settingsHeldUntil = 0;  // ignore polled state right after a change
+
       function activeMemoryCategories() {
         return [...document.querySelectorAll('.memt.on')].map((b) => b.dataset.cat);
       }
-      document.querySelectorAll('.memt').forEach((b) => b.addEventListener('click', () => b.classList.toggle('on')));
+      async function saveSettings() {
+        settingsHeldUntil = Date.now() + 3000;
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              memory: activeMemoryCategories(),
+              model: modelSel.value || null,
+            }),
+          });
+        } catch {}
+      }
+      document.querySelectorAll('.memt').forEach((b) =>
+        b.addEventListener('click', () => {
+          b.classList.toggle('on');
+          saveSettings();
+        }));
+      modelSel.addEventListener('change', saveSettings);
 
       // Speaker default-on: reflect it in the button state.
       ttsBtn.classList.add('on');

@@ -327,12 +327,12 @@ model.)
 
 ### 5.0 The levels, precisely
 
-| Level | Who                  | What it does                                                        | Hardware                     |
-| ----- | -------------------- | ------------------------------------------------------------------- | ---------------------------- |
-| **0** | the loggers          | sense and record; at most tiny ML pattern recognition (classic AIoT) | MCU / the Pi's own processes |
-| **1** | the **place** kami   | converses, holds the place's memory _(this repo)_                    | Pi 5 — see the caveat below  |
-| **2** | the **neighborhood** | gathers and consolidates across _several_ kami in several places     | a real machine               |
-| 3+    | city → nation → world| answers what no neighborhood can                                      | shared datacenters           |
+| Level | Who                   | What it does                                                         | Hardware                     |
+| ----- | --------------------- | -------------------------------------------------------------------- | ---------------------------- |
+| **0** | the loggers           | sense and record; at most tiny ML pattern recognition (classic AIoT) | MCU / the Pi's own processes |
+| **1** | the **place** kami    | converses, holds the place's memory _(this repo)_                    | Pi 5 — see the caveat below  |
+| **2** | the **neighborhood**  | gathers and consolidates across _several_ kami in several places     | a real machine               |
+| 3+    | city → nation → world | answers what no neighborhood can                                     | shared datacenters           |
 
 Level 2 is **not** "the city": it is the first tier that sees more than one
 place. A neighborhood kami talks to the park turtle, the greenhouse, the

@@ -150,7 +150,7 @@
         view.classList.remove('dim');
         view.textContent = 'loading…';
         try {
-          const r = await fetch('/api/file?name=' + encodeURIComponent(name));
+          const r = await fetch('/api/file?name=' + encodeURIComponent(name) + '&t=' + Date.now());
           view.textContent = r.ok ? await r.text() : 'error ' + r.status;
         } catch (e) {
           view.textContent = 'error: ' + e.message;

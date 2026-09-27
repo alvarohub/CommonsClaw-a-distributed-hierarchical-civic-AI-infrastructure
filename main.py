@@ -11,6 +11,7 @@ except ImportError:
 import requests
 
 import config
+import node_settings
 from hardware_monitor import HardwareMonitor
 from llm_manager import LLMManager, ModelMetrics
 from status_store import StatusStore
@@ -136,6 +137,10 @@ class CommonsClawApplication:
             for chunk in self.llm_manager.stream_response(
                 prompt,
                 on_metrics_update=self._update_model_status,
+                model=node_settings.model(),
+                memory_categories=LLMManager.resolve_categories(
+                    prompt, node_settings.memory_categories(),
+                ),
             ):
                 if self.stop_event.is_set():
                     return

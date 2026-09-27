@@ -9,12 +9,20 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"
 DEST="${PI_HOST}:~/commonsclaw/"
 
 echo "Pushing $SRC -> $DEST"
+# Files the PI owns are excluded both ways: they are written there (by the
+# phone, the loggers, the voice loop) and would be clobbered by --delete.
+# identity/identity.md is NOT excluded: the personality is authored here.
 rsync -av --delete \
   --exclude '.git' \
   --exclude '__pycache__' \
   --exclude '.venv' \
   --exclude '*.pyc' \
   --exclude '.DS_Store' \
+  --exclude 'node_settings.json' \
+  --exclude 'identity/journal.md' \
+  --exclude 'identity/turn_log.jsonl' \
+  --exclude 'community/notes.md' \
+  --exclude 'sensors/*.md' \
   "$SRC" "$DEST"
 
 # Restart the web server so the Pi always runs the pushed code.

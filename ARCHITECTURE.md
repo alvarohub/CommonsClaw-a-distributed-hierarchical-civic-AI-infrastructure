@@ -116,6 +116,50 @@ For an installation that must answer a visitor instantly, eviction is wrong,
 so `install_autostart.sh` drops in `OLLAMA_KEEP_ALIVE=-1` (never unload).
 Cost: ~1 GB of the Pi's 16 GB held permanently.
 
+### What "one LLMManager per process" actually means
+
+This wording confused me too, so precisely: `LLMManager` is **not** the
+model. It is a *client* — a few hundred bytes holding the API URL, the
+default model name, the conversation history and the last metrics. Each
+frontend process (web, voice, console) constructs its own because each is a
+separate Python program; they could not share a Python object even if we
+wanted them to. What they *do* share is the thing behind the socket: one
+model, in one place, in RAM.
+
+So "a copy of the manager" costs nothing. But it used to cost something
+subtler: **each copy also carried its own settings**, and that was a real
+bug. The voice loop passed no memory categories (meaning "all on") while the
+web page passed its toggles (meaning "none on"), so the same question asked
+by voice and by phone got different prompts, different memories and wildly
+different speeds. Fixed by moving the settings out of the processes and into
+a file every frontend reads — `node_settings.json`, written by the web page,
+obeyed by all. _Shared state belongs in shared storage, not in whichever
+process happens to be talking._
+
+### Why the settings must be shared, not merely equal
+
+There is a second reason, measured on the Pi 5 (first token, `llama3.2:1b`):
+
+| system prompt                  | 1st time | repeated |
+| ------------------------------ | -------- | -------- |
+| bare (no memory)               | 0.4 s    | 0.4 s    |
+| + identity (~1 kB)             | 5.2 s    | 0.45 s   |
+| + identity + sensors           | 18.3 s   | —        |
+| back to identity after a bare turn | **5.1 s** | —    |
+
+Ollama caches the *evaluated prompt prefix*, and keeps essentially one such
+cache per model. Repeating a prompt is nearly free; **alternating** between
+two different system prompts evicts the cache each time, so every switch
+pays the full re-evaluation again. That last row is the whole story: it is
+why talking to the phone and then to the microphone felt like "the model is
+loading again". It was not loading — it was re-reading its own prompt,
+because the two frontends disagreed about what that prompt should be.
+
+One shared setting = one prefix = cached for everybody. The architectural
+rule this implies:
+
+> Anything that changes the system prompt is node state, not process state.
+
 ## The cast
 
 ```
@@ -256,6 +300,7 @@ another process. If you kill any box above, the others keep running.
 So the phone shows the voice conversation **by reading the log**, never by
 participating in the model call. If nobody is looking at a phone, the voice
 loop is complete without it.
+
 ## The memory loop (what makes it a kami)
 
 ```
@@ -275,7 +320,7 @@ identity curation stays human-gated on purpose.
 ## The missing organ: consolidation
 
 Everything above is **accumulation**: logs grow, notes pile up, the journal
-gains a block a day. None of it is *understanding*. Consolidation is the step
+gains a block a day. None of it is _understanding_. Consolidation is the step
 that turns a month of `temp=27.4C` lines into "the pond runs warm after the
 rains, and the children come earlier on those days" — and this node does not
 do it.
@@ -304,7 +349,7 @@ mature file-based implementation to learn from:
   `0 3 * * *`), in three phases — light → REM → deep — and only the deep
   phase may rewrite the curated core.
 - Promotion is gated by a **deterministic score** (relevance, frequency,
-  query diversity, recency, consolidation, richness) computed *before* any
+  query diversity, recency, consolidation, richness) computed _before_ any
   model call — the model is asked only about what already passed the gate.
 - The model returns **merge/supersede operations, not prose**, validated
   against a ≤25% prior-entry-loss rule, mandatory `Source:` anchors, and a
@@ -316,9 +361,9 @@ mature file-based implementation to learn from:
 **What we would borrow, and what we cannot.** The deterministic gate before
 the model call, operations-not-prose, the loss-bounded validation, atomic
 writes, and `Source:` provenance are all directly applicable and cheap — they
-are the reason their consolidation is trustworthy. What does *not* transfer:
+are the reason their consolidation is trustworthy. What does _not_ transfer:
 OpenClaw scopes memory **per agent, per user** — a gateway is explicitly "one
-trust domain", and group/channel sessions are *excluded* from durable
+trust domain", and group/channel sessions are _excluded_ from durable
 memory. There is no notion of a place, and no notion of many authors writing
 one shared identity. That gap is exactly the problem CommonsClaw exists to
 solve, so the communal half (whose voice counts, how a commons avoids being

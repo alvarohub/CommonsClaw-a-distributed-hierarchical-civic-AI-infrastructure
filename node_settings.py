@@ -1,0 +1,77 @@
+"""Node-wide settings shared by EVERY frontend (web, voice, console, GUI).
+
+Why this file exists
+--------------------
+Each frontend is a separate process with its own LLMManager *client*. The
+model is shared (it lives in Ollama), but until now the *settings* were not:
+the web page sent its memory toggles with each question, while voice/console
+sent nothing and silently got "all memory on". Same question, same model,
+two different answers and two very different speeds.
+
+These settings belong to the NODE, not to whichever process happens to be
+talking. So they live where all the other shared state lives: in a file.
+Every frontend reads it at the start of each turn; the web UI writes it.
+Flip a toggle on your phone and the voice loop obeys too.
+
+    node_settings.json   {"memory": ["identity"], "model": "llama3.2:1b"}
+
+Deliberately re-read per turn (a few microseconds) rather than cached, so a
+change takes effect without restarting anything.
+
+There is a second, less obvious reason to share them. Ollama caches the
+evaluated prompt *prefix*, and only one at a time per model: two frontends
+with two different system prompts evict each other's cache, so every switch
+between the phone and the microphone pays a full re-evaluation (measured:
+0.45 s → 5.1 s). One shared setting means one prefix, cached, for everybody.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+
+PATH = Path(__file__).parent / "node_settings.json"
+
+# memory: which category folders enter the system prompt ([] = bare prompt).
+# identity is on by default: it is small (~1 kB) and it is what makes this a
+# kami rather than a generic assistant. Measured on the Pi 5: bare 0.4 s to
+# first token, identity 5.2 s the FIRST time and 0.45 s afterwards (Ollama
+# caches the prompt prefix). sensors+community push it to ~18 s, so they
+# stay off until asked for.
+# model: None = whatever config.MODEL_NAME says.
+DEFAULTS: dict[str, object] = {"memory": ["identity"], "model": None}
+
+
+def load() -> dict:
+    """Current settings, falling back to DEFAULTS for anything missing."""
+    out = dict(DEFAULTS)
+    try:
+        data = json.loads(PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return out
+    if isinstance(data, dict):
+        if isinstance(data.get("memory"), list):
+            out["memory"] = [c for c in data["memory"] if isinstance(c, str)]
+        if isinstance(data.get("model"), str) and data["model"]:
+            out["model"] = data["model"]
+    return out
+
+
+def memory_categories() -> set[str]:
+    """The shared memory toggles, as the set LLMManager expects."""
+    return set(load()["memory"])  # type: ignore[arg-type]
+
+
+def model() -> str | None:
+    return load()["model"]  # type: ignore[return-value]
+
+
+def save(**patch) -> dict:
+    """Merge `patch` into the settings and write atomically."""
+    current = load()
+    current.update({k: v for k, v in patch.items() if k in DEFAULTS})
+    tmp = PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, PATH)  # atomic: readers never see a half-written file
+    return current

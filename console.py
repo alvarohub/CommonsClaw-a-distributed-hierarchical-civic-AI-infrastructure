@@ -5,6 +5,7 @@ import threading
 import requests
 
 import config
+import node_settings
 from hardware_monitor import HardwareMonitor
 from llm_manager import LLMManager
 from status_store import StatusStore
@@ -80,6 +81,10 @@ class ConsoleApplication:
             for chunk in self.llm_manager.stream_response(
                 prompt,
                 on_metrics_update=self.status_store.update_model,
+                model=node_settings.model(),
+                memory_categories=LLMManager.resolve_categories(
+                    prompt, node_settings.memory_categories(),
+                ),
             ):
                 response_parts.append(chunk)
                 print(chunk, end="", flush=True)

@@ -35,6 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))  # repo root on sys.path
 
 import config
+import node_settings
 from llm_manager import LLMManager
 from status_store import StatusStore
 from voice.mic_setup import find_capture_card
@@ -142,7 +143,14 @@ def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> Non
     print("🐢 KAMI is thinking...", end="", flush=True)
     parts: list[str] = []
     first = True
-    for chunk in llm.stream_response(text, on_metrics_update=status.update_model):
+    # Same shared settings the web page edits — one node, one behaviour.
+    categories = LLMManager.resolve_categories(text, node_settings.memory_categories())
+    for chunk in llm.stream_response(
+        text,
+        on_metrics_update=status.update_model,
+        model=node_settings.model(),
+        memory_categories=categories,
+    ):
         if first:
             print("\r🐢 KAMI: " + chunk, end="", flush=True)
             first = False

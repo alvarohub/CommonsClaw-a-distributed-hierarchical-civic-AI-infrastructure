@@ -19,6 +19,8 @@ except ImportError:
     _HAVE_WAITRESS = False
 
 import config
+import node_settings
+import reports_reader
 from hardware_monitor import HardwareMonitor
 from llm_manager import LLMManager
 from status_store import StatusStore
@@ -208,6 +210,14 @@ class WebApplication:
         # Memory files the dashboard can read (relative to the repo root).
         _MEM_DIRS = ("identity", "sensors", "community")
 
+        @app.after_request
+        def no_api_cache(resp):
+            # Phones cache plain GETs happily: without this, a memory file
+            # edited on the Mac and pushed still reads as the old version.
+            if request.path.startswith("/api/"):
+                resp.headers["Cache-Control"] = "no-store, must-revalidate"
+            return resp
+
         @app.get("/api/files")
         def list_files():
             base = os.path.dirname(os.path.abspath(__file__))
@@ -292,20 +302,42 @@ class WebApplication:
                 "ram_percent": snapshot.ram_percent,
                 "temperature_c": snapshot.temperature_c,
                 "last_turn": last_turn,
+                "settings": node_settings.load(),
             })
+
+        @app.post("/api/settings")
+        def set_settings():
+            """The page edits the NODE's settings, not its own: what is saved
+            here is what the microphone and the console will use too."""
+            data = request.get_json(force=True, silent=True) or {}
+            patch: dict[str, object] = {}
+            if isinstance(data.get("memory"), list):
+                patch["memory"] = [c for c in data["memory"]
+                                   if c in reports_reader.CATEGORIES]
+            if isinstance(data.get("model"), str) and data["model"]:
+                patch["model"] = data["model"]
+            return jsonify(node_settings.save(**patch))
 
         @app.post("/api/ask")
         def ask():
             data = request.get_json(force=True, silent=True) or {}
             question = (data.get("question") or "").strip()
             model = (data.get("model") or "").strip() or None
-            # Memory categories: UI toggles (list) + slash keywords/auto-detect
-            # resolved by the LLM manager. Missing key = all on (legacy).
+            # The page is the node's control panel: whatever it sends becomes
+            # the SHARED setting, so voice and console obey it too.
             toggles = data.get("memory")
-            toggle_set = set(toggles) if isinstance(toggles, list) else None
+            if isinstance(toggles, list) or model:
+                patch = {}
+                if isinstance(toggles, list):
+                    patch["memory"] = [c for c in toggles
+                                       if c in reports_reader.CATEGORIES]
+                if model:
+                    patch["model"] = model
+                node_settings.save(**patch)
+            model = model or node_settings.model()
             memory_categories = self.llm_manager.resolve_categories(
-                question, toggle_set,
-            ) if toggle_set is not None else None
+                question, node_settings.memory_categories(),
+            )
             if not question:
                 return jsonify({"error": "empty question"}), 400
 

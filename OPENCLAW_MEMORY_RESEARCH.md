@@ -35,12 +35,12 @@ SQLite exists, but as a **derived index + provenance store**, not as the canonic
 From <https://docs.openclaw.ai/concepts/memory> and
 <https://docs.openclaw.ai/concepts/agent-workspace>:
 
-| File | Role | Injection |
-| --- | --- | --- |
-| `USER.md` (optional) | user model: stable preferences as dated **imperative directives** with `active` / `superseded` status | loaded at session start, **fixed 4,000-char budget** |
-| `MEMORY.md` | curated long-term memory: durable non-profile facts, standing decisions, short summaries. "not a raw transcript, daily log, or exhaustive archive" | loaded at session start, budgeted |
-| `memory/YYYY-MM-DD.md` (and `memory/YYYY-MM-DD-<slug>.md`) | daily notes / working layer — "detailed daily notes, observations, session summaries, and raw context" | **never injected**; searchable on demand |
-| `DREAMS.md` (or legacy `dreams.md`) | Dream Diary + consolidation sweep summaries, for human review | never injected |
+| File                                                       | Role                                                                                                                                               | Injection                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `USER.md` (optional)                                       | user model: stable preferences as dated **imperative directives** with `active` / `superseded` status                                              | loaded at session start, **fixed 4,000-char budget** |
+| `MEMORY.md`                                                | curated long-term memory: durable non-profile facts, standing decisions, short summaries. "not a raw transcript, daily log, or exhaustive archive" | loaded at session start, budgeted                    |
+| `memory/YYYY-MM-DD.md` (and `memory/YYYY-MM-DD-<slug>.md`) | daily notes / working layer — "detailed daily notes, observations, session summaries, and raw context"                                             | **never injected**; searchable on demand             |
+| `DREAMS.md` (or legacy `dreams.md`)                        | Dream Diary + consolidation sweep summaries, for human review                                                                                      | never injected                                       |
 
 Plus the non-memory bootstrap files injected under "Project Context":
 `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `BOOTSTRAP.md` (first run only)
@@ -52,6 +52,7 @@ File-name constant verified in code:
 and the managed-block markers `<!-- openclaw:dreaming:deep:start -->` / `:end`.
 
 Optional extra surfaces:
+
 - `memory/imports/codex/`, `memory/imports/claude-code/`, `memory/imports/hermes/` — imported
   memory from other assistants, indexed but **not merged** into `MEMORY.md`
   (<https://docs.openclaw.ai/concepts/memory>).
@@ -64,13 +65,13 @@ Optional extra surfaces:
 
 Verbatim table from <https://docs.openclaw.ai/concepts/memory-architecture>:
 
-| Tier | Surface | Written by | Injected |
-| --- | --- | --- | --- |
-| Instructions | `AGENTS.md` and workspace instruction files | Human only | Always, at session start |
-| Curated core | `MEMORY.md`, `USER.md` | Dreaming consolidation; direct user request | At session start when provenance is eligible; budgeted |
-| Episodic | `memory/YYYY-MM-DD.md` daily notes, session transcripts | Agent during work; memory flush; transcript capture | Never; searchable on demand |
-| Prospective | Standing intents (SQLite) and cron jobs | `intent` tool; scheduled tasks | Only when a trigger fires |
-| Review | `DREAMS.md`, dreaming reports | Dreaming phases | Never; for human reading |
+| Tier         | Surface                                                 | Written by                                          | Injected                                               |
+| ------------ | ------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| Instructions | `AGENTS.md` and workspace instruction files             | Human only                                          | Always, at session start                               |
+| Curated core | `MEMORY.md`, `USER.md`                                  | Dreaming consolidation; direct user request         | At session start when provenance is eligible; budgeted |
+| Episodic     | `memory/YYYY-MM-DD.md` daily notes, session transcripts | Agent during work; memory flush; transcript capture | Never; searchable on demand                            |
+| Prospective  | Standing intents (SQLite) and cron jobs                 | `intent` tool; scheduled tasks                      | Only when a trigger fires                              |
+| Review       | `DREAMS.md`, dreaming reports                           | Dreaming phases                                     | Never; for human reading                               |
 
 > "The boundary that matters most is between the **curated core** and the **episodic**
 > tier. … Nothing crosses from episodic to curated without passing the promotion gates."
@@ -80,16 +81,16 @@ Verbatim table from <https://docs.openclaw.ai/concepts/memory-architecture>:
 From <https://docs.openclaw.ai/concepts/multi-agent> ("Paths") and
 <https://docs.openclaw.ai/concepts/memory-builtin>:
 
-| What | Path |
-| --- | --- |
-| Config | `~/.openclaw/openclaw.json` (env `OPENCLAW_CONFIG_PATH`) |
-| State dir | `~/.openclaw` (env `OPENCLAW_STATE_DIR`) |
-| Default agent workspace | `<stateDir>/workspace` (env `OPENCLAW_WORKSPACE_DIR`) |
-| Other agents' workspace | `<stateDir>/workspace-<agentId>` |
-| Agent dir | `~/.openclaw/agents/<agentId>/agent` |
-| **Sessions, transcripts, memory index, standing intents, auth profiles** | `~/.openclaw/agents/<agentId>/agent/openclaw-agent.sqlite` |
-| Shared gateway state (skill library, user preferences, personal model accounts) | `~/.openclaw/state/openclaw.sqlite` |
-| Legacy/archive session artifacts | `~/.openclaw/agents/<agentId>/sessions/` |
+| What                                                                            | Path                                                       |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Config                                                                          | `~/.openclaw/openclaw.json` (env `OPENCLAW_CONFIG_PATH`)   |
+| State dir                                                                       | `~/.openclaw` (env `OPENCLAW_STATE_DIR`)                   |
+| Default agent workspace                                                         | `<stateDir>/workspace` (env `OPENCLAW_WORKSPACE_DIR`)      |
+| Other agents' workspace                                                         | `<stateDir>/workspace-<agentId>`                           |
+| Agent dir                                                                       | `~/.openclaw/agents/<agentId>/agent`                       |
+| **Sessions, transcripts, memory index, standing intents, auth profiles**        | `~/.openclaw/agents/<agentId>/agent/openclaw-agent.sqlite` |
+| Shared gateway state (skill library, user preferences, personal model accounts) | `~/.openclaw/state/openclaw.sqlite`                        |
+| Legacy/archive session artifacts                                                | `~/.openclaw/agents/<agentId>/sessions/`                   |
 
 Config key: `memory.search.store.fts.tokenizer` (`unicode61` default, `trigram` for CJK);
 `memory.search.store.vector.enabled` (default `true`, sqlite-vec) with automatic
@@ -122,6 +123,7 @@ From <https://docs.openclaw.ai/concepts/memory-builtin>:
 - **Observed timestamp + supersession key**.
 
 Two structural rules follow:
+
 - **Session-kind gating** — cron, heartbeat and sub-agent sessions produce no durable
   memory candidates at all.
 - **Recall-loop prevention** — "Content that was injected into context from memory …
@@ -134,10 +136,11 @@ derived from a web fetch is classified `untrusted` even inside an owner turn.
 ### 1.7 Pluggable engines
 
 `plugins.slots.memory` selects the engine (<https://docs.openclaw.ai/concepts/memory>):
+
 - **Builtin** (`memory-core`, default) — SQLite FTS5 + vectors, no extra deps.
 - **Honcho** — plugin, cross-session memory with user modeling.
 - **LanceDB** — plugin (`/plugins/memory-lancedb`).
-- **`memory-wiki`** — a *bundled additional layer*, not a replacement: compiles durable
+- **`memory-wiki`** — a _bundled additional layer_, not a replacement: compiles durable
   memory into a wiki vault with claims/evidence/contradiction tracking and its own tools
   (`wiki_status`, `wiki_search`, `wiki_get`, `wiki_apply`, `wiki_lint`).
 
@@ -161,11 +164,11 @@ And from <https://docs.openclaw.ai/concepts/memory>:
 
 ### 2.1 Three phases per sweep
 
-| Phase | Purpose | Durable write |
-| --- | --- | --- |
-| Light | Sort and stage recent short-term material | No |
-| REM | Reflect on themes and recurring ideas | No |
-| Deep | Score and promote durable candidates | **Yes (`MEMORY.md`)** |
+| Phase | Purpose                                   | Durable write         |
+| ----- | ----------------------------------------- | --------------------- |
+| Light | Sort and stage recent short-term material | No                    |
+| REM   | Reflect on themes and recurring ideas     | No                    |
+| Deep  | Score and promote durable candidates      | **Yes (`MEMORY.md`)** |
 
 Order is light → REM → deep, in one sweep. Light and REM write managed
 `## Light Sleep` / `## REM Sleep` blocks and record reinforcement signals; neither
@@ -178,18 +181,18 @@ Two gates in sequence (<https://docs.openclaw.ai/concepts/memory-architecture>,
 
 **Gate 1 — deterministic scoring.** Six weighted base signals plus phase reinforcement:
 
-| Signal | Weight | Description |
-| --- | --- | --- |
-| Relevance | 0.30 | Average retrieval quality for the entry |
-| Frequency | 0.24 | How many short-term signals the entry accumulated |
-| Query diversity | 0.15 | Distinct interactive recall queries that surfaced it |
-| Recency | 0.15 | Time-decayed freshness score |
-| Consolidation | 0.10 | Multi-day recurrence strength |
-| Conceptual richness | 0.06 | Concept-tag density from snippet/path |
+| Signal              | Weight | Description                                          |
+| ------------------- | ------ | ---------------------------------------------------- |
+| Relevance           | 0.30   | Average retrieval quality for the entry              |
+| Frequency           | 0.24   | How many short-term signals the entry accumulated    |
+| Query diversity     | 0.15   | Distinct interactive recall queries that surfaced it |
+| Recency             | 0.15   | Time-decayed freshness score                         |
+| Consolidation       | 0.10   | Multi-day recurrence strength                        |
+| Conceptual richness | 0.06   | Concept-tag density from snippet/path                |
 
 Thresholds `minScore`, `minRecallCount`, `minUniqueQueries` **must all pass**.
-Candidates with origin class `untrusted` or `system` are removed *before the prompt is
-built* — "This is a precondition, not a score penalty: no amount of recall frequency
+Candidates with origin class `untrusted` or `system` are removed _before the prompt is
+built_ — "This is a precondition, not a score penalty: no amount of recall frequency
 promotes untrusted content into the curated core."
 
 The philosophical line worth stealing:
@@ -205,6 +208,7 @@ candidates plus the current `MEMORY.md` and:
 > sourced entry."
 
 Accepted rewrites must:
+
 - preserve prior entries within `phases.deep.maxPriorEntryLossFraction` (default `0.25`)
 - include every promoted candidate's `Source: path#Lx-Ly` reference
 - stay within the `MEMORY.md` bootstrap-safe budget
@@ -235,7 +239,7 @@ Each promoted entry gets trailing recall metadata: up to three concept tags in
   total, with up to three available to `memory-core`"
   (<https://docs.openclaw.ai/concepts/queue#background-work>).
 
-So: it *can* be a cheaper/local model, but the default is the agent's own model.
+So: it _can_ be a cheaper/local model, but the default is the agent's own model.
 I found **no** documented default of "always use a cheap model for dreaming".
 
 ### 2.4 Scheduling
@@ -243,14 +247,14 @@ I found **no** documented default of "always use a cheap model for dreaming".
 Config lives under `plugins.entries.memory-core.config.dreaming`
 (<https://docs.openclaw.ai/reference/memory-config#dreaming>):
 
-| Key | Type | Default |
-| --- | --- | --- |
-| `enabled` | boolean | `true` |
-| `frequency` | cron string | `0 3 * * *` (03:00 daily) |
-| `timezone` | string | — (e.g. `"America/Los_Angeles"`) |
-| `model` | string | agent default model |
-| `phases.deep.maxPromotedSnippetTokens` | number | `160` |
-| `phases.deep.maxPriorEntryLossFraction` | number | `0.25` |
+| Key                                     | Type        | Default                          |
+| --------------------------------------- | ----------- | -------------------------------- |
+| `enabled`                               | boolean     | `true`                           |
+| `frequency`                             | cron string | `0 3 * * *` (03:00 daily)        |
+| `timezone`                              | string      | — (e.g. `"America/Los_Angeles"`) |
+| `model`                                 | string      | agent default model              |
+| `phases.deep.maxPromotedSnippetTokens`  | number      | `160`                            |
+| `phases.deep.maxPriorEntryLossFraction` | number      | `0.25`                           |
 
 > "when enabled, `memory-core` auto-manages one recurring cron job for a full dreaming sweep."
 
@@ -262,7 +266,7 @@ CLI: `openclaw memory promote [--apply|--limit N]`, `openclaw memory promote-exp
 
 **Partially verified.** I could not retrieve the literal commit message — GitHub code
 search does not index commit messages, and my PR search for the phrase returned no
-readable result. I can confirm the *behaviour* it describes, both in docs and code:
+readable result. I can confirm the _behaviour_ it describes, both in docs and code:
 
 From <https://docs.openclaw.ai/concepts/dreaming> ("Scheduling"):
 
@@ -278,13 +282,14 @@ From <https://docs.openclaw.ai/concepts/dreaming> ("Scheduling"):
 > oldest valid phase job in place."
 
 Code confirming the same:
+
 - [`extensions/memory-core/src/dreaming-cron-contract.ts`](https://github.com/openclaw/openclaw/blob/main/extensions/memory-core/src/dreaming-cron-contract.ts)
   — `export const MANAGED_DREAMING_DECLARATION_KEY = "memory-core:memory-dreaming-promotion";`
-  with the comment *"Stable declaration shared by runtime convergence and explicit Doctor adoption."*
+  with the comment _"Stable declaration shared by runtime convergence and explicit Doctor adoption."_
 - [`extensions/memory-core/src/migration/doctor-dreaming-cron.ts`](https://github.com/openclaw/openclaw/blob/main/extensions/memory-core/src/migration/doctor-dreaming-cron.ts)
   — handles `LEGACY_MEMORY_LIGHT_DREAMING_CRON_NAME` / `LEGACY_MEMORY_REM_DREAMING_CRON_NAME`
-  and emits *"Repaired N historical dreaming cron row(s); survivor IDs, order, and runtime
-  state preserved. SQLite backup: …"*
+  and emits _"Repaired N historical dreaming cron row(s); survivor IDs, order, and runtime
+  state preserved. SQLite backup: …"_
 - [`extensions/memory-core/src/migration/dreaming-cron-classifier.ts`](https://github.com/openclaw/openclaw/blob/main/extensions/memory-core/src/migration/dreaming-cron-classifier.ts)
 - [`extensions/memory-core/src/migration/doctor-dreaming-state.ts`](https://github.com/openclaw/openclaw/blob/main/extensions/memory-core/src/migration/doctor-dreaming-state.ts)
 
@@ -292,7 +297,7 @@ So "historical dreaming jobs" are **stale cron rows from an older three-job (lig
 scheduling scheme**, which the runtime deliberately refuses to touch until `openclaw doctor --fix`
 adopts or retires them. It is a scheduler-migration concern, not a memory-content concern.
 
-Also relevant: legacy dreaming *state* used to be JSON under `memory/.dreams/`; live state is
+Also relevant: legacy dreaming _state_ used to be JSON under `memory/.dreams/`; live state is
 now SQLite plugin storage, and "Doctor owns migration of legacy dreaming JSON state from
 `memory/.dreams/`" (<https://docs.openclaw.ai/concepts/memory>).
 
@@ -332,7 +337,7 @@ bibliography:
 
 - sleep-time compute — arXiv:2504.13171 (justifies offline pre-digestion)
 - Generative Agents — arXiv:2304.03442 (reflection with evidence citations; relevance +
-  recency + importance ranking with importance assigned at *write* time)
+  recency + importance ranking with importance assigned at _write_ time)
 - LongMemEval — arXiv:2410.10813 ("what was written matters more than how it is indexed")
 - PrefEval — arXiv:2502.09597 (restating preferences as directives)
 - HorizonBench — arXiv:2604.17283 (stale preference selection)
@@ -351,7 +356,7 @@ There **is** an explicit distinction between always-loaded and searched-on-deman
 Three mechanisms:
 
 1. **Bootstrap injection (full-file).** `MEMORY.md` and `USER.md` load at session start
-   *when the runtime classifies their provenance as eligible*. Budgets:
+   _when the runtime classifies their provenance as eligible_. Budgets:
    `agents.defaults.bootstrapMaxChars` = 20,000 per file, `bootstrapTotalMaxChars` = 60,000
    total, and `USER.md` has a hard 4,000-char cap that config can lower but never raise.
    Truncation keeps the on-disk file intact and injects a notice.
@@ -393,7 +398,7 @@ memories with `<!-- project: github.com/openclaw/openclaw -->`, derived from the
 `origin` remote (or absolute root path when there is no origin). Each session keeps up to
 **four** recently active repo keys; ranked search boosts entries from active repos, mildly
 demotes others, leaves untagged memory neutral. Trigger injection is stricter: a tagged
-entry is eligible only while *every* project key on it is active. `USER.md` and standing
+entry is eligible only while _every_ project key on it is active. `USER.md` and standing
 intents are never project-scoped.
 
 ### Lane 2 — escalation (explicit, blocking sub-agent)
@@ -421,7 +426,7 @@ Code ref: [`extensions/memory-core/src/tools.ts`](https://github.com/openclaw/op
 
 For transcripts there is a separate, deliberately bounded path: `sessions_search` →
 `sessions_history` (redacted, byte-capped excerpts). Session hits returned by `memory_search`
-carry `sessions/...jsonl` paths that are *search references only* — `memory_get` cannot read them.
+carry `sessions/...jsonl` paths that are _search references only_ — `memory_get` cannot read them.
 
 ### Standing intents — "prospective memory"
 
@@ -457,16 +462,16 @@ rather than stored as prose.
 
 Key config under `agents.defaults.compaction`:
 
-| Key | Default / note |
-| --- | --- |
-| `enabled` | true (auto-compaction on nearing limit, and on provider context-overflow error → compact and retry) |
-| `mode` | `"safeguard"` for new configs (quality audits, corrective retries); `"default"` opts out |
-| `keepRecentTokens` | `20000` — the cut-point budget for the retained tail |
-| `model` | optional separate summarisation model (`provider/model-id`), incl. local, e.g. `"ollama/llama3.1:8b"` |
-| `identifierPolicy` | `"strict"` — preserves opaque identifiers in summaries |
-| `maxActiveTranscriptBytes` | optional byte guard, e.g. `"20mb"`, forces compaction on transcript growth |
-| `notifyUser` | false — silent by default |
-| `provider` | id of a plugin-registered compaction provider |
+| Key                        | Default / note                                                                                        |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `enabled`                  | true (auto-compaction on nearing limit, and on provider context-overflow error → compact and retry)   |
+| `mode`                     | `"safeguard"` for new configs (quality audits, corrective retries); `"default"` opts out              |
+| `keepRecentTokens`         | `20000` — the cut-point budget for the retained tail                                                  |
+| `model`                    | optional separate summarisation model (`provider/model-id`), incl. local, e.g. `"ollama/llama3.1:8b"` |
+| `identifierPolicy`         | `"strict"` — preserves opaque identifiers in summaries                                                |
+| `maxActiveTranscriptBytes` | optional byte guard, e.g. `"20mb"`, forces compaction on transcript growth                            |
+| `notifyUser`               | false — silent by default                                                                             |
+| `provider`                 | id of a plugin-registered compaction provider                                                         |
 
 Manual: `/compact`, optionally `/compact Focus on the API design decisions`
 (operator focus capped at 800 code points and escaped as prompt data).
@@ -488,11 +493,11 @@ failure never resets the session.
 
 ### Pruning (a third, lighter mechanism)
 
-| | Compaction | Pruning |
-| --- | --- | --- |
-| What it does | Summarizes older conversation | Trims old tool results |
-| Saved? | Yes (in session transcript) | No (in-memory only, per request) |
-| Scope | Entire conversation | Tool results only |
+|              | Compaction                    | Pruning                          |
+| ------------ | ----------------------------- | -------------------------------- |
+| What it does | Summarizes older conversation | Trims old tool results           |
+| Saved?       | Yes (in session transcript)   | No (in-memory only, per request) |
+| Scope        | Entire conversation           | Tool results only                |
 
 ### Session lifecycle & storage bounds (<https://docs.openclaw.ai/concepts/session>)
 
@@ -500,7 +505,7 @@ failure never resets the session.
   `daily` (`session.reset.atHour`, default 4), `idle` (`session.reset.idleMinutes`),
   or manual `/new` / `/reset`.
 - `session.maintenance`: `pruneAfter: "30d"`, `maxEntries: 5000`, `archiveDashboardAfter: "7d"`,
-  `preserveRecent: false`. Over the cap, the oldest *ordinary* sessions are **archived**,
+  `preserveRecent: false`. Over the cap, the oldest _ordinary_ sessions are **archived**,
   not deleted; synthetic cron/hook/heartbeat/subagent rows are disposable.
 
 Inspection: `/status`, `/context list`, `/context detail`, `/context map` (a WinDirStat-style
@@ -532,9 +537,10 @@ is "several agents" or "several gateways".
 
 Team surfaces that do exist (<https://docs.openclaw.ai/start/teams>,
 <https://docs.openclaw.ai/concepts/multi-user>):
+
 - Identity-backed sign-in (Tailscale Serve, Cloudflare Access, GitHub-verified accounts).
-- Shared sessions with **three ownership layers**: immutable *creator*, assignable *owner*
-  (GitHub-issue-style), and *participants* history (capped at 32 identities/session).
+- Shared sessions with **three ownership layers**: immutable _creator_, assignable _owner_
+  (GitHub-issue-style), and _participants_ history (capped at 32 identities/session).
 - Live presence, typing indicators (drafts never enter the transcript or the model context).
 - Named operator roles (`gateway.roles.definitions.*`) with session scope, allowed agents,
   operator scopes, and `sandbox: "required"` for guests.
@@ -542,16 +548,16 @@ Team surfaces that do exist (<https://docs.openclaw.ai/start/teams>,
 
 ### How memory is actually scoped
 
-| Surface | Scope | Source |
-| --- | --- | --- |
-| `MEMORY.md`, `memory/*.md`, `DREAMS.md` | **per agent workspace — shared by everyone using that agent** | [agent-workspace](https://docs.openclaw.ai/concepts/agent-workspace) |
-| `MEMORY.md` injection | only in eligible **private** sessions — "subagent, cron, group, and channel sessions omit root memory" | [user-model](https://docs.openclaw.ai/concepts/user-model) |
-| Root `USER.md` | shared defaults for the agent | [user-model](https://docs.openclaw.ai/concepts/user-model) |
-| **Personal `USER.md`** | `users/<canonical-profile-id>/USER.md` **inside the agent workspace** — only enabled when the Gateway has ≥2 distinct unmerged person profiles | [user-model](https://docs.openclaw.ai/concepts/user-model) |
-| Session transcripts | per agent, in that agent's SQLite | [session](https://docs.openclaw.ai/concepts/session) |
-| Memory index | per agent DB; **no cross-agent search** | [multi-agent](https://docs.openclaw.ai/concepts/multi-agent) |
-| Memory Wiki vault | global by default; `plugins.entries.memory-wiki.config.vault.scope: "agent"` splits it | [multi-agent](https://docs.openclaw.ai/concepts/multi-agent) |
-| Personal skill library | per authenticated profile, with explicit "share with team" / "transfer to team" | [skills](https://docs.openclaw.ai/tools/skills) |
+| Surface                                 | Scope                                                                                                                                          | Source                                                               |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `MEMORY.md`, `memory/*.md`, `DREAMS.md` | **per agent workspace — shared by everyone using that agent**                                                                                  | [agent-workspace](https://docs.openclaw.ai/concepts/agent-workspace) |
+| `MEMORY.md` injection                   | only in eligible **private** sessions — "subagent, cron, group, and channel sessions omit root memory"                                         | [user-model](https://docs.openclaw.ai/concepts/user-model)           |
+| Root `USER.md`                          | shared defaults for the agent                                                                                                                  | [user-model](https://docs.openclaw.ai/concepts/user-model)           |
+| **Personal `USER.md`**                  | `users/<canonical-profile-id>/USER.md` **inside the agent workspace** — only enabled when the Gateway has ≥2 distinct unmerged person profiles | [user-model](https://docs.openclaw.ai/concepts/user-model)           |
+| Session transcripts                     | per agent, in that agent's SQLite                                                                                                              | [session](https://docs.openclaw.ai/concepts/session)                 |
+| Memory index                            | per agent DB; **no cross-agent search**                                                                                                        | [multi-agent](https://docs.openclaw.ai/concepts/multi-agent)         |
+| Memory Wiki vault                       | global by default; `plugins.entries.memory-wiki.config.vault.scope: "agent"` splits it                                                         | [multi-agent](https://docs.openclaw.ai/concepts/multi-agent)         |
+| Personal skill library                  | per authenticated profile, with explicit "share with team" / "transfer to team"                                                                | [skills](https://docs.openclaw.ai/tools/skills)                      |
 
 The personal-`USER.md` mechanism is the closest thing to per-person memory, and it is
 carefully bounded:
@@ -578,7 +584,7 @@ and explicitly:
 - `tools.sessions.visibility` (`all` default / `agent` / `tree` / `self`) and
   `tools.agentToAgent` govern cross-session and cross-agent transcript reach.
 
-### Sharing knowledge *deliberately* between agents
+### Sharing knowledge _deliberately_ between agents
 
 Since cross-agent memory search was removed with QMD:
 
@@ -612,28 +618,28 @@ From <https://docs.openclaw.ai/concepts/context>:
 > is expected to `read` the skill's `SKILL.md` **only when needed**."
 
 So the agent decides by reading the one-line description in an injected
-`<available_skills>` XML block, then issuing a normal `read` on the path. That *is* the
+`<available_skills>` XML block, then issuing a normal `read` on the path. That _is_ the
 progressive-disclosure pattern, and the cost is quantified:
 
 > "**Per skill:** ~97 characters + your `name`, `description`, and `location` field lengths…
 > At ~4 chars/token, 97 chars ≈ 24 tokens per skill before field lengths."
 
 If the block exceeds `skills.limits.maxSkillsPromptChars`, OpenClaw **degrades gracefully**:
-it first preserves as many *identities* (name + location) as fit in a description-free
+it first preserves as many _identities_ (name + location) as fit in a description-free
 compact format, then spends any remaining budget on shortened descriptions, then omits
 descriptions entirely — and adds a note pointing at `openclaw skills check`.
 
 ### Discovery and precedence
 
-| Priority | Source | Path |
-| --- | --- | --- |
-| 1 (highest) | Workspace skills | `<workspace>/skills` |
-| 2 | Project agent skills | `<workspace>/.agents/skills` |
-| 3 | Personal agent skills | `~/.agents/skills` |
-| 4 | Managed / local skills | `<state-dir>/skills` |
-| 5 | Workshop skills | `<state-dir>/agents/<agentId>/agent/workshop-skills` |
-| 6 | Bundled / Custodian skills | shipped with the install |
-| 7 (lowest) | Extra dirs + plugin skills | `skills.load.extraDirs` |
+| Priority    | Source                     | Path                                                 |
+| ----------- | -------------------------- | ---------------------------------------------------- |
+| 1 (highest) | Workspace skills           | `<workspace>/skills`                                 |
+| 2           | Project agent skills       | `<workspace>/.agents/skills`                         |
+| 3           | Personal agent skills      | `~/.agents/skills`                                   |
+| 4           | Managed / local skills     | `<state-dir>/skills`                                 |
+| 5           | Workshop skills            | `<state-dir>/agents/<agentId>/agent/workshop-skills` |
+| 6           | Bundled / Custodian skills | shipped with the install                             |
+| 7 (lowest)  | Extra dirs + plugin skills | `skills.load.extraDirs`                              |
 
 `SKILL.md` is found anywhere under a root up to **6 levels deep**; finding one ends traversal
 below that directory. Snapshotted at session start, refreshed on `SKILL.md` change
@@ -679,7 +685,7 @@ spawned sessions that do not load `SOUL.md` or `IDENTITY.md`".
   — GitHub code search does not index commit messages and my PR text search returned nothing
   readable. The behaviour is documented and the code exists (§2.5), but I did not see the commit.
 - **Which model the consolidation completion uses when `dreaming.model` is unset.** The docs
-  name the default model only for the *Dream Diary narrative*; for the consolidation completion
+  name the default model only for the _Dream Diary narrative_; for the consolidation completion
   they say "a tool-free completion" without naming the resolution order.
 - **The literal values of `minScore` / `minRecallCount` / `minUniqueQueries`** for deep-phase
   promotion. The docs say "phase policy and thresholds are internal behavior, not user-facing
@@ -688,7 +694,7 @@ spawned sessions that do not load `SOUL.md` or `IDENTITY.md`".
   `extensions/memory-core/src/short-term-promotion-types.ts`, but I did not read the numbers.
 - Whether anything in OpenClaw supports **memory scoped to a place/room rather than a person
   or an agent**. I found no such concept. Group and channel sessions are, if anything,
-  *excluded* from root-memory injection and from durable promotion.
+  _excluded_ from root-memory injection and from durable promotion.
 - The purpose of the top-level `config/` directory in the repo (it appeared in a refactor
   commit title alongside `sdk`, `state`, `skills`, but I did not open it).
 
@@ -698,24 +704,24 @@ spawned sessions that do not load `SOUL.md` or `IDENTITY.md`".
 
 Five concrete, grounded ideas.
 
-### 1. Split memory into tiers by *injection policy*, not by topic
+### 1. Split memory into tiers by _injection policy_, not by topic
 
 The single strongest idea. OpenClaw's tiers are defined by three orthogonal properties —
 **who writes it**, **whether it is injected**, and **whether it can be promoted** — and the
-hard line sits between *curated core* (small, always in context, gated writes) and
-*episodic* (large, append-friendly, search-only). A communal node maps onto this cleanly:
+hard line sits between _curated core_ (small, always in context, gated writes) and
+_episodic_ (large, append-friendly, search-only). A communal node maps onto this cleanly:
 
 - `AGENTS.md` / charter → instructions tier, human-only, always loaded.
 - a small `COMMONS.md` → curated core, written only by the consolidation pass.
 - `journal/YYYY-MM-DD.md` → episodic, appended freely by sensors, visitors, loggers.
 - `DREAMS.md`-equivalent → review tier, never injected, for the human custodians.
 
-The payoff is that the always-loaded surface stays bounded *by construction* regardless of
+The payoff is that the always-loaded surface stays bounded _by construction_ regardless of
 how much the place records. OpenClaw enforces this with `bootstrapMaxChars` (20k),
 `bootstrapTotalMaxChars` (60k) and a hard 4k cap on `USER.md`, and by truncating the
-*injected copy* while leaving the file on disk intact — a useful trick.
+_injected copy_ while leaving the file on disk intact — a useful trick.
 
-### 2. A nightly consolidation cron whose model output is *decisions*, not prose
+### 2. A nightly consolidation cron whose model output is _decisions_, not prose
 
 The deep phase never lets the model hand back a rewritten file. It returns
 merge/supersede/add **operations**, and deterministic code composes the new `MEMORY.md` from
@@ -726,7 +732,7 @@ re-checked before an atomic rename) so a human editing the file by hand never lo
 
 For a Pi-class node this is doubly attractive: a small local model can produce a short
 structured decision list far more reliably than a well-formed 2,000-word file, and the
-*failure mode is append*, which is always safe. `0 3 * * *` at 1–3 tok/s is entirely feasible.
+_failure mode is append_, which is always safe. `0 3 * * *` at 1–3 tok/s is entirely feasible.
 
 ### 3. Write-time metadata that makes retrieval model-free
 
@@ -753,9 +759,9 @@ same way OpenClaw got repo scoping with `<!-- project: ... -->`.
 > memory text. Prose claiming to be from the owner does not make it owner content."
 
 Four classes (`owner` / `agent` / `untrusted` / `system`); untrusted and system content can be
-*stored and explicitly searched* but is structurally barred from the curated core and from
+_stored and explicitly searched_ but is structurally barred from the curated core and from
 auto-injection. Two hygiene rules ride on it: cron/heartbeat/sub-agent sessions produce no
-durable candidates at all, and content that came *from* memory is marked so it is never
+durable candidates at all, and content that came _from_ memory is marked so it is never
 re-extracted ("a fact recalled one hundred times stays one fact").
 
 For a shared civic node where anyone in the room can talk to the machine, this is the
@@ -767,14 +773,14 @@ always-on-agent failure where the file fills with restatements of its own prompt
 
 Two smaller but high-value mechanics:
 
-- **Memory flush**: a *silent* turn on a private copy of the conversation, run immediately
+- **Memory flush**: a _silent_ turn on a private copy of the conversation, run immediately
   before compaction, whose only job is "write down anything important that is not yet on disk".
   It has its own model override (the docs' own example is `"ollama/qwen3:8b"`), and its
   failure never harms the session. This is the cheapest possible insurance against a summary
   eating something the place should have remembered.
 - **Progressive disclosure**: put only `name + description + location` for each knowledge
   document in the system prompt (~24 tokens each) and let the agent `read` the full file on
-  demand; degrade to identities-only when over budget. Then add OpenClaw's *Skill Workshop*
+  demand; degrade to identities-only when over budget. Then add OpenClaw's _Skill Workshop_
   twist — when the agent notices a reusable procedure it **drafts a proposal** into a queue
   rather than writing the document itself, and a human (or a weekly review) applies it.
   For a communal artifact, that proposal queue is also the natural place for the community

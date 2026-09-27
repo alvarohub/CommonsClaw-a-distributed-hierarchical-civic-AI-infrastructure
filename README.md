@@ -33,7 +33,7 @@ A system prototype including a floating platform, embedded LLM (RPi5), solar pan
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | 0     | Engineered AIoT + tiny "trigger" sub-1B models: pattern recognition, formatting, classification, intent and data collection — elemental conversation or no direct conversation at all with humans, but feeds the level 1 | greenhouse control, gemma3:270m |
 | **1** | **The _place_ kami (this node)** — converses, and holds the memory of one place. A bridge between humans and the environment, a member of the neighborhood, a repository of local, communal knowledge (see below).       | **llama3.2:1b on a Pi 5**       |
-| 2     | The **neighborhood** kami — the first tier that sees _several_ places: gathers and consolidates what the park, the greenhouse and the riverbank each learned                                                            | a real machine, not a Pi        |
+| 2     | The **neighborhood** kami — the first tier that sees _several_ places: gathers and consolidates what the park, the greenhouse and the riverbank each learned                                                             | a real machine, not a Pi        |
 | 3+    | City / nation / world-scale models, queried only when no neighborhood can answer                                                                                                                                         | routed upward                   |
 
 _Consolidation — turning accumulated logs into understanding — is the organ
