@@ -21,7 +21,7 @@ class ConsoleApplication:
         self.stop_event = threading.Event()
         self.hardware_monitor = HardwareMonitor()
         self.llm_manager = LLMManager()
-        self.status_store = StatusStore()
+        self.status_store = StatusStore(source="console")
         self.background_thread: threading.Thread | None = None
 
     def run(self) -> None:

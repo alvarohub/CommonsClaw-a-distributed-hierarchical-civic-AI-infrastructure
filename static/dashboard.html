@@ -135,7 +135,11 @@
             const b = document.createElement('button');
             b.className = 'filebtn' + (f === current ? ' active' : '');
             b.textContent = f.split('/')[1]; // plain name, no folder prefix
-            b.onclick = () => { current = f; loadFile(f); loadFiles(); };
+            b.onclick = () => {
+              current = f;
+              loadFile(f);
+              loadFiles();
+            };
             box.appendChild(b);
           }
           filesDiv.appendChild(box);

@@ -9,7 +9,7 @@
       "log_file": "sensors/sensor_pivitals.md",
       "interval_seconds": 60,
       "active": true,
-      "params": {"max_lines": 60}
+      "params": { "max_lines": 60 }
     },
     {
       "id": "solarpower",
@@ -19,7 +19,7 @@
       "log_file": "sensors/sensor_solarpower.md",
       "interval_seconds": 300,
       "active": true,
-      "params": {"max_lines": 120}
+      "params": { "max_lines": 120 }
     },
     {
       "id": "mic_calibration",
@@ -29,7 +29,7 @@
       "log_file": "sensors/mic_calibration.md",
       "interval_seconds": null,
       "active": false,
-      "params": {"note": "not periodic — runs only when calibrating"}
+      "params": { "note": "not periodic — runs only when calibrating" }
     }
   ]
 }

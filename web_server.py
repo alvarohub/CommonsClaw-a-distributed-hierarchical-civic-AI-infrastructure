@@ -268,16 +268,20 @@ class WebApplication:
         def status():
             snapshot = self.hardware_monitor.read_snapshot()
             metrics = self.llm_manager.metrics
-            # Voice turns come from ANOTHER process (voice/talk.py), so we
-            # read the shared status FILE rather than our in-memory store.
-            # The page dedupes on question_count.
-            voice_turn = None
-            turn_id = 0
+            # Turns that happened elsewhere (the microphone, the console) are
+            # read from the append-only turn log, NOT from the status file:
+            # every frontend rewrites that file wholesale and would erase
+            # another process's turn before the page ever polled it.
+            last_turn = None
             try:
-                with open(config.STATUS_FILE, encoding="utf-8") as f:
-                    shared = json.load(f)
-                turn_id = shared.get("question_count", 0)
-                voice_turn = shared.get("completed_turn")
+                log_path = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "identity", "turn_log.jsonl",
+                )
+                with open(log_path, encoding="utf-8") as f:
+                    lines = f.readlines()[-1:]
+                if lines:
+                    last_turn = json.loads(lines[0])
             except (OSError, ValueError):
                 pass
             return jsonify({
@@ -287,8 +291,7 @@ class WebApplication:
                 "cpu_percent": snapshot.cpu_percent,
                 "ram_percent": snapshot.ram_percent,
                 "temperature_c": snapshot.temperature_c,
-                "turn_id": turn_id,
-                "voice_turn": voice_turn,
+                "last_turn": last_turn,
             })
 
         @app.post("/api/ask")

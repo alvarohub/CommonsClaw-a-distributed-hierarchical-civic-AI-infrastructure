@@ -122,11 +122,13 @@ def transcribe(path: Path) -> str:
 
 
 def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
-    """Record exactly `seconds` of audio (used by wake-word listening).
+    """Record a fixed window (used by wake-word listening).
     Returns False if nothing usable was captured."""
+    # arecord -d takes whole seconds only; 2.5 makes it exit immediately.
     subprocess.run(
         ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
-         "-r", "16000", "-c", "1", "-d", str(seconds), str(path)],
+         "-r", "16000", "-c", "1", "-d", str(max(1, int(round(seconds)))),
+         str(path)],
         stderr=subprocess.DEVNULL,
     )
     return path.exists() and path.stat().st_size > 1000
@@ -191,10 +193,14 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
     armed = False
     while True:
         clip = Path(tempfile.mkstemp(suffix=".wav", prefix="kami_")[1])
-        if not record_fixed(card, dev, clip, 8.0 if armed else 2.5):
-            print("(recording failed — mic busy or unplugged?)")
+        # Short window to catch the wake word; once armed, listen for a full
+        # sentence and stop on the speaker's pause.
+        ok = (record_until_silence(card, dev, clip, max_seconds=12.0)
+              if armed else record_fixed(card, dev, clip, 3))
+        if not ok:
             clip.unlink(missing_ok=True)
-            time.sleep(1)
+            if armed:
+                print("(still listening... say something)")
             continue
         t0 = time.perf_counter()
         text = transcribe(clip).lower()
@@ -235,7 +241,7 @@ def main() -> None:
     card, dev = found
 
     llm = LLMManager()
-    status = StatusStore()
+    status = StatusStore(source="voice")
     llm.check_availability()
     status.update_model(llm.metrics)
 

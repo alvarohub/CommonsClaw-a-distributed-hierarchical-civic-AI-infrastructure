@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from threading import Lock
@@ -46,8 +47,9 @@ class StatusStore:
     dataclass instance cannot silently corrupt the stored state.
     """
 
-    def __init__(self, path: str = config.STATUS_FILE):
+    def __init__(self, path: str = config.STATUS_FILE, source: str = "web"):
         self.path = Path(path)
+        self.source = source   # which frontend we are: web / voice / console
         self._lock = Lock()
         self._hardware = HardwareSnapshot()
         self._model = ModelMetrics(model_name=config.MODEL_NAME)
@@ -93,28 +95,31 @@ class StatusStore:
             self._journal_turn_locked()
 
     def _journal_turn_locked(self) -> None:
-        """Append this turn as one JSON line to identity/turn_log.jsonl —
-        the machine-readable conversation history that journal_writer.py
-        folds into the daily journal entry, and future analyst agents mine
-        for community themes. Append-only, one small line per turn."""
-        import json as _json
-        import time as _time
+        """Append this turn as one JSON line to identity/turn_log.jsonl.
+
+        Append-only is what makes this safe: several frontend processes write
+        here concurrently, and unlike the whole-document status file they
+        cannot overwrite each other. It is both the conversation history the
+        journal writer folds into daily entries, and how the web page learns
+        about turns that happened at the microphone.
+        """
         turn = self._completed_turn
         if not turn:
             return
+        answer = turn.get("answer") or ""
         record = {
-            "ts": _time.strftime("%Y-%m-%d %H:%M:%S"),
+            "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source": self.source,
             "q": turn.get("question"),
+            "a": answer[:2000],
             "ok": turn.get("success"),
             "tok_s": (turn.get("model") or {}).get("tokens_per_second"),
         }
-        log_path = self.path.parent.parent / "identity" / "turn_log.jsonl"
-        # /tmp/../identity is wrong — anchor at the repo root instead.
         log_path = Path(__file__).parent / "identity" / "turn_log.jsonl"
         try:
             log_path.parent.mkdir(exist_ok=True)
             with log_path.open("a", encoding="utf-8") as f:
-                f.write(_json.dumps(record) + "\n")
+                f.write(json.dumps(record) + "\n")
         except OSError:
             pass
 

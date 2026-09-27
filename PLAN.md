@@ -295,7 +295,7 @@ params); `sensors_boot.py` spawns one supervisor per active entry at boot
 23:55) folds the day into `identity/journal.md`: world half = per-sensor
 min/max/mean; talk half = question count + top topic words.
 
-**Deferred by design (the LLM consolidation layer):** per-sensor *analytic*
+**Deferred by design (the LLM consolidation layer):** per-sensor _analytic_
 reports by Level-0 agents (trend extraction) and a global "state of the
 place" synthesis across sensors — real pattern discovery over days — require
 a bigger model than this Pi can host. That consolidation is a Level-2+ job

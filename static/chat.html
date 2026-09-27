@@ -231,14 +231,14 @@
       <select id="modelsel" title="Model"></select>
       <span id="hw"></span>
       <span id="memtoggles">
-        <button class="memt on" data-cat="identity" title="Kami identity memory">🧠</button>
-        <button class="memt on" data-cat="sensors" title="Sensor readings">📡</button>
-        <button class="memt on" data-cat="community" title="Community notes">📝</button>
+        <button class="memt" data-cat="identity" title="Kami identity memory">🧠</button>
+        <button class="memt" data-cat="sensors" title="Sensor readings">📡</button>
+        <button class="memt" data-cat="community" title="Community notes">📝</button>
       </span>
     </div>
     <div id="memlegend">
-      kami reads: 🧠 its identity · 📡 its sensors · 📝 community notes &nbsp;(tap to toggle; off = faster, bare
-      answers)
+      kami reads: 🧠 its identity · 📡 its sensors · 📝 community notes &nbsp;(off by default = fast; tap one to let
+      it remember)
     </div>
     <div id="transcript"></div>
     <div id="inputbar">
@@ -267,7 +267,7 @@
       let gotFirstChunk = false;
       let thinkingDiv = null;
       let lastUserMsg = null; // remembered so 💾 can commit it to memory
-      let lastTurnId = 0; // dedupe for voice turns from other frontends
+      let lastTurnTs = null; // dedupe turns coming from other frontends
 
       function resetBusy() {
         busy = false;
@@ -344,22 +344,18 @@
           dot.className = 'dot ' + (s.available ? 'ok' : 'err') + (s.active ? ' busy' : '');
           hwLabel.textContent = `CPU ${s.cpu_percent?.toFixed(0) ?? '?'}% · RAM ${s.ram_percent?.toFixed(0) ?? '?'}% · ${s.temperature_c?.toFixed(0) ?? '?'}°C`;
 
-          // A voice turn (someone talking to the kami via the mic) shows up
-          // here. The question appears the moment it's heard; the answer
-          // replaces the thinking dots when the turn completes.
-          if (s.turn_id > lastTurnId && !busy) {
-            if (s.voice_turn && s.voice_turn.question && s.voice_turn.answer) {
-              // completed turn — render both
-              lastTurnId = s.turn_id;
-              addLine('🎤🙂 ' + s.voice_turn.question, 'me');
-              addLine('🐢 ' + s.voice_turn.answer, 'model');
-              if (ttsOn) speak(s.voice_turn.answer);
+          // Turns that happened at the microphone (or the SSH console) are
+          // published to the append-only turn log; show them here. Our own
+          // web turns are skipped — they already streamed into the page.
+          if (s.last_turn && s.last_turn.ts !== lastTurnTs && !busy) {
+            lastTurnTs = s.last_turn.ts;
+            if (s.last_turn.source !== 'web' && s.last_turn.q) {
+              addLine('🎤🙂 ' + s.last_turn.q, 'me');
+              if (s.last_turn.a) {
+                addLine('🐢 ' + s.last_turn.a, 'model');
+                if (ttsOn) speak(s.last_turn.a);
+              }
             }
-          }
-          // live "heard but still thinking" — the question is in the status
-          // file before the answer exists (current question, no answer yet)
-          if (s.current_question && s.turn_id === lastTurnId + 1 && !busy && !s.voice_turn) {
-            // will be rendered when complete; skip partial to avoid dupes
           }
         } catch {
           dot.className = 'dot err';
@@ -571,7 +567,7 @@
 
       loadModels();
       refreshStatus();
-      setInterval(refreshStatus, 15000);
+      setInterval(refreshStatus, 5000);
     </script>
   </body>
 </html>
