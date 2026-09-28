@@ -49,16 +49,12 @@ import node_settings
 from llm_manager import LLMManager
 from status_store import StatusStore
 from voice.mic_setup import find_capture_card
+from voice.vad import SAMPLE_RATE, capture_utterance
 
 MODEL_SIZE = "tiny"
 WHISPER: object | None = None  # lazy-loaded on first use
 
 WAKE_SIMILARITY = 0.7
-# How long each "is that the wake word?" clip is. Whisper-tiny needs roughly
-# 1.5 s of audio to transcribe a word reliably; 3 s added latency for a speak
-# press with nothing gained, so 2 s is the balance. Much below 1.5 s and the
-# wake word itself starts to vanish from the transcript.
-WAKE_WINDOW_SECONDS = 2.0
 
 # --- one microphone, one owner ---------------------------------------------
 # A USB mic can only be captured by one process. Two voice loops running at
@@ -274,6 +270,21 @@ def transcribe(path: Path) -> str:
     return " ".join(s.text for s in segments).strip()
 
 
+def transcribe_pcm(pcm: bytes) -> str:
+    """Transcribe raw int16 PCM (from the VAD capturer), padded like the rest.
+
+    Padding matters here too: the utterance starts at speech onset, and
+    whisper-tiny clips the first word of an unpadded clip.
+    """
+    import numpy as np
+    model = get_whisper()
+    samples = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
+    silence = np.zeros(int(SAMPLE_RATE * PAD_SECONDS), dtype=np.float32)
+    audio = np.concatenate([silence, samples, silence])
+    segments, _info = model.transcribe(audio)
+    return " ".join(s.text for s in segments).strip()
+
+
 def new_clip() -> Path:
     """A fresh temp .wav path. mkstemp hands back an OPEN fd; closing it is
     not optional — leaking one per recording exhausts the process in minutes."""
@@ -402,11 +413,12 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
 def serve_loop(llm, status, card, dev) -> None:
     """Microphone as a service: the web page decides what it does.
 
-    Reads node_settings every cycle. Two things can wake it up: the wake word
-    (if enabled) or a "Speak" press on the page. Publishes a heartbeat so the
-    page can tell the difference between "idle" and "not running at all".
+    Streams the mic through Silero VAD. Whisper is only called on actual
+    speech, so silence cannot produce hallucinated turns. Two things can wake
+    the kami: the wake word (if enabled) or a "Speak" press on the page.
+    Publishes a heartbeat so the page can tell "idle" from "not running".
     """
-    print("(serving — control the microphone from the web page)")
+    print("(serving — Silero VAD + whisper; control from the web page)")
     armed = False                      # wake word heard, awaiting the question
     last_request = node_settings.load()["listen_request"]
 
@@ -427,28 +439,27 @@ def serve_loop(llm, status, card, dev) -> None:
             time.sleep(0.4)
             continue
 
-        clip = new_clip()
-        if armed:
-            node_settings.publish_voice_state("listening", "speak now")
-            stop_at = settings["stop_request"]
-            ok = record_until_silence(
-                card, dev, clip, max_seconds=12.0,
-                stop_check=lambda: node_settings.load()["stop_request"] > stop_at,
-            )
-        else:
-            node_settings.publish_voice_state(
-                "waking", f'say "{voice["wake_word"]}"')
-            ok = record_fixed(card, dev, clip, WAKE_WINDOW_SECONDS)
-        if not ok:
-            clip.unlink(missing_ok=True)
-            armed = False   # one press (or one wake word) = one chance to speak
+        # Either armed (record the question) or listening for the wake word.
+        node_settings.publish_voice_state(
+            "listening" if armed else "waking",
+            "speak now" if armed else f'say "{voice["wake_word"]}"')
+
+        # Capture one utterance; abort if the page presses Stop or Speak.
+        stop_at = settings["stop_request"]
+        req_at = settings["listen_request"]
+        pcm = capture_utterance(
+            card, dev, max_seconds=12.0, die_with_parent=_die_with_parent,
+            check=lambda: (node_settings.load()["stop_request"] > stop_at
+                           or node_settings.load()["listen_request"] > req_at),
+        )
+        if pcm is None:
+            armed = False   # silence, stopped, or a fresh Speak press — restart
             continue
 
         node_settings.publish_voice_state("transcribing")
         t0 = time.perf_counter()
-        text = transcribe(clip).strip()
+        text = transcribe_pcm(pcm).strip()
         stt_s = time.perf_counter() - t0
-        clip.unlink(missing_ok=True)
         if not text:
             armed = False
             continue

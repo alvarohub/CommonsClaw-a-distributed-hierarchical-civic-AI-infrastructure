@@ -274,6 +274,22 @@ class WebApplication:
                 f.write(line)
             return jsonify({"ok": True})
 
+        @app.post("/api/reset-logs")
+        def reset_logs():
+            """Clear the node's accumulated logs: the conversation history and
+            the daily journal. Memory notes and sensor telemetry are kept."""
+            base = os.path.dirname(os.path.abspath(__file__))
+            cleared = []
+            for rel in ("identity/turn_log.jsonl", "identity/journal.md"):
+                path = os.path.join(base, rel)
+                try:
+                    with open(path, "w", encoding="utf-8") as f:
+                        f.write("")
+                    cleared.append(rel)
+                except OSError:
+                    pass
+            return jsonify({"cleared": cleared})
+
         @app.get("/api/status")
         def status():
             snapshot = self.hardware_monitor.read_snapshot()
