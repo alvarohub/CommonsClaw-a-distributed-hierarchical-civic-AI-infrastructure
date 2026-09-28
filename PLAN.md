@@ -381,7 +381,7 @@ conversing node, insufficient for a reflecting one._
 
 Their nightly "dreaming" sweep is the most mature file-based implementation
 (verified 2026-09-28 — details and URLs in
-[OPENCLAW_MEMORY_RESEARCH.md](OPENCLAW_MEMORY_RESEARCH.md)):
+[docs/research/openclaw-memory.md](docs/research/openclaw-memory.md)):
 
 - markdown is the source of truth; SQLite only ever a **derived index**
 - a nightly cron sweep (`0 3 * * *`), phased light → REM → deep; only the
@@ -418,7 +418,11 @@ loudest visitor.
 The first public demo (2026-09-28, Kashiwa campus decision meeting) exposed
 synchronization and hang bugs in the voice/UI layer. The diagnosis, the
 research on existing voice-assistant architectures, and the ranked fix list
-live in **[docs/ROBUSTNESS_PLAN.md](docs/ROBUSTNESS_PLAN.md)**.
+live in the chapter library under **[docs/](docs/)** — start at
+[docs/03-interaction-and-voice.md](docs/03-interaction-and-voice.md) (the
+canonical state machine and the demo post-mortem) and
+[docs/02-architecture.md](docs/02-architecture.md) (the one-vs-many-process
+decision).
 
 The short version: (1) unbounded blocking calls (fixed: model-call watchdog),
 (2) model switching on the Pi queues requests and accumulates RAM, (3) the

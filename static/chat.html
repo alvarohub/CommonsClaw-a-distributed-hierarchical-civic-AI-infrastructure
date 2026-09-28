@@ -491,9 +491,8 @@
               vBanText.textContent = '🎤 listening — speak now · pauses end it';
             } else if (st === 'empty' || st === 'error') {
               vBanner.className = 'red';
-              vBanText.textContent = st === 'empty'
-                ? '🤷 I didn’t hear that — try again'
-                : '⚠️ the model stalled — try again';
+              vBanText.textContent =
+                st === 'empty' ? '🤷 I didn’t hear that — try again' : '⚠️ the model stalled — try again';
             } else {
               vBanner.className = 'hidden';
             }

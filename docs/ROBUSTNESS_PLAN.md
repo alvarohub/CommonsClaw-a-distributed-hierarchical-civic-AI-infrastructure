@@ -13,7 +13,7 @@ The turn log from the demo window tells the story:
   (52.9 °C). The VAD gate, whisper, the shared settings and the live answer
   streaming all functioned.
 - **One stuck generation.** Turns stop at 14:17:51 and resume at 14:22:28 —
-  a ~5-minute gap. No traceback anywhere: a *hang*, not a crash. That is the
+  a ~5-minute gap. No traceback anywhere: a _hang_, not a crash. That is the
   "kami thinking forever" you saw.
 - **Two models resident forever.** `ollama ps` shows both `llama3.2:1b`
   (1.8 GB) and `phi3.5` (3.9 GB) held in RAM (`OLLAMA_KEEP_ALIVE=-1`).
@@ -23,7 +23,7 @@ The turn log from the demo window tells the story:
   request waited minutes with no answer and no error.
 - **The open mic captured the room.** Several "questions" are the demo
   participants' own conversation ("contact with any weather stations…").
-  When armed, the VAD correctly captures *whoever* speaks — that is the
+  When armed, the VAD correctly captures _whoever_ speaks — that is the
   intended behavior of an open mic, but it must be signalled clearly.
 - **"starting…" aborts.** Pressing speak while the loop was busy (e.g.
   answering) queued the press, but the page gave up after 8 s and reverted
@@ -34,10 +34,10 @@ The turn log from the demo window tells the story:
 
 1. **Unbounded blocking calls.** The voice loop's model call had no timeout —
    a queued/stalled request froze the loop in `thinking` indefinitely.
-   *Any* blocking call without a deadline is a future hang.
+   _Any_ blocking call without a deadline is a future hang.
 2. **Model switching is a trap on the Pi.** Loads take ~30–60 s for a 3–4 GB
    model; requests queue during loads; keep-alive=-1 then accumulates every
-   model ever selected. On this hardware, the model should be *locked*, not
+   model ever selected. On this hardware, the model should be _locked_, not
    freely switchable from the phone.
 3. **Frontend/backend sync is a guess, not a truth.** State travels
    Pi-process → file → HTTP poll → DOM, at 0.4 s (loop) + ~0.9–5 s (page)
@@ -45,8 +45,8 @@ The turn log from the demo window tells the story:
    disagree with reality. This is the root of "I never know what's actually
    happening".
 4. **No observability.** The only liveness signal is CPU% (misleading: a
-   hung loop can sit at 0%) and a heartbeat that says what the loop *says*
-   it is doing, not what it *is* doing.
+   hung loop can sit at 0%) and a heartbeat that says what the loop _says_
+   it is doing, not what it _is_ doing.
 5. **The wake word is the wrong tool.** whisper-tiny mishears short words
    ("turtle" → "pernel", "turn it all"). A wake word needs a wake-word
    model (openWakeWord), not a transcriber.
@@ -61,15 +61,15 @@ inventing anything exotic.
 - **Rhasspy** — the pipeline is explicit modules (wake word → ASR → NLU →
   TTS) with an **event-driven state machine**, events over MQTT (Hermes
   protocol), and a satellite architecture (the mic lives in a small process
-  that talks to a central brain). The lesson: *explicit states, events, not
-  polls*.
+  that talks to a central brain). The lesson: _explicit states, events, not
+  polls_.
 - **Mycroft / OpenVoiceOS** — a websocket **message bus** between the voice
   process, the brain and the GUI; every state change is a bus message any
   UI can subscribe to. Same lesson.
 - **Home Assistant Assist pipeline** — a fixed pipeline with **per-stage
-  debug tracing**, pushed to the frontend over WebSocket. The lesson: *the
+  debug tracing**, pushed to the frontend over WebSocket. The lesson: _the
   UI must render the pipeline's own stages, verbatim, not a parallel model
-  of them*.
+  of them_.
 - **openWakeWord** — a tiny dedicated ONNX wake-word detector, designed to
   run continuously on weak hardware; this is the fix for "wake" (and for
   the wasted CPU of transcribing to detect a word).
@@ -82,7 +82,7 @@ inventing anything exotic.
 
 Robustness patterns shared by all of them: a supervisor that restarts on
 failure (we have systemd), watchdogs/timeouts on every blocking call, one
-owner for the microphone, and the UI *mirroring* one canonical state
+owner for the microphone, and the UI _mirroring_ one canonical state
 machine rather than maintaining its own.
 
 ## 4. What to change — urgent vs. structural
@@ -144,7 +144,7 @@ summarization society**: place-kami → neighborhood → city, each level
 consolidating the level below into a narrative — a machine- and
 human-readable "model of reality" whose objectives evolve with use
 (see PLAN.md §5 and the machintropology notes). The robustness work above
-is the *floor* that makes the rest possible: a system that hangs 5 minutes
+is the _floor_ that makes the rest possible: a system that hangs 5 minutes
 per demo cannot be trusted to remember anything.
 
 - **A — harden (now → next demo).** Items in §4 urgent, in order.

@@ -344,7 +344,7 @@ format is a handoff, and the neighborhood tier (Level 2) reads many kami's
 journals and writes back.
 
 **How OpenClaw does it** (verified 2026-09-28, see
-[OPENCLAW_MEMORY_RESEARCH.md](OPENCLAW_MEMORY_RESEARCH.md)) — the most
+[docs/research/openclaw-memory.md](docs/research/openclaw-memory.md)) — the most
 mature file-based implementation to learn from:
 
 - Memory is plain Markdown in a workspace: `MEMORY.md` (curated core),
