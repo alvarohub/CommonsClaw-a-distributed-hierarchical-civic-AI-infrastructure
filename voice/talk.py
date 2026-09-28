@@ -308,8 +308,14 @@ def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
     return path.exists() and path.stat().st_size > 1000
 
 
-def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> None:
-    """One full turn: publish, stream the kami's answer, record metrics."""
+def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float,
+           on_chunk=None) -> None:
+    """One full turn: publish, stream the kami's answer, record metrics.
+
+    on_chunk(partial_answer) is called after each streamed token, so the
+    caller can push the answer live to the web page instead of waiting for
+    the whole turn to finish.
+    """
     print(f'🙂 YOU (heard, {stt_s:.1f}s): {text}')
     status.submit_question(text)   # question visible on the web right away
 
@@ -330,6 +336,8 @@ def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float) -> Non
         else:
             print(chunk, end="", flush=True)
         parts.append(chunk)
+        if on_chunk:
+            on_chunk("".join(parts))
     if first:
         print("\r🐢 KAMI: (silence)")
     else:
@@ -420,18 +428,21 @@ def serve_loop(llm, status, card, dev) -> None:
     """
     print("(serving — Silero VAD + whisper; control from the web page)")
     armed = False                      # wake word heard, awaiting the question
-    manual = False                     # armed by a Speak press (vs wake word)
     last_request = node_settings.load()["listen_request"]
 
     # A heartbeat is re-published every 2 s no matter what the loop is doing,
-    # so a long "thinking" or a 12 s silent wake-wait can't make the page
-    # believe the process died (it used to read "voice process not working").
-    cur = {"state": "starting", "detail": "", "heard": "", "vad": 0.0}
+    # so a long "thinking" or a silent wake-wait can't make the page believe
+    # the process died (it used to read "voice process not working"). It also
+    # carries the live question + partial answer so the web page can stream
+    # the kami's reply instead of showing it all at once at the end.
+    cur = {"state": "starting", "detail": "", "heard": "", "vad": 0.0,
+           "question": "", "partial": ""}
 
     def beat():
         while not STOP.is_set():
             node_settings.publish_voice_state(
-                cur["state"], cur["detail"], cur["heard"] or None, cur["vad"])
+                cur["state"], cur["detail"], cur["heard"] or None, cur["vad"],
+                cur["question"], cur["partial"])
             time.sleep(2)
     threading.Thread(target=beat, daemon=True).start()
 
@@ -439,7 +450,13 @@ def serve_loop(llm, status, card, dev) -> None:
         cur["state"], cur["detail"] = state, detail
         if heard is not None:
             cur["heard"] = heard
-        node_settings.publish_voice_state(state, detail, heard, cur["vad"])
+        node_settings.publish_voice_state(
+            state, detail, heard, cur["vad"], cur["question"], cur["partial"])
+
+    def say_nothing_heard():
+        """A visible "I didn't hear that" so a dead capture is never silent."""
+        publish("empty", "I didn't hear that — try again")
+        time.sleep(1.6)   # hold it long enough to be seen before the next state
 
     while not STOP.is_set():
         settings = node_settings.load()
@@ -451,7 +468,6 @@ def serve_loop(llm, status, card, dev) -> None:
         if requested:
             last_request = settings["listen_request"]
             armed = True
-            manual = True
 
         # Nothing to do: wake word off and nobody pressed speak.
         if not armed and not wake_on:
@@ -464,15 +480,15 @@ def serve_loop(llm, status, card, dev) -> None:
             "listening" if armed else "waking",
             "speak now" if armed else f'say "{voice["wake_word"]}"')
 
-        # Capture one utterance; abort if the page presses Stop or Speak.
-        # A Speak press records until Stop (manual); the wake word's question
-        # stops on its own once the speaker pauses.
+        # Capture one utterance. It stops on its own after ~1 s of silence
+        # (VAD), at the max-duration cap, or if the page presses Stop/Speak.
         stop_at = settings["stop_request"]
         req_at = settings["listen_request"]
         pcm = capture_utterance(
             card, dev,
-            max_seconds=(60.0 if manual else 12.0),
-            auto_stop=not manual,
+            max_seconds=20.0,
+            min_silence_ms=1000,
+            auto_stop=True,
             vad_enabled=voice.get("vad", True),
             die_with_parent=_die_with_parent,
             on_vad=lambda p: cur.__setitem__("vad", round(p, 3)),
@@ -481,8 +497,9 @@ def serve_loop(llm, status, card, dev) -> None:
         )
         cur["vad"] = 0.0
         if pcm is None:
+            if armed:
+                say_nothing_heard()
             armed = False
-            manual = False  # silence, stopped, or a fresh Speak press — restart
             continue
 
         publish("transcribing")
@@ -490,8 +507,9 @@ def serve_loop(llm, status, card, dev) -> None:
         text = transcribe_pcm(pcm).strip()
         stt_s = time.perf_counter() - t0
         if not text:
+            if armed:
+                say_nothing_heard()
             armed = False
-            manual = False
             continue
 
         if armed:
@@ -506,20 +524,29 @@ def serve_loop(llm, status, card, dev) -> None:
             rest = rest.strip(" ,.?!")
             wake = voice["wake_word"].lower()
             # "turtle" alone, or just its echo ("turtle turtle"): arm listening
-            # for the real question rather than answering the echo. This is the
-            # wake-word path, so the question auto-stops on the speaker's pause.
+            # for the real question rather than answering the echo.
             if not rest or (len(rest.split()) == 1 and
                             difflib.SequenceMatcher(None, rest.lower(), wake).ratio() >= WAKE_SIMILARITY):
                 armed = True
-                manual = False
                 print("KAMI: yes? (listening...)", flush=True)
                 continue
             question = rest
 
+        # Stream the answer to the web page as it is generated.
+        cur["question"] = question
+        cur["partial"] = ""
         publish("thinking", question[:60], heard=text)
-        answer(llm, status, question, stt_s)
+
+        def on_chunk(partial):
+            cur["partial"] = partial
+            node_settings.publish_voice_state(
+                cur["state"], cur["detail"], cur["heard"] or None, cur["vad"],
+                cur["question"], partial)
+
+        answer(llm, status, question, stt_s, on_chunk=on_chunk)
+        cur["question"] = ""
+        cur["partial"] = ""
         armed = False
-        manual = False
 
 
 def main() -> None:

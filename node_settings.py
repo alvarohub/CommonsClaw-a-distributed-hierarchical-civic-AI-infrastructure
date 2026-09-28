@@ -134,7 +134,8 @@ _LAST_HEARD = {"text": "", "ts": 0.0}
 
 
 def publish_voice_state(state: str, detail: str = "",
-                        heard: str | None = None, vad: float = 0.0) -> None:
+                        heard: str | None = None, vad: float = 0.0,
+                        question: str = "", partial: str = "") -> None:
     if heard is not None:
         _LAST_HEARD["text"] = heard
         _LAST_HEARD["ts"] = time.time()
@@ -147,6 +148,8 @@ def publish_voice_state(state: str, detail: str = "",
             "heard": _LAST_HEARD["text"],
             "heard_ts": _LAST_HEARD["ts"],
             "vad": float(vad or 0.0),
+            "question": question,
+            "partial": partial,
         }), encoding="utf-8")
         os.replace(tmp, HEARTBEAT)
     except OSError:
@@ -162,9 +165,11 @@ def voice_state() -> dict:
                     "detail": str(data.get("detail", "")),
                     "heard": str(data.get("heard", "")),
                     "heard_ts": float(data.get("heard_ts", 0) or 0),
-                    "vad": float(data.get("vad", 0) or 0)}
+                    "vad": float(data.get("vad", 0) or 0),
+                    "question": str(data.get("question", "")),
+                    "partial": str(data.get("partial", ""))}
     except (OSError, ValueError, TypeError):
         pass
     return {"state": "offline", "detail": "", "heard": "", "heard_ts": 0,
-            "vad": 0.0}
+            "vad": 0.0, "question": "", "partial": ""}
 

@@ -476,17 +476,38 @@
             // Live "voice detected" dot, straight from the VAD probability.
             vHear.classList.toggle('live', (s.voice.vad || 0) > 0.5);
 
-            // Banner: red while actually recording, hidden the rest of the
-            // time. The red button IS the "I'm listening" signal.
+            // Banner: red while recording, amber for "didn't hear that",
+            // hidden the rest of the time.
             if (st === 'listening') {
               vBanner.className = 'red';
-              vBanText.textContent = '🎤 listening — speak now · press stop when done';
+              vBanText.textContent = '🎤 listening — speak now · pauses end it';
+            } else if (st === 'empty') {
+              vBanner.className = 'red';
+              vBanText.textContent = '🤷 I didn’t hear that — try again';
             } else {
               vBanner.className = 'hidden';
             }
 
             if (st === 'listening') speakPending = 0; // request honoured
             renderTalkButton();
+
+            // Live voice turn: show the question when it starts and stream
+            // the answer as it is generated, so nothing needs a page refresh.
+            const vq = s.voice.question || '';
+            if (vq && vq !== liveQ) {
+              liveQ = vq;
+              lastLiveQ = vq;
+              addLine('🙂 ' + vq, 'me');
+              liveDiv = addLine('🐢 ', 'model');
+            }
+            if (vq && liveDiv) {
+              liveDiv.textContent = '🐢 ' + (s.voice.partial || '');
+              transcript.scrollTop = transcript.scrollHeight;
+            }
+            if (!vq) {
+              liveQ = null;
+              liveDiv = null;
+            }
 
             if (st !== prevVoiceState) {
               if (st === 'listening') beep(880, 90);
@@ -497,13 +518,19 @@
           // Turns that happened at the microphone (or the SSH console) are
           // published to the append-only turn log; show them here. Our own
           // web turns are skipped — they already streamed into the page.
+          // A voice turn already shown live above is skipped too.
           if (s.last_turn && s.last_turn.ts !== lastTurnTs && !busy) {
             lastTurnTs = s.last_turn.ts;
             if (s.last_turn.source !== 'web' && s.last_turn.q) {
-              addLine('🙂 ' + s.last_turn.q, 'me');
-              if (s.last_turn.a) {
-                addLine('🐢 ' + s.last_turn.a, 'model');
-                if (ttsOn) speak(s.last_turn.a);
+              if (s.last_turn.q === lastLiveQ) {
+                // Already streamed live — just speak it if asked.
+                if (ttsOn && s.last_turn.a) speak(s.last_turn.a);
+              } else {
+                addLine('🙂 ' + s.last_turn.q, 'me');
+                if (s.last_turn.a) {
+                  addLine('🐢 ' + s.last_turn.a, 'model');
+                  if (ttsOn) speak(s.last_turn.a);
+                }
               }
             }
           }
@@ -755,12 +782,16 @@
         listening: 'recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
+        empty: 'didn’t hear that',
       };
 
       let voiceCfg = { enabled: false, wake_word: 'turtle', vad: true };
       let voiceHeldUntil = 0;
       let curVoiceState = '';
       let prevVoiceState = '';
+      let liveQ = null;     // voice question currently being answered
+      let liveDiv = null;   // its streaming answer line in the transcript
+      let lastLiveQ = null; // last voice question shown live (dedupe the log)
 
       // A short tone, so you know it is listening without watching the screen.
       let audioCtx = null;
@@ -860,7 +891,8 @@
       // press in flight, or mid-recording), so state changes feel immediate.
       (function poll() {
         const busy =
-          voiceCfg.enabled || speakPending || ['listening', 'transcribing', 'thinking'].includes(curVoiceState);
+          voiceCfg.enabled || speakPending ||
+          ['listening', 'transcribing', 'thinking', 'empty'].includes(curVoiceState);
         setTimeout(
           async () => {
             await refreshStatus();
