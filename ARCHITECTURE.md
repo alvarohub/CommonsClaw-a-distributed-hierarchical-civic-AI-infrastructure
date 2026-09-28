@@ -241,12 +241,15 @@ debugging.
 
 ### The voice path
 
-`voice/talk.py` — ReSpeaker mic → `arecord` captures a clip (push-to-talk:
-Enter/Enter; wake-word: `--wake kami` listens in 2.5 s windows) →
+`voice/talk.py` — ReSpeaker mic → streamed through a **Silero VAD gate**
+(`voice/vad.py`, onnxruntime, no torch) so only actual speech is captured →
 `faster-whisper` transcribes locally (~1 s) → the same
-`LLMManager.stream_response()` → answer printed token by token. Its
-`StatusStore` posts the turn to the bulletin board, which is how phones see
-voice conversations (see "Following one voice question").
+`LLMManager.stream_response()` → answer streamed into the heartbeat file
+(`/tmp/commonsclaw_voice.json`) token by token, so phones see it live.
+Normally run as `--serve`: the web page drives it through `node_settings.json`
+(wake word on/off, VAD on/off, the speak button). The VAD gate exists because
+whisper-tiny hallucinates speech on silence; gating it is what keeps the
+log and the transcript honest.
 
 ## Loops and events — what runs when
 
@@ -257,14 +260,14 @@ timer_. That is the whole concurrency model. Written as pseudocode:
 ```
 web_server.py          voice/talk.py            sensors_boot.py
 ─────────────          ─────────────            ─────────────
-loop forever:          loop forever:            per sensor, loop forever:
-  wait for HTTP          wait for Enter/wake       run its logger script
-  → answer it            record until pause        sleep(interval_seconds)
-                         transcribe
-+ a 2nd thread:          ask the model
-loop forever:            print the answer        journal_writer.py (cron)
-  sample hardware        append to turn_log      ─────────────────
-  sleep(15 s)                                    once a day at 23:55:
+loop forever:          loop forever:             per sensor, loop forever:
+  wait for HTTP          stream mic via VAD       run its logger script
+  → answer it            speech? → transcribe      sleep(interval_seconds)
+                         ask the model
++ a 2nd thread:          stream answer to        journal_writer.py (cron)
+loop forever:            the heartbeat file       ─────────────────
+  sample hardware        append to turn_log        once a day at 23:55:
+  sleep(15 s)                                      read today's logs
                        control.py                  read today's logs
 the browser page       ──────────                  write one journal block
 ────────────────       loop forever:
@@ -282,24 +285,26 @@ another process. If you kill any box above, the others keep running.
 
 ## Following one voice question (the part that confused you)
 
-1. You speak at the mic. `voice/talk.py` (its own process) records with
-   `arecord`, transcribes with whisper — all local, no model call yet.
+1. You speak at the mic. `voice/talk.py` streams the audio through a **Silero
+   VAD gate** (only speech is kept), then transcribes with whisper — all
+   local, no model call yet.
 2. `talk.py`'s **own** `LLMManager` POSTs the text to Ollama and streams the
-   answer, printing it in that terminal. The phone is not involved yet.
-3. When the turn completes, `talk.py` appends one JSON line to
-   `identity/turn_log.jsonl`, tagged `"source": "voice"`.
-4. Within 5 s the phone's page polls `/api/status`; the web server reads the
-   **last line of that log** and returns it. (It must be the log, not the
-   status file: every frontend rewrites the status file wholesale from its
-   own memory, so the web server's 15 s hardware tick would erase a voice
-   turn before anyone saw it. Append-only is what makes many writers safe —
-   this bug actually happened, 2026-09-28.)
-5. The page renders `🎤🙂 question` + `🐢 answer`, deduping on the timestamp
-   and skipping turns whose source is `web` (those already streamed in).
+   answer, both printing it and writing it token-by-token to the **heartbeat
+   file** (`/tmp/commonsclaw_voice.json`), along with the live question.
+3. Within ~1 s the phone's page polls `/api/status` and renders the question
+   and the growing answer live from the heartbeat — no waiting for the turn
+   to finish.
+4. When the turn completes, `talk.py` also appends one JSON line to
+   `identity/turn_log.jsonl`, tagged `"source": "voice"` — the durable
+   record, since the heartbeat is ephemeral. (The log is append-only because
+   every frontend rewrites the status file wholesale; many writers would
+   otherwise erase each other — this bug actually happened, 2026-09-28.)
+   The page dedupes: if it already streamed that question live, it does not
+   print it twice.
 
-So the phone shows the voice conversation **by reading the log**, never by
-participating in the model call. If nobody is looking at a phone, the voice
-loop is complete without it.
+So the phone shows the voice conversation live from the heartbeat, and the
+log is the durable record. If nobody is looking at a phone, the voice loop
+is complete without it.
 
 ## The memory loop (what makes it a kami)
 
