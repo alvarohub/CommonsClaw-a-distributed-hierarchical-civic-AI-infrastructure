@@ -118,15 +118,13 @@
       resetBtn.onclick = async () => {
         const ok = confirm(
           'Reset ALL logs?\n\nThis clears the conversation history (turn_log.jsonl) ' +
-          'and the daily journal (journal.md). Memory notes and sensor data are kept.',
+            'and the daily journal (journal.md). Memory notes and sensor data are kept.',
         );
         if (!ok) return;
         resetMsg.textContent = 'clearing…';
         try {
           const d = await (await fetch('/api/reset-logs', { method: 'POST' })).json();
-          resetMsg.textContent = d.cleared?.length
-            ? 'cleared: ' + d.cleared.join(', ')
-            : 'nothing to clear';
+          resetMsg.textContent = d.cleared?.length ? 'cleared: ' + d.cleared.join(', ') : 'nothing to clear';
         } catch (e) {
           resetMsg.textContent = 'error: ' + e.message;
         }

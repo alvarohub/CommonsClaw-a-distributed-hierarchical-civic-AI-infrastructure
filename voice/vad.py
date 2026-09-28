@@ -63,16 +63,22 @@ class VAD:
     def reset(self) -> None:
         # Single recurrent state [2, 1, 128] (h and c concatenated).
         self._state = np.zeros((2, 1, 128), dtype=np.float32)
+        # The model expects 64 samples of the PREVIOUS frame prepended to the
+        # current one (576 samples at 16 kHz). Without this the probabilities
+        # come out near zero even for loud speech.
+        self._context = np.zeros((1, 64), dtype=np.float32)
 
     def prob(self, chunk: bytes) -> float:
         x = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
-        x = x.reshape(1, -1)
+        x = x.reshape(1, -1)                       # [1, 512]
+        xin = np.concatenate([self._context, x], axis=1)   # [1, 576]
         out = self.session.run(None, {
-            "input": x,
+            "input": xin,
             "state": self._state,
             "sr": np.array(SAMPLE_RATE, dtype=np.int64),
         })
         self._state = out[1]
+        self._context = xin[:, -64:]
         return float(np.asarray(out[0]).reshape(-1)[0])
 
 

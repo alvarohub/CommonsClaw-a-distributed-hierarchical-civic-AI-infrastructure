@@ -803,7 +803,8 @@
           return;
         }
         if (speakPending && !isRecording()) {
-          if (Date.now() - speakPending > 8000) speakPending = 0; // request lost
+          if (Date.now() - speakPending > 8000)
+            speakPending = 0; // request lost
           else {
             vListen.textContent = '🎤 starting…';
             vListen.classList.remove('live');
@@ -837,12 +838,14 @@
       // press in flight, or mid-recording), so state changes feel immediate.
       (function poll() {
         const busy =
-          voiceCfg.enabled || speakPending ||
-          ['listening', 'transcribing', 'thinking'].includes(curVoiceState);
-        setTimeout(async () => {
-          await refreshStatus();
-          poll();
-        }, busy ? 1500 : 5000);
+          voiceCfg.enabled || speakPending || ['listening', 'transcribing', 'thinking'].includes(curVoiceState);
+        setTimeout(
+          async () => {
+            await refreshStatus();
+            poll();
+          },
+          busy ? 1500 : 5000,
+        );
       })();
     </script>
   </body>
