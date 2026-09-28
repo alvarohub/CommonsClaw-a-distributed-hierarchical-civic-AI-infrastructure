@@ -51,6 +51,63 @@ def _digest_dir(directory: Path, skip: set[str] = frozenset()) -> list[str]:
     return parts
 
 
+# Machine field names -> words a small model can map a question onto.
+FIELD_WORDS = {
+    "temp": "temperature",
+    "cpu": "cpu load",
+    "ram": "ram usage",
+    "panel_v": "panel voltage",
+    "battery": "battery level",
+    "charging": "charging",
+}
+
+
+def _latest_line(path: Path, lines: list[str]) -> str:
+    """Render the sensor's most recent data line as natural language, e.g.
+    "temperature: 51.8C · cpu load: 0.0% · ram usage: 17.7%"."""
+    toks = lines[-1].split()
+    ts = f"{toks[0]} {toks[1]}" if len(toks) > 1 else toks[0]
+    parts = []
+    for token in toks[2:]:
+        key, _, val = token.partition("=")
+        parts.append(f"{FIELD_WORDS.get(key, key)}: {val}")
+    return f"latest reading ({ts}): " + " · ".join(parts)
+
+
+def _sensor_digest() -> list[str]:
+    """One clean "latest reading" per sensor.
+
+    The raw sensor files are append-only logs (one line per minute), and a 1B
+    model asked "what's the temperature?" will pick a random line — or invent
+    a number — rather than re-parse sixty timestamped lines. So instead of the
+    log, give it the sensor's description, its units, and its LATEST line,
+    with machine field names spelled out in words.
+    index.md is skipped: its "Current state" summary is not written yet and
+    its "(No sensor data yet)" actively misleads the model.
+    """
+    parts: list[str] = []
+    if not SENSORS_DIR.is_dir():
+        return parts
+    for path in sorted(SENSORS_DIR.glob("*.md")):
+        if path.name == "index.md":
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        meta = [ln for ln in lines
+                if ln.startswith("# description:") or ln.startswith("# units:")]
+        data = [ln.strip() for ln in lines if ln.strip() and not ln.startswith("#")]
+        if not data:
+            continue
+        parts.append(
+            f"--- sensors/{path.name} ---\n"
+            + "\n".join(meta)
+            + "\n" + _latest_line(path, data)
+        )
+    return parts
+
+
 def read_reports(categories: set[str] | None = None) -> str:
     """Return the digest for the given categories, or "" if none active.
 
@@ -67,9 +124,9 @@ def read_reports(categories: set[str] | None = None) -> str:
             sections.append("## Who you are\n" + "\n\n".join(identity))
 
     if "sensors" in categories:
-        sensors = _digest_dir(SENSORS_DIR)
+        sensors = _sensor_digest()
         if sensors:
-            sections.append("## Sensor readings\n" + "\n\n".join(sensors))
+            sections.append("## Sensor readings (latest)\n" + "\n\n".join(sensors))
 
     if "community" in categories:
         reports = _digest_dir(COMMUNITY_DIR)

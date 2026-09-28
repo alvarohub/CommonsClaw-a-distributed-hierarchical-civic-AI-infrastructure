@@ -789,8 +789,8 @@
       let voiceHeldUntil = 0;
       let curVoiceState = '';
       let prevVoiceState = '';
-      let liveQ = null;     // voice question currently being answered
-      let liveDiv = null;   // its streaming answer line in the transcript
+      let liveQ = null; // voice question currently being answered
+      let liveDiv = null; // its streaming answer line in the transcript
       let lastLiveQ = null; // last voice question shown live (dedupe the log)
 
       // A short tone, so you know it is listening without watching the screen.
@@ -877,6 +877,7 @@
           beep(880, 90); // also unlocks the AudioContext on iOS
           speakPending = Date.now();
           renderTalkButton();
+          refreshStatus(); // look right away, not on the next 1.5–5 s poll
           fetch('/api/listen', { method: 'POST' }).catch(() => {});
         }
       });
@@ -891,14 +892,15 @@
       // press in flight, or mid-recording), so state changes feel immediate.
       (function poll() {
         const busy =
-          voiceCfg.enabled || speakPending ||
+          voiceCfg.enabled ||
+          speakPending ||
           ['listening', 'transcribing', 'thinking', 'empty'].includes(curVoiceState);
         setTimeout(
           async () => {
             await refreshStatus();
             poll();
           },
-          busy ? 1500 : 5000,
+          busy ? 900 : 5000,
         );
       })();
     </script>
