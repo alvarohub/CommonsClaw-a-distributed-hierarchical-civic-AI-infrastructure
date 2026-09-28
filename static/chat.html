@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="/manifest.json" />
     <title>SSAI</title>
     <style>
       :root {
@@ -325,6 +330,8 @@
     <header id="topbar">
       <div class="row">
         <span id="title">CommonsClaw <span class="lvl">· turtle kami · level 1</span></span>
+      </div>
+      <div class="row">
         <select id="modelsel" title="Model"></select>
         <a href="/dashboard" id="dashlink" title="Dashboard">Dashboard</a>
       </div>
@@ -342,7 +349,7 @@
       </div>
       <div class="row">
         <span class="rlabel">voice</span>
-        <button class="box" id="vwake" title="Wake word — tap to turn on or off">wake “wake”</button>
+        <button class="box" id="vwake" title="Wake word — tap to turn on or off">“wake”</button>
         <button class="box" id="vwakeedit" title="Change the wake word">✎</button>
         <button class="box" id="vvad" title="Silero VAD gate — filters silence before whisper">VAD</button>
         <button class="box act" id="vlisten" title="Speak to the kami">🎤 speak</button>
@@ -814,7 +821,7 @@
       }
 
       function renderVoice() {
-        vWake.textContent = 'wake “' + voiceCfg.wake_word + '” ' + (voiceCfg.enabled ? '· on' : '· off');
+        vWake.textContent = '“' + voiceCfg.wake_word + '” ' + (voiceCfg.enabled ? '· on' : '· off');
         vWake.classList.toggle('on', voiceCfg.enabled);
         vVad.textContent = 'VAD ' + (voiceCfg.vad ? 'on' : 'off');
         vVad.classList.toggle('on', voiceCfg.vad);

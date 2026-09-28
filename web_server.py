@@ -207,6 +207,19 @@ class WebApplication:
         def dashboard():
             return send_file("static/dashboard.html")
 
+        @app.get("/manifest.json")
+        def manifest():
+            """Web-app manifest so 'Add to Home Screen' opens fullscreen (no
+            browser address bar) on the phone."""
+            return jsonify({
+                "name": "CommonsClaw",
+                "short_name": "Kami",
+                "display": "standalone",
+                "background_color": "#000000",
+                "theme_color": "#000000",
+                "start_url": "/",
+            })
+
         # Memory files the dashboard can read (relative to the repo root).
         _MEM_DIRS = ("identity", "sensors", "community")
 
