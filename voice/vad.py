@@ -83,16 +83,24 @@ class VAD:
 
 
 def capture_utterance(card: int, dev: int, max_seconds: float = 15.0,
-                      min_silence_ms: int = 600,
-                      check=None, die_with_parent=None) -> bytes | None:
-    """Record ONE utterance: speech onset until a pause.
+                      min_silence_ms: int = 600, auto_stop: bool = True,
+                      vad_enabled: bool = True,
+                      check=None, die_with_parent=None, on_vad=None) -> bytes | None:
+    """Record ONE utterance.
 
-    Streams `arecord` through Silero VAD; returns the speech as raw int16
-    PCM, or None if no speech was heard (or `check()` asked to abort).
+    With VAD (vad_enabled=True): starts at speech onset; if auto_stop, ends
+    after min_silence_ms of silence, otherwise runs until `check()` aborts
+    (i.e. the user pressed Stop) or max_seconds.
 
-    check() is polled roughly every 100 ms — used to abort the capture when
-    the page presses Stop or Speak mid-listen.
+    Without VAD (debug): records raw from the start until `check()` or
+    max_seconds — whisper will then transcribe whatever arrived, silence
+    included (which is exactly what the VAD gate exists to prevent).
+
+    Returns int16 PCM bytes, or None if nothing usable / aborted.
     """
+    if not vad_enabled:
+        return _capture_raw(card, dev, max_seconds, check, die_with_parent)
+
     vad = VAD()
     proc = subprocess.Popen(
         ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
@@ -113,16 +121,19 @@ def capture_utterance(card: int, dev: int, max_seconds: float = 15.0,
             if not chunk or len(chunk) < frame:
                 break
             p = vad.prob(chunk)
+            if on_vad:
+                on_vad(p)
             if p >= vad.threshold:
                 if not speech:
                     speech = True
                 silence_ms = 0
                 frames.extend(chunk)
             elif speech:
-                silence_ms += FRAME_MS
                 frames.extend(chunk)
-                if silence_ms >= min_silence_ms:
-                    break
+                if auto_stop:
+                    silence_ms += FRAME_MS
+                    if silence_ms >= min_silence_ms:
+                        break
             if check and time.time() - last_check > 0.1:
                 last_check = time.time()
                 if check():
@@ -137,3 +148,35 @@ def capture_utterance(card: int, dev: int, max_seconds: float = 15.0,
     if not speech or len(frames) < frame * 2:   # too little to transcribe
         return None
     return bytes(frames)
+
+
+def _capture_raw(card: int, dev: int, max_seconds: float,
+                 check=None, die_with_parent=None) -> bytes | None:
+    """Record continuously from the start; stop on check() or max_seconds."""
+    proc = subprocess.Popen(
+        ["arecord", "-D", f"plughw:{card},{dev}", "-f", "S16_LE",
+         "-r", str(SAMPLE_RATE), "-c", "1", "-t", "raw"],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+        preexec_fn=die_with_parent,
+    )
+    frames = bytearray()
+    start = time.time()
+    last_check = start
+    frame = WINDOW * 2
+    try:
+        while time.time() - start < max_seconds:
+            chunk = proc.stdout.read(frame)
+            if not chunk:
+                break
+            frames.extend(chunk)
+            if check and time.time() - last_check > 0.1:
+                last_check = time.time()
+                if check():
+                    return None
+    finally:
+        try:
+            proc.terminate()
+            proc.wait(timeout=3)
+        except Exception:
+            proc.kill()
+    return bytes(frames) if len(frames) >= frame * 2 else None

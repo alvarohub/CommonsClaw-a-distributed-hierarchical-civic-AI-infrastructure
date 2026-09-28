@@ -337,12 +337,14 @@ class WebApplication:
 
         @app.post("/api/voice")
         def set_voice():
-            """Turn the wake word on/off and/or change the word.
+            """Turn the wake word on/off, change the word, toggle VAD.
             The voice process polls these settings; nothing is started here."""
             data = request.get_json(force=True, silent=True) or {}
             patch: dict[str, object] = {}
             if "enabled" in data:
                 patch["enabled"] = bool(data["enabled"])
+            if "vad" in data:
+                patch["vad"] = bool(data["vad"])
             word = (data.get("wake_word") or "").strip()
             if word:
                 patch["wake_word"] = word

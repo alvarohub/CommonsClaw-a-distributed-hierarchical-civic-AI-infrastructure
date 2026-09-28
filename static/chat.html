@@ -59,6 +59,19 @@
         font-size: 11px;
         color: #a8a8a8;
       }
+      /* Live "voice detected" flash, driven by the VAD probability. */
+      .heard {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: transparent;
+        flex-shrink: 0;
+        transition: background 0.1s;
+      }
+      .heard.live {
+        background: var(--error);
+        animation: pulse 0.4s ease-in-out infinite;
+      }
       /* The speak button, always available and clearly an action. */
       .box.act {
         margin-left: 4px;
@@ -331,8 +344,10 @@
         <span class="rlabel">voice</span>
         <button class="box" id="vwake" title="Wake word — tap to turn on or off">wake “turtle”</button>
         <button class="box" id="vwakeedit" title="Change the wake word">✎</button>
+        <button class="box" id="vvad" title="Silero VAD gate — filters silence before whisper">VAD</button>
         <button class="box act" id="vlisten" title="Speak to the kami">🎤 speak</button>
         <span class="hint" id="vstate">offline</span>
+        <span class="heard" id="vhear" title="voice detected"></span>
       </div>
     </header>
     <div id="voicebanner" class="hidden"><span class="pulse"></span><span id="vbtext"></span></div>
@@ -458,6 +473,8 @@
             let label = VOICE_LABEL[st] || st;
             if (st === 'waking') label = 'waiting for “' + voiceCfg.wake_word + '”';
             vState.textContent = label + (s.voice.detail ? ' · ' + s.voice.detail : '');
+            // Live "voice detected" dot, straight from the VAD probability.
+            vHear.classList.toggle('live', (s.voice.vad || 0) > 0.5);
 
             // Banner: red while actually recording, hidden the rest of the
             // time. The red button IS the "I'm listening" signal.
@@ -724,8 +741,10 @@
       // The wake word is a simple on/off; the speak button always works.
       const vWake = document.getElementById('vwake');
       const vWakeEdit = document.getElementById('vwakeedit');
+      const vVad = document.getElementById('vvad');
       const vListen = document.getElementById('vlisten');
       const vState = document.getElementById('vstate');
+      const vHear = document.getElementById('vhear');
       const vBanner = document.getElementById('voicebanner');
       const vBanText = document.getElementById('vbtext');
 
@@ -738,7 +757,7 @@
         thinking: 'asking the kami…',
       };
 
-      let voiceCfg = { enabled: false, wake_word: 'turtle' };
+      let voiceCfg = { enabled: false, wake_word: 'turtle', vad: true };
       let voiceHeldUntil = 0;
       let curVoiceState = '';
       let prevVoiceState = '';
@@ -766,8 +785,8 @@
       function renderVoice() {
         vWake.textContent = 'wake “' + voiceCfg.wake_word + '” ' + (voiceCfg.enabled ? '· on' : '· off');
         vWake.classList.toggle('on', voiceCfg.enabled);
-        // Speak only when there is a voice process to hear it.
-        vListen.disabled = curVoiceState === 'offline';
+        vVad.textContent = 'VAD ' + (voiceCfg.vad ? 'on' : 'off');
+        vVad.classList.toggle('on', voiceCfg.vad);
         renderTalkButton();
       }
       async function postVoice(patch) {
@@ -787,6 +806,7 @@
         const w = prompt('Wake word — say this to get the kami’s attention:', voiceCfg.wake_word);
         if (w && w.trim()) postVoice({ wake_word: w.trim() });
       });
+      vVad.addEventListener('click', () => postVoice({ vad: !voiceCfg.vad }));
 
       // The speak button is a toggle: speak → stop → speak. Which it shows is
       // driven by the Pi's actual state, not by a local timer. Between the
@@ -797,6 +817,8 @@
         return curVoiceState === 'listening';
       }
       function renderTalkButton() {
+        // Re-evaluated on every poll so a brief "offline" can't wedge it.
+        vListen.disabled = curVoiceState === 'offline';
         if (vListen.disabled) {
           vListen.textContent = '🎤 speak';
           vListen.classList.remove('live', 'pending');

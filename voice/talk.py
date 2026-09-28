@@ -420,17 +420,18 @@ def serve_loop(llm, status, card, dev) -> None:
     """
     print("(serving — Silero VAD + whisper; control from the web page)")
     armed = False                      # wake word heard, awaiting the question
+    manual = False                     # armed by a Speak press (vs wake word)
     last_request = node_settings.load()["listen_request"]
 
     # A heartbeat is re-published every 2 s no matter what the loop is doing,
     # so a long "thinking" or a 12 s silent wake-wait can't make the page
     # believe the process died (it used to read "voice process not working").
-    cur = {"state": "starting", "detail": "", "heard": ""}
+    cur = {"state": "starting", "detail": "", "heard": "", "vad": 0.0}
 
     def beat():
         while not STOP.is_set():
             node_settings.publish_voice_state(
-                cur["state"], cur["detail"], cur["heard"] or None)
+                cur["state"], cur["detail"], cur["heard"] or None, cur["vad"])
             time.sleep(2)
     threading.Thread(target=beat, daemon=True).start()
 
@@ -438,7 +439,7 @@ def serve_loop(llm, status, card, dev) -> None:
         cur["state"], cur["detail"] = state, detail
         if heard is not None:
             cur["heard"] = heard
-        node_settings.publish_voice_state(state, detail, heard)
+        node_settings.publish_voice_state(state, detail, heard, cur["vad"])
 
     while not STOP.is_set():
         settings = node_settings.load()
@@ -450,6 +451,7 @@ def serve_loop(llm, status, card, dev) -> None:
         if requested:
             last_request = settings["listen_request"]
             armed = True
+            manual = True
 
         # Nothing to do: wake word off and nobody pressed speak.
         if not armed and not wake_on:
@@ -463,15 +465,24 @@ def serve_loop(llm, status, card, dev) -> None:
             "speak now" if armed else f'say "{voice["wake_word"]}"')
 
         # Capture one utterance; abort if the page presses Stop or Speak.
+        # A Speak press records until Stop (manual); the wake word's question
+        # stops on its own once the speaker pauses.
         stop_at = settings["stop_request"]
         req_at = settings["listen_request"]
         pcm = capture_utterance(
-            card, dev, max_seconds=12.0, die_with_parent=_die_with_parent,
+            card, dev,
+            max_seconds=(60.0 if manual else 12.0),
+            auto_stop=not manual,
+            vad_enabled=voice.get("vad", True),
+            die_with_parent=_die_with_parent,
+            on_vad=lambda p: cur.__setitem__("vad", round(p, 3)),
             check=lambda: (node_settings.load()["stop_request"] > stop_at
                            or node_settings.load()["listen_request"] > req_at),
         )
+        cur["vad"] = 0.0
         if pcm is None:
-            armed = False   # silence, stopped, or a fresh Speak press — restart
+            armed = False
+            manual = False  # silence, stopped, or a fresh Speak press — restart
             continue
 
         publish("transcribing")
@@ -480,6 +491,7 @@ def serve_loop(llm, status, card, dev) -> None:
         stt_s = time.perf_counter() - t0
         if not text:
             armed = False
+            manual = False
             continue
 
         if armed:
@@ -494,10 +506,12 @@ def serve_loop(llm, status, card, dev) -> None:
             rest = rest.strip(" ,.?!")
             wake = voice["wake_word"].lower()
             # "turtle" alone, or just its echo ("turtle turtle"): arm listening
-            # for the real question rather than answering the echo.
+            # for the real question rather than answering the echo. This is the
+            # wake-word path, so the question auto-stops on the speaker's pause.
             if not rest or (len(rest.split()) == 1 and
                             difflib.SequenceMatcher(None, rest.lower(), wake).ratio() >= WAKE_SIMILARITY):
                 armed = True
+                manual = False
                 print("KAMI: yes? (listening...)", flush=True)
                 continue
             question = rest
@@ -505,6 +519,7 @@ def serve_loop(llm, status, card, dev) -> None:
         publish("thinking", question[:60], heard=text)
         answer(llm, status, question, stt_s)
         armed = False
+        manual = False
 
 
 def main() -> None:

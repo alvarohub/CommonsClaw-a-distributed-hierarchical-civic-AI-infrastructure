@@ -44,6 +44,9 @@ PATH = Path(__file__).parent / "node_settings.json"
 # voice.enabled: whether the wake word is being listened for (on/off). The
 #        speak button works regardless of this flag.
 # voice.wake_word: the word that arms the kami.
+# voice.vad: gate the microphone with Silero VAD before whisper sees it.
+#        Turning it off is a debug escape hatch — whisper will hallucinate on
+#        silence, which is exactly what the gate prevents.
 # listen_request: a timestamp. Bumping it arms exactly one capture; that is
 #        how the page's "Speak" button reaches across to the voice process.
 # stop_request: a timestamp. Bumping it ends the current capture early; that
@@ -51,7 +54,7 @@ PATH = Path(__file__).parent / "node_settings.json"
 DEFAULTS: dict[str, object] = {
     "memory": ["identity"],
     "model": None,
-    "voice": {"enabled": False, "wake_word": "turtle"},
+    "voice": {"enabled": False, "wake_word": "turtle", "vad": True},
     "listen_request": 0.0,
     "stop_request": 0.0,
 }
@@ -79,6 +82,8 @@ def _sanitize(data: object) -> dict:
         out["voice"]["enabled"] = bool(voice.get("enabled", False))
         if isinstance(voice.get("wake_word"), str) and voice["wake_word"].strip():
             out["voice"]["wake_word"] = voice["wake_word"].strip()
+        if "vad" in voice:
+            out["voice"]["vad"] = bool(voice["vad"])
     return out
 
 
@@ -129,7 +134,7 @@ _LAST_HEARD = {"text": "", "ts": 0.0}
 
 
 def publish_voice_state(state: str, detail: str = "",
-                        heard: str | None = None) -> None:
+                        heard: str | None = None, vad: float = 0.0) -> None:
     if heard is not None:
         _LAST_HEARD["text"] = heard
         _LAST_HEARD["ts"] = time.time()
@@ -141,6 +146,7 @@ def publish_voice_state(state: str, detail: str = "",
             "detail": detail,
             "heard": _LAST_HEARD["text"],
             "heard_ts": _LAST_HEARD["ts"],
+            "vad": float(vad or 0.0),
         }), encoding="utf-8")
         os.replace(tmp, HEARTBEAT)
     except OSError:
@@ -155,8 +161,10 @@ def voice_state() -> dict:
             return {"state": str(data.get("state", "?")),
                     "detail": str(data.get("detail", "")),
                     "heard": str(data.get("heard", "")),
-                    "heard_ts": float(data.get("heard_ts", 0) or 0)}
+                    "heard_ts": float(data.get("heard_ts", 0) or 0),
+                    "vad": float(data.get("vad", 0) or 0)}
     except (OSError, ValueError, TypeError):
         pass
-    return {"state": "offline", "detail": "", "heard": "", "heard_ts": 0}
+    return {"state": "offline", "detail": "", "heard": "", "heard_ts": 0,
+            "vad": 0.0}
 
