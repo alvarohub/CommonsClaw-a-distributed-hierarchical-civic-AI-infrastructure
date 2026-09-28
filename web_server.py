@@ -321,14 +321,12 @@ class WebApplication:
 
         @app.post("/api/voice")
         def set_voice():
-            """Turn the microphone on/off and choose wake-word vs press-to-talk.
+            """Turn the wake word on/off and/or change the word.
             The voice process polls these settings; nothing is started here."""
             data = request.get_json(force=True, silent=True) or {}
             patch: dict[str, object] = {}
             if "enabled" in data:
                 patch["enabled"] = bool(data["enabled"])
-            if data.get("mode") in node_settings.VOICE_MODES:
-                patch["mode"] = data["mode"]
             word = (data.get("wake_word") or "").strip()
             if word:
                 patch["wake_word"] = word

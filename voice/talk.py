@@ -397,9 +397,9 @@ def wake_word_loop(llm, status, card, dev, wake_word: str) -> None:
 def serve_loop(llm, status, card, dev) -> None:
     """Microphone as a service: the web page decides what it does.
 
-    Reads node_settings every cycle — off, wake-word, or button (record only
-    when the page asks) — and publishes a heartbeat so the page can tell the
-    difference between "idle" and "not running at all".
+    Reads node_settings every cycle. Two things can wake it up: the wake word
+    (if enabled) or a "Speak" press on the page. Publishes a heartbeat so the
+    page can tell the difference between "idle" and "not running at all".
     """
     print("(serving — control the microphone from the web page)")
     armed = False                      # wake word heard, awaiting the question
@@ -408,22 +408,18 @@ def serve_loop(llm, status, card, dev) -> None:
     while not STOP.is_set():
         settings = node_settings.load()
         voice = settings["voice"]
+        wake_on = voice["enabled"]
         requested = settings["listen_request"] > last_request
 
-        if not voice["enabled"] and not requested:
-            node_settings.publish_voice_state("off")
-            armed = False
-            time.sleep(0.4)
-            continue
-
-        # A press on the page always wins, in either mode.
+        # A press on the page always wins, whether or not the wake word is on.
         if requested:
             last_request = settings["listen_request"]
             armed = True
 
-        if voice["mode"] == "button" and not armed:
-            node_settings.publish_voice_state("ready", "press speak")
-            time.sleep(0.3)
+        # Nothing to do: wake word off and nobody pressed speak.
+        if not armed and not wake_on:
+            node_settings.publish_voice_state("off")
+            time.sleep(0.4)
             continue
 
         clip = new_clip()

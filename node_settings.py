@@ -41,8 +41,9 @@ PATH = Path(__file__).parent / "node_settings.json"
 # caches the prompt prefix). sensors+community push it to ~18 s, so they
 # stay off until asked for.
 # model: None = whatever config.MODEL_NAME says.
-# voice: the microphone loop obeys these — enabled on/off, and "wake" (always
-#        listening for the wake word) vs "button" (only when the page asks).
+# voice.enabled: whether the wake word is being listened for (on/off). The
+#        speak button works regardless of this flag.
+# voice.wake_word: the word that arms the kami.
 # listen_request: a timestamp. Bumping it arms exactly one capture; that is
 #        how the page's "Speak" button reaches across to the voice process.
 # stop_request: a timestamp. Bumping it ends the current capture early; that
@@ -50,12 +51,10 @@ PATH = Path(__file__).parent / "node_settings.json"
 DEFAULTS: dict[str, object] = {
     "memory": ["identity"],
     "model": None,
-    "voice": {"enabled": False, "mode": "wake", "wake_word": "turtle"},
+    "voice": {"enabled": False, "wake_word": "turtle"},
     "listen_request": 0.0,
     "stop_request": 0.0,
 }
-
-VOICE_MODES = ("wake", "button")
 
 
 def _sanitize(data: object) -> dict:
@@ -78,8 +77,6 @@ def _sanitize(data: object) -> dict:
     voice = data.get("voice")
     if isinstance(voice, dict):
         out["voice"]["enabled"] = bool(voice.get("enabled", False))
-        if voice.get("mode") in VOICE_MODES:
-            out["voice"]["mode"] = voice["mode"]
         if isinstance(voice.get("wake_word"), str) and voice["wake_word"].strip():
             out["voice"]["wake_word"] = voice["wake_word"].strip()
     return out

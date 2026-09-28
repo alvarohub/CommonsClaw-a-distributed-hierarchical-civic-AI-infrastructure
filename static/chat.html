@@ -8,7 +8,7 @@
       :root {
         --bg: #000;
         --fg: #fff;
-        --dim: #888;
+        --dim: #9a9a9a;
         --accent: #57e07a;
         --error: #ff5d5d;
       }
@@ -56,30 +56,18 @@
         font-weight: 700;
       }
       .hint {
-        font-size: 10px;
-        color: #666;
+        font-size: 11px;
+        color: #a8a8a8;
       }
-      /* Mode picker: exactly one of off / wake / talk is lit. */
-      .seg {
-        display: inline-flex;
-        gap: 0;
-      }
-      .seg .box {
-        border-radius: 0;
-        border-left-width: 0;
-      }
-      .seg .box:first-child {
-        border-radius: 6px 0 0 6px;
-        border-left-width: 1px;
-      }
-      .seg .box:last-child {
-        border-radius: 0 6px 6px 0;
-      }
+      /* The speak button, always available and clearly an action. */
       .box.act {
-        margin-left: 10px;
+        margin-left: 4px;
+        font-weight: 600;
+        border-color: var(--accent);
+        color: var(--fg);
       }
       .box[disabled] {
-        opacity: 0.2;
+        opacity: 0.25;
         cursor: not-allowed;
       }
       .box.act.live {
@@ -256,44 +244,46 @@
       }
       #modelsel {
         background: #111;
-        color: var(--dim);
-        border: 1px solid #333;
+        color: #ddd;
+        border: 1px solid #555;
         border-radius: 6px;
-        font-size: 12px;
+        font-size: 13px;
         max-width: 150px;
       }
       #dashlink {
         margin-left: auto;
         text-decoration: none;
         font-size: 13px;
-        color: var(--dim);
-        border: 1px solid #333;
+        color: #ddd;
+        border: 1px solid #555;
         border-radius: 6px;
-        padding: 3px 8px;
+        padding: 4px 10px;
+      }
+      #hw {
+        color: #d0d0d0;
       }
       #memtoggles {
         margin-left: auto;
       }
       .memt,
       .box {
-        background: #111;
-        border: 1px solid #333;
+        background: #161616;
+        border: 1px solid #555;
         border-radius: 6px;
-        color: var(--dim);
-        font-size: 12px;
+        color: #e8e8e8;
+        font-size: 13px;
         font-family: inherit;
-        padding: 4px 9px;
+        padding: 5px 11px;
         cursor: pointer;
-        opacity: 0.45;
       }
       .memt.on,
       .box.on {
-        opacity: 1;
         color: var(--fg);
         border-color: var(--accent);
+        background: #0f2a18;
       }
       .box:active {
-        background: #1c1c1c;
+        background: #262626;
       }
       #title {
         font-size: 16px;
@@ -321,12 +311,12 @@
     <header id="topbar">
       <div class="row">
         <span id="title">CommonsClaw <span class="lvl">· turtle kami · level 1</span></span>
+        <select id="modelsel" title="Model"></select>
         <a href="/dashboard" id="dashlink" title="Dashboard">Dashboard</a>
       </div>
       <div class="row">
         <span class="rlabel">vitals</span>
         <span class="dot" id="dot"></span>
-        <select id="modelsel" title="Model"></select>
         <span id="hw"></span>
       </div>
       <div class="row">
@@ -338,14 +328,9 @@
       </div>
       <div class="row">
         <span class="rlabel">voice</span>
-        <span class="seg" id="vmode">
-          <button class="box" data-mode="off" title="The Pi's microphone is not used">off</button>
-          <button class="box" data-mode="wake" id="vwake" title="Always listening — tap again to change the word">
-            wake “turtle”
-          </button>
-          <button class="box" data-mode="button" title="Speak only while you hold the button">talk</button>
-        </span>
-        <button class="box act" id="vlisten" title="Speak to the kami" disabled>🎤 speak</button>
+        <button class="box" id="vwake" title="Wake word — tap to turn on or off">wake “turtle”</button>
+        <button class="box" id="vwakeedit" title="Change the wake word">✎</button>
+        <button class="box act" id="vlisten" title="Speak to the kami">🎤 speak</button>
         <span class="hint" id="vstate">offline</span>
       </div>
     </header>
@@ -480,9 +465,7 @@
               vBanText.textContent = '🐢 I’m listening — ask now';
             } else if (st === 'listening') {
               vBanner.className = 'red';
-              vBanText.textContent = currentMode() === 'button'
-                ? '🎤 listening — speak now · press stop when done'
-                : '🎤 listening — speak now';
+              vBanText.textContent = '🎤 listening — speak now · press stop when done';
             } else {
               vBanner.className = 'hidden';
             }
@@ -740,10 +723,9 @@
       // Nothing is started or stopped here: the voice process polls these
       // settings and reports back what it is doing — or doesn't, if it isn't
       // running at all, and then the state honestly reads "offline".
-      // MODE (off/wake/talk) and the speak button are deliberately separate:
-      // the button only does something in talk mode.
-      const vModeBar = document.getElementById('vmode');
+      // The wake word is a simple on/off; the speak button always works.
       const vWake = document.getElementById('vwake');
+      const vWakeEdit = document.getElementById('vwakeedit');
       const vListen = document.getElementById('vlisten');
       const vState = document.getElementById('vstate');
       const vBanner = document.getElementById('voicebanner');
@@ -751,8 +733,7 @@
 
       const VOICE_LABEL = {
         offline: 'voice process not running on the Pi',
-        off: 'microphone off',
-        ready: 'press speak to talk',
+        off: 'wake word off — press speak to talk',
         waking: 'waiting for the wake word',
         awake: '🐢 I’m listening — ask now',
         listening: 'recording…',
@@ -760,7 +741,7 @@
         thinking: 'asking the kami…',
       };
 
-      let voiceCfg = { enabled: false, mode: 'wake', wake_word: 'turtle' };
+      let voiceCfg = { enabled: false, wake_word: 'turtle' };
       let voiceHeldUntil = 0;
       let curVoiceState = '';
       let prevVoiceState = '';
@@ -785,14 +766,11 @@
         } catch {}
       }
 
-      function currentMode() {
-        return voiceCfg.enabled ? voiceCfg.mode : 'off';
-      }
       function renderVoice() {
-        const mode = currentMode();
-        vModeBar.querySelectorAll('.box').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
-        vWake.textContent = 'wake “' + voiceCfg.wake_word + '”';
-        vListen.disabled = mode !== 'button';
+        vWake.textContent = 'wake “' + voiceCfg.wake_word + '” ' + (voiceCfg.enabled ? '· on' : '· off');
+        vWake.classList.toggle('on', voiceCfg.enabled);
+        // Speak only when there is a voice process to hear it.
+        vListen.disabled = curVoiceState === 'offline';
         renderTalkButton();
       }
       async function postVoice(patch) {
@@ -807,18 +785,10 @@
           });
         } catch {}
       }
-      vModeBar.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('.box');
-        if (!btn) return;
-        const mode = btn.dataset.mode;
-        if (mode === 'off') return postVoice({ enabled: false });
-        // Tapping the already-active wake button edits the word.
-        if (mode === 'wake' && currentMode() === 'wake') {
-          const w = prompt('Wake word — say this to get the kami’s attention:', voiceCfg.wake_word);
-          if (w && w.trim()) postVoice({ enabled: true, mode: 'wake', wake_word: w.trim() });
-          return;
-        }
-        postVoice({ enabled: true, mode });
+      vWake.addEventListener('click', () => postVoice({ enabled: !voiceCfg.enabled }));
+      vWakeEdit.addEventListener('click', () => {
+        const w = prompt('Wake word — say this to get the kami’s attention:', voiceCfg.wake_word);
+        if (w && w.trim()) postVoice({ wake_word: w.trim() });
       });
 
       // The speak button is a toggle: speak → stop → speak. Which it shows is
@@ -827,7 +797,6 @@
         return curVoiceState === 'listening';
       }
       function renderTalkButton() {
-        // Only meaningful in talk mode; elsewhere it stays a grey "speak".
         if (vListen.disabled) {
           vListen.textContent = '🎤 speak';
           vListen.classList.remove('live');
