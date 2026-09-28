@@ -44,12 +44,15 @@ PATH = Path(__file__).parent / "node_settings.json"
 # voice: the microphone loop obeys these — enabled on/off, and "wake" (always
 #        listening for the wake word) vs "button" (only when the page asks).
 # listen_request: a timestamp. Bumping it arms exactly one capture; that is
-#        how the page's "Listen" button reaches across to the voice process.
+#        how the page's "Speak" button reaches across to the voice process.
+# stop_request: a timestamp. Bumping it ends the current capture early; that
+#        is how the page's "Stop" button reaches across mid-recording.
 DEFAULTS: dict[str, object] = {
     "memory": ["identity"],
     "model": None,
     "voice": {"enabled": False, "mode": "wake", "wake_word": "turtle"},
     "listen_request": 0.0,
+    "stop_request": 0.0,
 }
 
 VOICE_MODES = ("wake", "button")
@@ -70,6 +73,8 @@ def _sanitize(data: object) -> dict:
         out["model"] = data["model"]
     if isinstance(data.get("listen_request"), (int, float)):
         out["listen_request"] = float(data["listen_request"])
+    if isinstance(data.get("stop_request"), (int, float)):
+        out["stop_request"] = float(data["stop_request"])
     voice = data.get("voice")
     if isinstance(voice, dict):
         out["voice"]["enabled"] = bool(voice.get("enabled", False))

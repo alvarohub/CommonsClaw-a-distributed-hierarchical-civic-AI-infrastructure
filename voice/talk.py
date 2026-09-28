@@ -170,12 +170,15 @@ def get_whisper():
 
 
 def record_until_silence(card: int, dev: int, path: Path,
-                         max_seconds: float = 15.0) -> bool:
-    """Record until the speaker pauses (silence) or max_seconds.
+                         max_seconds: float = 15.0,
+                         stop_check=None) -> bool:
+    """Record until the speaker pauses (silence), stop_check() fires, or max.
 
     Records in 0.5 s chunks via a long-running arecord piped through a
     silence watcher: stops after SILENCE_AFTER_S below threshold, having
     heard speech at least once. Returns False if nothing usable captured.
+    stop_check is polled every chunk so the page's Stop button can end the
+    recording early.
     """
     SILENCE_AFTER_S = 1.6
     THRESHOLD = 800  # 16-bit amplitude; quiet room < ~300
@@ -193,6 +196,8 @@ def record_until_silence(card: int, dev: int, path: Path,
     last_size = 0
     while time.time() - t0 < max_seconds:
         time.sleep(0.25)
+        if stop_check and stop_check():
+            break
         if not raw_path.exists():
             continue
         size = raw_path.stat().st_size
@@ -417,14 +422,18 @@ def serve_loop(llm, status, card, dev) -> None:
             armed = True
 
         if voice["mode"] == "button" and not armed:
-            node_settings.publish_voice_state("ready", "press to talk")
+            node_settings.publish_voice_state("ready", "press speak")
             time.sleep(0.3)
             continue
 
         clip = new_clip()
         if armed:
             node_settings.publish_voice_state("listening", "speak now")
-            ok = record_until_silence(card, dev, clip, max_seconds=12.0)
+            stop_at = settings["stop_request"]
+            ok = record_until_silence(
+                card, dev, clip, max_seconds=12.0,
+                stop_check=lambda: node_settings.load()["stop_request"] > stop_at,
+            )
         else:
             node_settings.publish_voice_state(
                 "waking", f'say "{voice["wake_word"]}"')
@@ -448,18 +457,18 @@ def serve_loop(llm, status, card, dev) -> None:
         else:
             hit, rest = split_on_wake(text, voice["wake_word"])
             if not hit:
-                print(f'(ignored: "{text}")')
-                node_settings.publish_voice_state(
-                    "waking", f'say "{voice["wake_word"]}"', heard=text)
+                # Not the wake word: go back to waiting. Nothing flashy on the
+                # page — a blinking talk button here would read as "accepted".
+                print(f'(ignored: "{text}")', flush=True)
+                continue
+            # Wake word recognized: acknowledge visibly before doing anything.
+            node_settings.publish_voice_state(
+                "awake", "yes? — ask now", heard=text)
+            time.sleep(0.6)   # let the page chime and the speaker draw breath
+            if not rest:
+                armed = True
                 continue
             question = rest
-            if not question:            # just the wake word: listen next round
-                armed = True
-                print("KAMI: yes? (listening...)\n", flush=True)
-                node_settings.publish_voice_state(
-                    "awake", "yes? I'm listening", heard=text)
-                time.sleep(0.7)   # let the page chime and the speaker draw breath
-                continue
 
         node_settings.publish_voice_state("thinking", question[:60], heard=text)
         answer(llm, status, question, stt_s)

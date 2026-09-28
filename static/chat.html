@@ -49,29 +49,17 @@
       .rlabel {
         width: 52px;
         flex-shrink: 0;
-        font-size: 10px;
+        font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: #666;
+        color: var(--fg);
+        font-weight: 700;
       }
       .hint {
         font-size: 10px;
         color: #666;
       }
-      .heard {
-        font-size: 10px;
-        color: #8ab4ff;
-        font-style: italic;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 45vw;
-      }
-      .heard.wake {
-        color: var(--accent);
-        font-style: normal;
-      }
-      /* Mode picker: exactly one of off / wake / push is lit. */
+      /* Mode picker: exactly one of off / wake / talk is lit. */
       .seg {
         display: inline-flex;
         gap: 0;
@@ -99,23 +87,40 @@
         border-color: var(--error);
         color: var(--fg);
         opacity: 1;
+        animation: blink 1s steps(2, start) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.35;
+        }
       }
       #voicebanner {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 9px 14px;
-        background: #0d2a16;
         border-bottom: 1px solid #1c5c31;
         color: var(--accent);
         font-size: 15px;
         font-weight: 600;
       }
+      #voicebanner.hidden {
+        display: none; /* beats the ID selector's display:flex */
+      }
+      #voicebanner.green {
+        background: #0d2a16;
+        color: var(--accent);
+      }
+      #voicebanner.red {
+        background: #2a0d0d;
+        border-bottom-color: #5c1c1c;
+        color: var(--error);
+      }
       #voicebanner .pulse {
         width: 11px;
         height: 11px;
         border-radius: 50%;
-        background: var(--accent);
+        background: currentColor;
         animation: pulse 1s ease-in-out infinite;
       }
       @keyframes pulse {
@@ -152,6 +157,10 @@
       .me {
         color: var(--fg);
         font-weight: 600;
+        margin-top: 18px; /* blank breathing room between exchanges */
+      }
+      .me:first-child {
+        margin-top: 0;
       }
       .model {
         color: var(--accent); /* the kami speaks in turtle green */
@@ -286,21 +295,18 @@
       .box:active {
         background: #1c1c1c;
       }
-      #vlisten.on {
-        background: var(--error);
-        border-color: var(--error);
-        color: var(--fg);
-      }
       #title {
-        font-size: 12px;
+        font-size: 16px;
         letter-spacing: 2px;
         color: var(--accent);
         font-weight: bold;
       }
       #title .lvl {
-        color: #666;
+        color: var(--accent);
         font-weight: normal;
         letter-spacing: 1px;
+        font-size: 12px;
+        opacity: 0.85;
       }
       #save {
         font-size: 20px;
@@ -337,11 +343,10 @@
           <button class="box" data-mode="wake" id="vwake" title="Always listening — tap again to change the word">
             wake “turtle”
           </button>
-          <button class="box" data-mode="button" title="Listens only when you press the talk button">push</button>
+          <button class="box" data-mode="button" title="Speak only while you hold the button">talk</button>
         </span>
-        <button class="box act" id="vlisten" title="Press, then speak" disabled>🎤 talk</button>
+        <button class="box act" id="vlisten" title="Speak to the kami" disabled>🎤 speak</button>
         <span class="hint" id="vstate">offline</span>
-        <span class="heard" id="vheard"></span>
       </div>
     </header>
     <div id="voicebanner" class="hidden"><span class="pulse"></span><span id="vbtext"></span></div>
@@ -463,16 +468,26 @@
           }
           if (s.voice) {
             const st = s.voice.state;
-            vState.textContent = (VOICE_LABEL[st] || st) + (s.voice.detail ? ' · ' + s.voice.detail : '');
-            // What whisper actually transcribed — the only way to tell a deaf
-            // microphone from a wake word that simply didn't match.
-            vHeard.textContent = s.voice.heard ? '“' + s.voice.heard + '”' : '';
-            vHeard.classList.toggle('wake', st === 'awake');
+            curVoiceState = st;
+            let label = VOICE_LABEL[st] || st;
+            if (st === 'waking') label = 'waiting for “' + voiceCfg.wake_word + '”';
+            vState.textContent = label + (s.voice.detail ? ' · ' + s.voice.detail : '');
 
-            const open = st === 'listening' || st === 'awake';
-            vBanner.classList.toggle('hidden', !open);
-            vBanText.textContent = st === 'awake' ? '🐢 yes? — ask now' : '🎤 listening — speak now';
-            vListen.classList.toggle('live', open || st === 'transcribing');
+            // Banner: green for "wake word recognized", red for "recording",
+            // hidden the rest of the time. No banner while merely waiting.
+            if (st === 'awake') {
+              vBanner.className = 'green';
+              vBanText.textContent = '🐢 I’m listening — ask now';
+            } else if (st === 'listening') {
+              vBanner.className = 'red';
+              vBanText.textContent = currentMode() === 'button'
+                ? '🎤 listening — speak now · press stop when done'
+                : '🎤 listening — speak now';
+            } else {
+              vBanner.className = 'hidden';
+            }
+
+            renderTalkButton();
 
             if (st !== prevVoiceState) {
               if (st === 'awake') beep(1046, 130);
@@ -487,7 +502,7 @@
           if (s.last_turn && s.last_turn.ts !== lastTurnTs && !busy) {
             lastTurnTs = s.last_turn.ts;
             if (s.last_turn.source !== 'web' && s.last_turn.q) {
-              addLine('🎤🙂 ' + s.last_turn.q, 'me');
+              addLine('🙂 ' + s.last_turn.q, 'me');
               if (s.last_turn.a) {
                 addLine('🐢 ' + s.last_turn.a, 'model');
                 if (ttsOn) speak(s.last_turn.a);
@@ -725,22 +740,21 @@
       // Nothing is started or stopped here: the voice process polls these
       // settings and reports back what it is doing — or doesn't, if it isn't
       // running at all, and then the state honestly reads "offline".
-      // MODE (off/wake/push) and ACTION (talk) are deliberately separate
-      // controls: the action only exists in push mode.
+      // MODE (off/wake/talk) and the speak button are deliberately separate:
+      // the button only does something in talk mode.
       const vModeBar = document.getElementById('vmode');
       const vWake = document.getElementById('vwake');
       const vListen = document.getElementById('vlisten');
       const vState = document.getElementById('vstate');
-      const vHeard = document.getElementById('vheard');
       const vBanner = document.getElementById('voicebanner');
       const vBanText = document.getElementById('vbtext');
 
       const VOICE_LABEL = {
         offline: 'voice process not running on the Pi',
         off: 'microphone off',
-        ready: 'ready — press talk',
+        ready: 'press speak to talk',
         waking: 'waiting for the wake word',
-        awake: 'yes? — ask now',
+        awake: '🐢 I’m listening — ask now',
         listening: 'recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
@@ -748,6 +762,7 @@
 
       let voiceCfg = { enabled: false, mode: 'wake', wake_word: 'turtle' };
       let voiceHeldUntil = 0;
+      let curVoiceState = '';
       let prevVoiceState = '';
 
       // A short tone, so you know it is listening without watching the screen.
@@ -778,6 +793,7 @@
         vModeBar.querySelectorAll('.box').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
         vWake.textContent = 'wake “' + voiceCfg.wake_word + '”';
         vListen.disabled = mode !== 'button';
+        renderTalkButton();
       }
       async function postVoice(patch) {
         voiceHeldUntil = Date.now() + 3000;
@@ -804,9 +820,30 @@
         }
         postVoice({ enabled: true, mode });
       });
+
+      // The speak button is a toggle: speak → stop → speak. Which it shows is
+      // driven by the Pi's actual state, not by a local timer.
+      function isRecording() {
+        return curVoiceState === 'listening';
+      }
+      function renderTalkButton() {
+        // Only meaningful in talk mode; elsewhere it stays a grey "speak".
+        if (vListen.disabled) {
+          vListen.textContent = '🎤 speak';
+          vListen.classList.remove('live');
+          return;
+        }
+        const rec = isRecording();
+        vListen.textContent = rec ? '■ stop' : '🎤 speak';
+        vListen.classList.toggle('live', rec);
+      }
       vListen.addEventListener('click', () => {
-        beep(880, 90); // also unlocks the AudioContext on iOS
-        fetch('/api/listen', { method: 'POST' }).catch(() => {});
+        if (isRecording()) {
+          fetch('/api/stop', { method: 'POST' }).catch(() => {});
+        } else {
+          beep(880, 90); // also unlocks the AudioContext on iOS
+          fetch('/api/listen', { method: 'POST' }).catch(() => {});
+        }
       });
       renderVoice();
 
@@ -815,7 +852,7 @@
 
       loadModels();
       refreshStatus();
-      // Faster while the microphone is live, so "heard" feels immediate.
+      // Faster while the microphone is live, so the banner feels immediate.
       (function poll() {
         setTimeout(
           async () => {

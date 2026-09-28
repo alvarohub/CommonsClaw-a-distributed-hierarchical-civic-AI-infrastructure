@@ -339,6 +339,11 @@ class WebApplication:
             """Arm exactly one capture (the page's press-to-talk button)."""
             return jsonify(node_settings.save(listen_request=time.time()))
 
+        @app.post("/api/stop")
+        def stop_now():
+            """End the current capture early (the page's Stop button)."""
+            return jsonify(node_settings.save(stop_request=time.time()))
+
         @app.post("/api/ask")
         def ask():
             data = request.get_json(force=True, silent=True) or {}
