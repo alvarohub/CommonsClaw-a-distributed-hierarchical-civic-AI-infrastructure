@@ -413,6 +413,24 @@ loudest visitor.
 
 ---
 
+## Phase 6 — Robustness before scale (in progress)
+
+The first public demo (2026-09-28, Kashiwa campus decision meeting) exposed
+synchronization and hang bugs in the voice/UI layer. The diagnosis, the
+research on existing voice-assistant architectures, and the ranked fix list
+live in **[docs/ROBUSTNESS_PLAN.md](docs/ROBUSTNESS_PLAN.md)**.
+
+The short version: (1) unbounded blocking calls (fixed: model-call watchdog),
+(2) model switching on the Pi queues requests and accumulates RAM, (3) the
+UI guesses state instead of mirroring it, (4) the wake word needs
+openWakeWord, not whisper. The structural answer — one supervised process
+with an event-driven state machine and WebSocket push to the browser — is
+planned for the **Jetson Orin** step, before any hierarchical work builds on
+this floor. See the plan for the roadmap (harden → truthful UI → streaming
+STT/TTS → reports → neighborhood).
+
+---
+
 ## Open decisions (numbered for easy reference in discussion)
 
 1. Phase 2 web framework: Flask (default) vs FastAPI.
