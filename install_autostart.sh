@@ -26,6 +26,12 @@ if [[ "${1:-}" == "--uninstall" ]]; then
   exit 0
 fi
 
+# Stop anything already running FIRST, so re-running this script is safe and
+# always ends with the freshly-installed units running the latest code.
+# (Without this, `enable --now` leaves an old process running if it's already
+# up, and a half-updated node is exactly the class of bug we keep chasing.)
+systemctl stop commonsclaw-web commonsclaw-voice commonsclaw-sensors 2>/dev/null || true
+
 # 1. web server service
 cp "$SRC_DIR/commonsclaw-web.service" /etc/systemd/system/commonsclaw-web.service
 systemctl daemon-reload
@@ -46,14 +52,16 @@ else
   echo "NOTE: no ~/voice-venv — skipping the voice service (run setup_voice.sh first)."
 fi
 
-# 1c. daily journal entry (23:55) — the mechanical memory writer.
-# Guarded: with `set -e -o pipefail`, an empty crontab makes `crontab -l | grep`
-# fail and would abort the whole install (it did, silently, on 2026-09-28).
+# 1c. daily journal entry (23:55) — the mechanical memory writer, as admin.
+# Installed into ADMIN's crontab (not root's): the journal lives in
+# /home/admin/commonsclaw and must stay owned by admin. Also clean out any
+# copy a previous sudo-run left in root's crontab.
 CRON_TMP="$(mktemp)"
-{ crontab -l 2>/dev/null || true; } | grep -v journal_writer > "$CRON_TMP" || true
+{ crontab -u admin -l 2>/dev/null || true; } | grep -v journal_writer > "$CRON_TMP" || true
 echo '55 23 * * * /usr/bin/python3 /home/admin/commonsclaw/loggers/journal_writer.py' >> "$CRON_TMP"
-crontab "$CRON_TMP"
+crontab -u admin "$CRON_TMP"
 rm -f "$CRON_TMP"
+crontab -l 2>/dev/null | grep -v journal_writer | crontab - 2>/dev/null || true
 
 # 1d. keep the model resident: Ollama evicts it 5 min after the last question
 # by default, which costs ~8 s of reload on the next visitor. A kami should
