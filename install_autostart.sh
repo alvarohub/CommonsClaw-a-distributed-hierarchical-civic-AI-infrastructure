@@ -74,10 +74,11 @@ EOF
 systemctl daemon-reload
 systemctl restart ollama
 
-# 1e. let ./push_to_pi.sh restart the services without a password prompt.
-# Scoped to exactly these commands — not a general sudo grant.
+# 1e. let ./push_to_pi.sh and ./start_kami.sh/./stop_kami.sh manage the
+# services without a password prompt. Scoped to exactly these commands —
+# not a general sudo grant.
 cat > /etc/sudoers.d/commonsclaw-restart <<'EOF'
-admin ALL=(root) NOPASSWD: /usr/bin/systemctl restart commonsclaw-web, /usr/bin/systemctl restart commonsclaw-voice, /usr/bin/systemctl restart commonsclaw-sensors
+admin ALL=(root) NOPASSWD: /usr/bin/systemctl start commonsclaw-web, /usr/bin/systemctl stop commonsclaw-web, /usr/bin/systemctl restart commonsclaw-web, /usr/bin/systemctl start commonsclaw-voice, /usr/bin/systemctl stop commonsclaw-voice, /usr/bin/systemctl restart commonsclaw-voice, /usr/bin/systemctl start commonsclaw-sensors, /usr/bin/systemctl stop commonsclaw-sensors, /usr/bin/systemctl restart commonsclaw-sensors, /usr/bin/systemctl start ollama, /usr/bin/systemctl stop ollama, /usr/bin/systemctl restart ollama
 EOF
 chmod 0440 /etc/sudoers.d/commonsclaw-restart
 visudo -c -q || { echo "BAD sudoers file — removing"; rm -f /etc/sudoers.d/commonsclaw-restart; }
