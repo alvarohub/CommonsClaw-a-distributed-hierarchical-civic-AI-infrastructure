@@ -422,6 +422,24 @@ def serve_loop(llm, status, card, dev) -> None:
     armed = False                      # wake word heard, awaiting the question
     last_request = node_settings.load()["listen_request"]
 
+    # A heartbeat is re-published every 2 s no matter what the loop is doing,
+    # so a long "thinking" or a 12 s silent wake-wait can't make the page
+    # believe the process died (it used to read "voice process not working").
+    cur = {"state": "starting", "detail": "", "heard": ""}
+
+    def beat():
+        while not STOP.is_set():
+            node_settings.publish_voice_state(
+                cur["state"], cur["detail"], cur["heard"] or None)
+            time.sleep(2)
+    threading.Thread(target=beat, daemon=True).start()
+
+    def publish(state, detail="", heard=None):
+        cur["state"], cur["detail"] = state, detail
+        if heard is not None:
+            cur["heard"] = heard
+        node_settings.publish_voice_state(state, detail, heard)
+
     while not STOP.is_set():
         settings = node_settings.load()
         voice = settings["voice"]
@@ -435,12 +453,12 @@ def serve_loop(llm, status, card, dev) -> None:
 
         # Nothing to do: wake word off and nobody pressed speak.
         if not armed and not wake_on:
-            node_settings.publish_voice_state("off")
+            publish("off")
             time.sleep(0.4)
             continue
 
         # Either armed (record the question) or listening for the wake word.
-        node_settings.publish_voice_state(
+        publish(
             "listening" if armed else "waking",
             "speak now" if armed else f'say "{voice["wake_word"]}"')
 
@@ -456,7 +474,7 @@ def serve_loop(llm, status, card, dev) -> None:
             armed = False   # silence, stopped, or a fresh Speak press — restart
             continue
 
-        node_settings.publish_voice_state("transcribing")
+        publish("transcribing")
         t0 = time.perf_counter()
         text = transcribe_pcm(pcm).strip()
         stt_s = time.perf_counter() - t0
@@ -484,7 +502,7 @@ def serve_loop(llm, status, card, dev) -> None:
                 continue
             question = rest
 
-        node_settings.publish_voice_state("thinking", question[:60], heard=text)
+        publish("thinking", question[:60], heard=text)
         answer(llm, status, question, stt_s)
         armed = False
 
