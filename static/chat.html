@@ -353,6 +353,7 @@
         <button class="box" id="vwakeedit" title="Change the wake word">✎</button>
         <button class="box" id="vvad" title="Silero VAD gate — filters silence before whisper">VAD</button>
         <button class="box act" id="vlisten" title="Speak to the kami">🎤 speak</button>
+        <button class="box" id="vrestart" title="Restart the voice process (last resort)">↻</button>
         <span class="hint" id="vstate">offline</span>
         <span class="heard" id="vhear" title="voice detected"></span>
       </div>
@@ -488,9 +489,11 @@
             if (st === 'listening') {
               vBanner.className = 'red';
               vBanText.textContent = '🎤 listening — speak now · pauses end it';
-            } else if (st === 'empty') {
+            } else if (st === 'empty' || st === 'error') {
               vBanner.className = 'red';
-              vBanText.textContent = '🤷 I didn’t hear that — try again';
+              vBanText.textContent = st === 'empty'
+                ? '🤷 I didn’t hear that — try again'
+                : '⚠️ the model stalled — try again';
             } else {
               vBanner.className = 'hidden';
             }
@@ -777,6 +780,7 @@
       const vWakeEdit = document.getElementById('vwakeedit');
       const vVad = document.getElementById('vvad');
       const vListen = document.getElementById('vlisten');
+      const vRestart = document.getElementById('vrestart');
       const vState = document.getElementById('vstate');
       const vHear = document.getElementById('vhear');
       const vBanner = document.getElementById('voicebanner');
@@ -786,10 +790,12 @@
         offline: 'voice process not running on the Pi',
         off: 'wake word off — press speak to talk',
         waking: 'waiting for the wake word',
+        checking: 'checking for the wake word…',
         listening: 'recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
         empty: 'didn’t hear that',
+        error: 'the model stalled',
       };
 
       let voiceCfg = { enabled: false, wake_word: 'wake', vad: true };
@@ -846,6 +852,22 @@
       });
       vVad.addEventListener('click', () => postVoice({ vad: !voiceCfg.vad }));
 
+      // Last resort: bounce the voice process from the page.
+      vRestart.addEventListener('click', async () => {
+        vRestart.disabled = true;
+        vState.textContent = 'restarting voice process…';
+        try {
+          const d = await (await fetch('/api/voice/restart', { method: 'POST' })).json();
+          vState.textContent = d.ok ? 'voice process restarted' : 'restart failed: ' + (d.err || '?');
+        } catch (e) {
+          vState.textContent = 'restart failed: ' + e.message;
+        }
+        setTimeout(() => {
+          vRestart.disabled = false;
+          refreshStatus();
+        }, 4000);
+      });
+
       // The speak button is a toggle: speak → stop → speak. Which it shows is
       // driven by the Pi's actual state, not by a local timer. Between the
       // press and the loop actually starting to record there can be a short
@@ -863,10 +885,10 @@
           return;
         }
         if (speakPending && !isRecording()) {
-          if (Date.now() - speakPending > 8000)
+          if (Date.now() - speakPending > 30000)
             speakPending = 0; // request lost
           else {
-            vListen.textContent = '🎤 starting…';
+            vListen.textContent = curVoiceState === 'thinking' ? '🎤 waiting…' : '🎤 starting…';
             vListen.classList.remove('live');
             vListen.classList.add('pending');
             return;
@@ -901,7 +923,7 @@
         const busy =
           voiceCfg.enabled ||
           speakPending ||
-          ['listening', 'transcribing', 'thinking', 'empty'].includes(curVoiceState);
+          ['listening', 'transcribing', 'checking', 'thinking', 'empty', 'error'].includes(curVoiceState);
         setTimeout(
           async () => {
             await refreshStatus();

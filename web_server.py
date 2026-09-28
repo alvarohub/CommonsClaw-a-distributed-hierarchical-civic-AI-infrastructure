@@ -373,6 +373,22 @@ class WebApplication:
             """End the current capture early (the page's Stop button)."""
             return jsonify(node_settings.save(stop_request=time.time()))
 
+        @app.post("/api/voice/restart")
+        def voice_restart():
+            """Last resort: restart the voice process from the page.
+            Works because install_autostart.sh scoped a passwordless sudo
+            rule for exactly this command."""
+            import subprocess
+            try:
+                result = subprocess.run(
+                    ["sudo", "-n", "systemctl", "restart", "commonsclaw-voice"],
+                    capture_output=True, text=True, timeout=15,
+                )
+                return jsonify({"ok": result.returncode == 0,
+                                "err": (result.stderr or "").strip()[:200]})
+            except Exception as exc:                 # noqa: BLE001
+                return jsonify({"ok": False, "err": str(exc)}), 500
+
         @app.post("/api/ask")
         def ask():
             data = request.get_json(force=True, silent=True) or {}

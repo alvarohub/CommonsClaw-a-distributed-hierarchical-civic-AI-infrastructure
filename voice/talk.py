@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))  # repo root on sys.path
 
 import config
 import node_settings
+import queue
 from llm_manager import LLMManager
 from status_store import StatusStore
 from voice.mic_setup import find_capture_card
@@ -308,44 +309,86 @@ def record_fixed(card: int, dev: int, path: Path, seconds: float) -> bool:
     return path.exists() and path.stat().st_size > 1000
 
 
+def _stream_with_timeout(llm, text, on_metrics_update, model, categories,
+                         on_chunk=None, chunk_timeout=90.0,
+                         total_timeout=240.0) -> tuple[list[str], bool]:
+    """Stream the answer, but never block forever.
+
+    The demo showed the kami "thinking" for 5+ minutes with no traceback: a
+    request can be silently QUEUED behind another one (e.g. while Ollama is
+    loading a newly selected model), and a plain `for chunk in ...` waits
+    indefinitely. Here the generator runs in a worker thread and chunks are
+    read with timeouts — if none arrive for `chunk_timeout` (or the whole
+    turn exceeds `total_timeout`), we give up instead of hanging the loop.
+    Returns (chunks, timed_out).
+    """
+    q: queue.Queue = queue.Queue()
+
+    def produce():
+        try:
+            for chunk in llm.stream_response(
+                text, on_metrics_update=on_metrics_update,
+                model=model, memory_categories=categories,
+            ):
+                q.put(("chunk", chunk))
+        except Exception as exc:            # noqa: BLE001 — worker boundary
+            q.put(("error", str(exc)))
+        finally:
+            q.put(("done", None))
+
+    threading.Thread(target=produce, daemon=True).start()
+    start = time.time()
+    parts: list[str] = []
+    while True:
+        if time.time() - start > total_timeout:
+            return parts, True
+        try:
+            kind, payload = q.get(timeout=chunk_timeout)
+        except queue.Empty:
+            return parts, True
+        if kind == "done":
+            return parts, False
+        if kind == "error":
+            print(f"(model error: {payload})", flush=True)
+            return parts, True
+        parts.append(payload)
+        if on_chunk:
+            on_chunk("".join(parts))
+
+
 def answer(llm: LLMManager, status: StatusStore, text: str, stt_s: float,
-           on_chunk=None) -> None:
+           on_chunk=None) -> bool:
     """One full turn: publish, stream the kami's answer, record metrics.
 
     on_chunk(partial_answer) is called after each streamed token, so the
     caller can push the answer live to the web page instead of waiting for
-    the whole turn to finish.
+    the whole turn to finish. Returns True if the model answered; False if
+    it stalled or errored (the turn is still logged, marked not ok).
     """
     print(f'🙂 YOU (heard, {stt_s:.1f}s): {text}')
     status.submit_question(text)   # question visible on the web right away
 
     print("🐢 KAMI is thinking...", end="", flush=True)
-    parts: list[str] = []
-    first = True
     # Same shared settings the web page edits — one node, one behaviour.
     categories = LLMManager.resolve_categories(text, node_settings.memory_categories())
-    for chunk in llm.stream_response(
-        text,
+    parts, timed_out = _stream_with_timeout(
+        llm, text,
         on_metrics_update=status.update_model,
         model=node_settings.model(),
-        memory_categories=categories,
-    ):
-        if first:
-            print("\r🐢 KAMI: " + chunk, end="", flush=True)
-            first = False
-        else:
-            print(chunk, end="", flush=True)
-        parts.append(chunk)
-        if on_chunk:
-            on_chunk("".join(parts))
-    if first:
-        print("\r🐢 KAMI: (silence)")
+        categories=categories,
+        on_chunk=on_chunk,
+    )
+    if timed_out:
+        print("\r🐢 KAMI: (no answer — the model stalled)", flush=True)
+    elif parts:
+        print("\r🐢 KAMI: " + "".join(parts), flush=True)
     else:
-        print()
-    status.complete_turn("".join(parts), success=True)
+        print("\r🐢 KAMI: (silence)", flush=True)
+    status.complete_turn("".join(parts), success=bool(parts) and not timed_out)
     m = llm.metrics
     print(f"[stt {stt_s:.1f}s | ttft {m.ttft_seconds:.1f}s | "
           f"{m.tokens_per_second:.1f} tok/s]\n")
+    return bool(parts) and not timed_out
 
 
 def push_to_talk_loop(llm, status, card, dev) -> None:
@@ -502,7 +545,9 @@ def serve_loop(llm, status, card, dev) -> None:
             armed = False
             continue
 
-        publish("transcribing")
+        # "transcribing" for a real question; a wake-word look gets its own
+        # quieter "checking" state so the page never confuses the two.
+        publish("transcribing" if armed else "checking")
         t0 = time.perf_counter()
         text = transcribe_pcm(pcm).strip()
         stt_s = time.perf_counter() - t0
@@ -543,7 +588,10 @@ def serve_loop(llm, status, card, dev) -> None:
                 cur["state"], cur["detail"], cur["heard"] or None, cur["vad"],
                 cur["question"], partial)
 
-        answer(llm, status, question, stt_s, on_chunk=on_chunk)
+        answer_ok = answer(llm, status, question, stt_s, on_chunk=on_chunk)
+        if not answer_ok:
+            publish("error", "the model didn't answer — try again")
+            time.sleep(1.6)
         cur["question"] = ""
         cur["partial"] = ""
         armed = False
