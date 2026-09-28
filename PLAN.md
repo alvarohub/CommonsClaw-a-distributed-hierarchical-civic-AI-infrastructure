@@ -321,6 +321,18 @@ model.)
   the memory routing — reuse them for traffic statistics).
 - `identity.md` gains a "metabolism" section written by loggers, not by hand.
 
+### 4.4 The reports pipeline (raw logs are only read on weak hardware)
+
+On this Pi the conversational model reads each sensor's LATEST reading — the
+raw per-minute log is too noisy for a 1B model to parse, so `reports_reader`
+folds it into a single clean line. That is a stopgap, not the design. The
+intended shape, once the node has more powerful hardware: **a smaller model
+(a Level-0 "analyst agent") digests the raw logs into a periodic report**, and
+the conversational model reads only that report, never the raw lines. The two
+roles then split cleanly — a cheap summariser feeding an expensive
+conversationalist — which is exactly the division `sensors/index.md` already
+sketches (`writer: loggers/summarize_sensors.py`, later: analyst agents).
+
 ---
 
 ## Phase 5 — Consolidation, and the neighborhood tier (design, not built)

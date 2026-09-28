@@ -54,7 +54,7 @@ PATH = Path(__file__).parent / "node_settings.json"
 DEFAULTS: dict[str, object] = {
     "memory": ["identity"],
     "model": None,
-    "voice": {"enabled": False, "wake_word": "turtle", "vad": True},
+    "voice": {"enabled": False, "wake_word": "wake", "vad": True},
     "listen_request": 0.0,
     "stop_request": 0.0,
 }

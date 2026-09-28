@@ -13,12 +13,12 @@ Controls (default: push-to-talk):
     Ctrl+C       — exit.
 
 Wake-word mode:
-    ~/voice-venv/bin/python voice/talk.py --wake turtle
+    ~/voice-venv/bin/python voice/talk.py --wake wake
 
     The mic listens continuously in short windows; when the whisper
-    transcript contains the wake word (default "turtle"), recording continues
+    transcript contains the wake word (default "wake"), recording continues
     until a pause, and the remainder after the wake word becomes the
-    question. Saying just "turtle" wakes it for the NEXT utterance.
+    question. Saying just "wake" wakes it for the NEXT utterance.
 
 Design: this is a FRONTEND, exactly like console.py — it captures the
 question (by voice instead of keyboard) and hands it to the same
@@ -552,7 +552,7 @@ def serve_loop(llm, status, card, dev) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--wake", metavar="WORD", default=None,
-                    help='wake-word mode (e.g. --wake turtle)')
+                    help='wake-word mode (e.g. --wake wake)')
     ap.add_argument("--serve", action="store_true",
                     help="obey the web page's voice settings (recommended)")
     ap.add_argument("--no-takeover", action="store_true",
