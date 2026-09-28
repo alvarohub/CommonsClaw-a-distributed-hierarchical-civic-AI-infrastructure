@@ -77,6 +77,11 @@
         opacity: 1;
         animation: blink 1s steps(2, start) infinite;
       }
+      .box.act.pending {
+        border-color: #ffd27b;
+        color: #ffd27b;
+        opacity: 1;
+      }
       @keyframes blink {
         50% {
           opacity: 0.35;
@@ -94,10 +99,6 @@
       }
       #voicebanner.hidden {
         display: none; /* beats the ID selector's display:flex */
-      }
-      #voicebanner.green {
-        background: #0d2a16;
-        color: var(--accent);
       }
       #voicebanner.red {
         background: #2a0d0d;
@@ -458,23 +459,20 @@
             if (st === 'waking') label = 'waiting for “' + voiceCfg.wake_word + '”';
             vState.textContent = label + (s.voice.detail ? ' · ' + s.voice.detail : '');
 
-            // Banner: green for "wake word recognized", red for "recording",
-            // hidden the rest of the time. No banner while merely waiting.
-            if (st === 'awake') {
-              vBanner.className = 'green';
-              vBanText.textContent = '🐢 I’m listening — ask now';
-            } else if (st === 'listening') {
+            // Banner: red while actually recording, hidden the rest of the
+            // time. The red button IS the "I'm listening" signal.
+            if (st === 'listening') {
               vBanner.className = 'red';
               vBanText.textContent = '🎤 listening — speak now · press stop when done';
             } else {
               vBanner.className = 'hidden';
             }
 
+            if (st === 'listening') speakPending = 0; // request honoured
             renderTalkButton();
 
             if (st !== prevVoiceState) {
-              if (st === 'awake') beep(1046, 130);
-              else if (st === 'listening') beep(880, 90);
+              if (st === 'listening') beep(880, 90);
               prevVoiceState = st;
             }
           }
@@ -735,7 +733,6 @@
         offline: 'voice process not running on the Pi',
         off: 'wake word off — press speak to talk',
         waking: 'waiting for the wake word',
-        awake: '🐢 I’m listening — ask now',
         listening: 'recording…',
         transcribing: 'transcribing…',
         thinking: 'asking the kami…',
@@ -792,16 +789,29 @@
       });
 
       // The speak button is a toggle: speak → stop → speak. Which it shows is
-      // driven by the Pi's actual state, not by a local timer.
+      // driven by the Pi's actual state, not by a local timer. Between the
+      // press and the loop actually starting to record there can be a short
+      // wait (the wake-word window must finish), so we show "starting…".
+      let speakPending = 0; // timestamp of a press not yet honoured, 0 = none
       function isRecording() {
         return curVoiceState === 'listening';
       }
       function renderTalkButton() {
         if (vListen.disabled) {
           vListen.textContent = '🎤 speak';
-          vListen.classList.remove('live');
+          vListen.classList.remove('live', 'pending');
           return;
         }
+        if (speakPending && !isRecording()) {
+          if (Date.now() - speakPending > 8000) speakPending = 0; // request lost
+          else {
+            vListen.textContent = '🎤 starting…';
+            vListen.classList.remove('live');
+            vListen.classList.add('pending');
+            return;
+          }
+        }
+        vListen.classList.remove('pending');
         const rec = isRecording();
         vListen.textContent = rec ? '■ stop' : '🎤 speak';
         vListen.classList.toggle('live', rec);
@@ -811,6 +821,8 @@
           fetch('/api/stop', { method: 'POST' }).catch(() => {});
         } else {
           beep(880, 90); // also unlocks the AudioContext on iOS
+          speakPending = Date.now();
+          renderTalkButton();
           fetch('/api/listen', { method: 'POST' }).catch(() => {});
         }
       });
@@ -821,15 +833,16 @@
 
       loadModels();
       refreshStatus();
-      // Faster while the microphone is live, so the banner feels immediate.
+      // Faster whenever the microphone could be active (wake word on, a speak
+      // press in flight, or mid-recording), so state changes feel immediate.
       (function poll() {
-        setTimeout(
-          async () => {
-            await refreshStatus();
-            poll();
-          },
-          voiceCfg.enabled ? 1500 : 5000,
-        );
+        const busy =
+          voiceCfg.enabled || speakPending ||
+          ['listening', 'transcribing', 'thinking'].includes(curVoiceState);
+        setTimeout(async () => {
+          await refreshStatus();
+          poll();
+        }, busy ? 1500 : 5000);
       })();
     </script>
   </body>

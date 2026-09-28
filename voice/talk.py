@@ -54,6 +54,11 @@ MODEL_SIZE = "tiny"
 WHISPER: object | None = None  # lazy-loaded on first use
 
 WAKE_SIMILARITY = 0.7
+# How long each "is that the wake word?" clip is. Whisper-tiny needs roughly
+# 1.5 s of audio to transcribe a word reliably; 3 s added latency for a speak
+# press with nothing gained, so 2 s is the balance. Much below 1.5 s and the
+# wake word itself starts to vanish from the transcript.
+WAKE_WINDOW_SECONDS = 2.0
 
 # --- one microphone, one owner ---------------------------------------------
 # A USB mic can only be captured by one process. Two voice loops running at
@@ -433,7 +438,7 @@ def serve_loop(llm, status, card, dev) -> None:
         else:
             node_settings.publish_voice_state(
                 "waking", f'say "{voice["wake_word"]}"')
-            ok = record_fixed(card, dev, clip, 3)
+            ok = record_fixed(card, dev, clip, WAKE_WINDOW_SECONDS)
         if not ok:
             clip.unlink(missing_ok=True)
             armed = False   # one press (or one wake word) = one chance to speak
@@ -454,15 +459,17 @@ def serve_loop(llm, status, card, dev) -> None:
             hit, rest = split_on_wake(text, voice["wake_word"])
             if not hit:
                 # Not the wake word: go back to waiting. Nothing flashy on the
-                # page — a blinking talk button here would read as "accepted".
+                # page — a blinking button here would read as "accepted".
                 print(f'(ignored: "{text}")', flush=True)
                 continue
-            # Wake word recognized: acknowledge visibly before doing anything.
-            node_settings.publish_voice_state(
-                "awake", "yes? — ask now", heard=text)
-            time.sleep(0.6)   # let the page chime and the speaker draw breath
-            if not rest:
+            rest = rest.strip(" ,.?!")
+            wake = voice["wake_word"].lower()
+            # "turtle" alone, or just its echo ("turtle turtle"): arm listening
+            # for the real question rather than answering the echo.
+            if not rest or (len(rest.split()) == 1 and
+                            difflib.SequenceMatcher(None, rest.lower(), wake).ratio() >= WAKE_SIMILARITY):
                 armed = True
+                print("KAMI: yes? (listening...)", flush=True)
                 continue
             question = rest
 
