@@ -8,17 +8,17 @@ Tokyo. Reference hardware: Raspberry Pi 5 today, Jetson Orin next.
 
 ## How to read this
 
-| Chapter | What it is |
-| ------- | ---------- |
-| [01-vision.md](01-vision.md) | The hierarchical, recursive summarization society; the narrative concept |
-| [02-architecture.md](02-architecture.md) | The layered architecture: core / channels / sensors / memory — and the one-vs-many-process decision |
-| [03-interaction-and-voice.md](03-interaction-and-voice.md) | The flawless front-end: canonical state machine, voice pipeline, robustness |
-| [04-channels.md](04-channels.md) | Channel-agnostic adapters: web, voice, Telegram, WhatsApp, Matrix, CLI |
-| [05-sensor-harness.md](05-sensor-harness.md) | Sensor registry, loggers, the reports pipeline, MCP exposure |
-| [06-memory-and-narrative.md](06-memory-and-narrative.md) | OpenClaw-style memory extended to a place: consolidation into narrative |
-| [07-roadmap.md](07-roadmap.md) | Phases and milestones, with hardware gates |
-| [ROBUSTNESS_PLAN.md](ROBUSTNESS_PLAN.md) | The original demo post-mortem (appendix; folded into 02/03/07) |
-| [research/](research/) | Verified external research: voice-assistant architectures, channels + MCP, OpenClaw memory |
+| Chapter                                                    | What it is                                                                                          |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [01-vision.md](01-vision.md)                               | The hierarchical, recursive summarization society; the narrative concept                            |
+| [02-architecture.md](02-architecture.md)                   | The layered architecture: core / channels / sensors / memory — and the one-vs-many-process decision |
+| [03-interaction-and-voice.md](03-interaction-and-voice.md) | The flawless front-end: canonical state machine, voice pipeline, robustness                         |
+| [04-channels.md](04-channels.md)                           | Channel-agnostic adapters: web, voice, Telegram, WhatsApp, Matrix, CLI                              |
+| [05-sensor-harness.md](05-sensor-harness.md)               | Sensor registry, loggers, the reports pipeline, MCP exposure                                        |
+| [06-memory-and-narrative.md](06-memory-and-narrative.md)   | OpenClaw-style memory extended to a place: consolidation into narrative                             |
+| [07-roadmap.md](07-roadmap.md)                             | Phases and milestones, with hardware gates                                                          |
+| [ROBUSTNESS_PLAN.md](ROBUSTNESS_PLAN.md)                   | The original demo post-mortem (appendix; folded into 02/03/07)                                      |
+| [research/](research/)                                     | Verified external research: voice-assistant architectures, channels + MCP, OpenClaw memory          |
 
 ## Where the living documents live
 

@@ -21,14 +21,14 @@ and OpenClaw's Gateway/channels split (§A6):
 
 ## The channels, in priority order
 
-| Channel | Transport on the Pi | Notes |
-| ------- | ------------------- | ----- |
-| **Web** (now) | HTTP + heartbeat JSON → move to WebSocket mirror | the demo surface; must be flawless (chapter 03) |
-| **Voice** (now) | own process, shared settings file → folds into the core | VAD+whisper pipeline |
-| **CLI/console** (now) | stdin/stdout | debug and operations |
-| **Telegram** | long polling (`getUpdates`) — outbound HTTPS only, ideal for NAT | self-host friendly; the natural next channel |
-| **Matrix** | `sync_forever` long polling | same outbound property; E2EE via matrix-nio |
-| **WhatsApp** | Cloud API (webhooks + Meta account + templates + 24 h window) or Baileys (unofficial, ToS-risky) | a compromise, always behind one adapter |
+| Channel               | Transport on the Pi                                                                              | Notes                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| **Web** (now)         | HTTP + heartbeat JSON → move to WebSocket mirror                                                 | the demo surface; must be flawless (chapter 03) |
+| **Voice** (now)       | own process, shared settings file → folds into the core                                          | VAD+whisper pipeline                            |
+| **CLI/console** (now) | stdin/stdout                                                                                     | debug and operations                            |
+| **Telegram**          | long polling (`getUpdates`) — outbound HTTPS only, ideal for NAT                                 | self-host friendly; the natural next channel    |
+| **Matrix**            | `sync_forever` long polling                                                                      | same outbound property; E2EE via matrix-nio     |
+| **WhatsApp**          | Cloud API (webhooks + Meta account + templates + 24 h window) or Baileys (unofficial, ToS-risky) | a compromise, always behind one adapter         |
 
 Rules learned from the research:
 
@@ -45,7 +45,7 @@ Rules learned from the research:
   `callback_query` → must call `answerCallbackQuery` (else the client shows
   a progress spinner). One mechanism at a time (polling XOR webhook).
 - **Matrix**: `AsyncClient.sync_forever()` + `add_event_callback(...,
-  RoomMessageText)`; send with `room_send()`.
+RoomMessageText)`; send with `room_send()`.
 - **WhatsApp Cloud**: inbound only via webhook (needs public HTTPS);
   message templates outside the 24 h window; 80 msg/s default throughput.
 - **OpenClaw reference**: Gateway = "control plane for sessions, tools,

@@ -81,12 +81,12 @@ WebSocket).
 
 ## Hardware tiers
 
-| Tier | Hardware | Runs |
-| ---- | -------- | ---- |
-| now | Pi 5 (16 GB) | core (VAD+whisper-tiny+llama3.2:1b), web, sensors |
-| next | Jetson Orin | core upgraded: medium-whisper, streaming STT, openWakeWord, node TTS |
-| L2 | a real machine | neighborhood consolidator, narrative synthesis |
-| L3+ | shared infra | what no neighborhood can answer |
+| Tier | Hardware       | Runs                                                                 |
+| ---- | -------------- | -------------------------------------------------------------------- |
+| now  | Pi 5 (16 GB)   | core (VAD+whisper-tiny+llama3.2:1b), web, sensors                    |
+| next | Jetson Orin    | core upgraded: medium-whisper, streaming STT, openWakeWord, node TTS |
+| L2   | a real machine | neighborhood consolidator, narrative synthesis                       |
+| L3+  | shared infra   | what no neighborhood can answer                                      |
 
 The software shape is the same at every tier; only the models and the
 number of hosted layers change. That is the payoff of multi-process +

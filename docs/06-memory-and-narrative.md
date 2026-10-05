@@ -40,12 +40,12 @@ in exactly that gap:
 
 ## The consolidation ladder (borrowed mechanics per level)
 
-| Level | Inputs | Consolidation | Output |
-| ----- | ------ | ------------- | ------ |
-| 0 → 1 | sensor logs | deterministic gates + small-model reports | per-sensor trends, latest reading |
-| 1 | journal, turn log, notes | nightly "dreaming" with score gates, operations-not-prose, `Source:` anchors | identity promotion; the place's self-knowledge |
-| 2 | several kami's narratives | cross-place dreaming | the neighborhood narrative, written back down |
-| 3+ | neighborhood narratives | larger consolidations | what no neighborhood can answer |
+| Level | Inputs                    | Consolidation                                                                | Output                                         |
+| ----- | ------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------- |
+| 0 → 1 | sensor logs               | deterministic gates + small-model reports                                    | per-sensor trends, latest reading              |
+| 1     | journal, turn log, notes  | nightly "dreaming" with score gates, operations-not-prose, `Source:` anchors | identity promotion; the place's self-knowledge |
+| 2     | several kami's narratives | cross-place dreaming                                                         | the neighborhood narrative, written back down  |
+| 3+    | neighborhood narratives   | larger consolidations                                                        | what no neighborhood can answer                |
 
 The same file format and the same gated-promotion discipline at every
 level — that is what makes the ladder recursive rather than four different

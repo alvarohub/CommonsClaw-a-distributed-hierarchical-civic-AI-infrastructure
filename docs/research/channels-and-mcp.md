@@ -141,7 +141,7 @@ Verified: <https://github.com/voska/hass-mcp>
   `debug_automation`, `routine_optimizer`), resources
   (`hass://entities/{entity_id}`, …).
 - Config: `HA_URL` + `HA_TOKEN` env vars; default stdio; optional `--http
-  --port 8000` exposing `/mcp`.
+--port 8000` exposing `/mcp`.
 - Security posture: HTTP mode "exposes full Home Assistant control" — they
   require reverse-proxy basic-auth/bearer, VPN/zero-trust, or localhost
   binding; dry-run + automatic backups before writes.

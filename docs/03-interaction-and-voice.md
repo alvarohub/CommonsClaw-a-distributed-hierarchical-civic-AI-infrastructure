@@ -15,16 +15,16 @@ properties:
 One machine, owned by the interaction core, emitted as typed events. Every
 state has a single mandated UI rendering.
 
-| State | Meaning | UI must show |
-| ----- | ------- | ------------ |
-| `IDLE` | waiting, wake off | "press speak", button enabled |
-| `WAKING` | wake word armed, listening | subtle "waiting for the word" |
-| `LISTENING` | recording the question | red pulsing button + banner |
-| `CHECKING` | was that the wake word? (transcribing a candidate) | "checking…" (never "transcribing" — that confused users) |
-| `TRANSCRIBING` | converting the question | "transcribing…" |
-| `THINKING` | model generating | streaming token display |
-| `SPEAKING` | TTS playing | speaker indicator |
-| `EMPTY` / `ERROR` | nothing heard / model stalled | "I didn't hear that — try again" / "the model stalled" |
+| State             | Meaning                                            | UI must show                                             |
+| ----------------- | -------------------------------------------------- | -------------------------------------------------------- |
+| `IDLE`            | waiting, wake off                                  | "press speak", button enabled                            |
+| `WAKING`          | wake word armed, listening                         | subtle "waiting for the word"                            |
+| `LISTENING`       | recording the question                             | red pulsing button + banner                              |
+| `CHECKING`        | was that the wake word? (transcribing a candidate) | "checking…" (never "transcribing" — that confused users) |
+| `TRANSCRIBING`    | converting the question                            | "transcribing…"                                          |
+| `THINKING`        | model generating                                   | streaming token display                                  |
+| `SPEAKING`        | TTS playing                                        | speaker indicator                                        |
+| `EMPTY` / `ERROR` | nothing heard / model stalled                      | "I didn't hear that — try again" / "the model stalled"   |
 
 Every transition is an event with timings (`run-start`, `stt-end` with text,
 `llm.token`, `error` with a code) — Home Assistant Assist's pipeline-event
