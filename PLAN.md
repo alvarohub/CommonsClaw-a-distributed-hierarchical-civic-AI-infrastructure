@@ -154,7 +154,7 @@ pull` before AP-up (or over eth0 sharing).
 - [x] Keyboard dictation works as STT (verified). TTS default-on toggle built.
       In-page 🎤 needs HTTPS (`make_cert.sh` + `--https`) — optional.
 - [ ] Works after an unattended reboot (AP + web server autostart).
-      (`install_autostart.sh` ready; needs a reboot test.)
+      (`set_autostart.sh on` ready; needs a reboot test.)
 - [ ] Captive portal pops the chat on join (built; needs on-phone test).
 
 ---

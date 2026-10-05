@@ -8,7 +8,7 @@ logged and retried on the next tick — a dead logger never kills the others.
     python3 sensors_boot.py            # run all active loggers (foreground)
     python3 sensors_boot.py --status   # print registry + which would run
 
- systemd unit comes with install_autostart.sh (commonsclaw-sensors.service).
+ systemd unit comes with set_autostart.sh on (commonsclaw-sensors.service).
 """
 
 from __future__ import annotations

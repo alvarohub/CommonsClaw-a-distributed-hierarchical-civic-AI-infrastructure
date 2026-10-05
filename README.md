@@ -169,7 +169,7 @@ AI HAT+ numbers: [BENCHMARKS.md](BENCHMARKS.md). Reproduce with
 
 - `ap_up.sh` / `ap_down.sh` — Wi-Fi access point on/off.
 - `portal_up.sh` / `portal_down.sh` — captive portal on/off.
-- `install_autostart.sh` + `commonsclaw-web.service` — systemd boot autostart.
+- `install.sh` (setup) · `kami` (run now) · `set_autostart.sh on|off` + `commonsclaw-*.service` — systemd boot autostart.
 - `make_cert.sh` — self-signed HTTPS cert (enables the in-page mic).
 - `push_to_pi.sh` — rsync dev workflow (Mac → Pi).
 - `benchmark.py` — model benchmarks → `BENCHMARKS.md`.
@@ -196,6 +196,9 @@ The repository does not currently include a dependency manifest such as
 
 ## Setup
 
+The quick route on the Pi is `bash install.sh` — it installs the OS packages,
+Ollama, and the model named in `config.py`; safe to re-run. By hand:
+
 1. Install Python 3 and Tkinter for the operating system.
 2. Install the Python packages `requests` and `psutil`.
 3. Install and start Ollama.
@@ -209,7 +212,14 @@ method.
 
 ## Running
 
-Start the main application:
+The one-liner (sensors + web + voice-if-set-up in this terminal; Ctrl+C stops
+everything):
+
+```bash
+./kami
+```
+
+Or start the main application directly:
 
 ```bash
 python3 main.py
@@ -272,13 +282,19 @@ Results are appended to [BENCHMARKS.md](BENCHMARKS.md) (shareable table).
 ### Unattended operation
 
 ```bash
-sudo bash install_autostart.sh
+sudo bash set_autostart.sh on      # installs the services + starts the node now
 ```
 
-Installs a systemd service that starts the web server at boot (after Ollama),
-sets boot-to-console, and makes the AP autoconnect. After a reboot the chat
-is live at `http://10.42.0.1:8080` with no login needed. Undo with
-`sudo bash install_autostart.sh --uninstall`.
+Installs the systemd services (web + sensors + voice, adapted to your
+username) that start at boot (after Ollama), sets boot-to-console, and makes
+the AP autoconnect. The node is started immediately; after a reboot the chat
+is live at `http://10.42.0.1:8080` with no login needed. Without an argument
+the script shows the current state. Undo (stops everything, removes the
+services, and cleans up leftover processes):
+
+```bash
+sudo bash set_autostart.sh off
+```
 
 The control view reads the shared status file and refreshes every 0.5 seconds.
 Hardware samples are collected by the main application every 15 seconds, so

@@ -113,7 +113,7 @@ cold/warm gap we measure: ~8.5 s TTFT on the first question after a pause,
 model lives in Ollama, not in them.
 
 For an installation that must answer a visitor instantly, eviction is wrong,
-so `install_autostart.sh` drops in `OLLAMA_KEEP_ALIVE=-1` (never unload).
+so `set_autostart.sh on` drops in `OLLAMA_KEEP_ALIVE=-1` (never unload).
 Cost: ~1 GB of the Pi's 16 GB held permanently.
 
 ### What "one LLMManager per process" actually means
@@ -182,7 +182,7 @@ SEPARATE PROCESSES                    OPS
 loggers/sensor_*.py (cron)  ──► sensors/ (plain text)   (persistent, plain text)
 control.py (SSH dashboard)  ◄── reads the status file
                                   benchmark.py → BENCHMARKS.md
-                                  ap_up/portal_up/install_autostart/make_cert/push_to_pi.sh
+                                  ap_up/portal_up/set_autostart/make_cert/push_to_pi.sh
 ```
 
 ## Following one question (web path)

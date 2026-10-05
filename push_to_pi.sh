@@ -31,7 +31,7 @@ rsync -av --delete \
 # (No-op with a hint if the systemd units aren't installed yet.)
 ssh "$PI_HOST" '
   sudo -n systemctl restart commonsclaw-web 2>/dev/null && echo "commonsclaw-web restarted." \
-    || echo "(commonsclaw-web service not installed — run: sudo bash install_autostart.sh — or restart web_server.py by hand)"
+    || echo "(commonsclaw-web service not installed — run: sudo bash set_autostart.sh on — or restart web_server.py by hand)"
   if systemctl list-unit-files | grep -q commonsclaw-voice; then
     sudo -n systemctl restart commonsclaw-voice 2>/dev/null && echo "commonsclaw-voice restarted."
   fi

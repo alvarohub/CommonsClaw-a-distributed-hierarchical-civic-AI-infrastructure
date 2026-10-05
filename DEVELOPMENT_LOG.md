@@ -3,6 +3,23 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-10-05 (2)
+
+- **Setup / run / autostart naming system** (built for the Kashiwa demo, now
+  shared here): `install.sh` = one-shot setup (OS packages + Ollama + the
+  model named in `config.py`); `kami` = run the node now in this terminal;
+  `install_autostart.sh` → **`set_autostart.sh on|off`** — `on` installs the
+  systemd services (adapted to the installing user) and starts the node
+  immediately; `off` stops and removes everything (services, journal cron
+  entry, passwordless-sudo rule, model keep-alive drop-in). No argument =
+  usage + current state.
+- **Stray-process cleanup**: `set_autostart.sh` (both modes) and
+  `stop_kami.sh` now sweep leftovers from earlier manual runs (web / sensors /
+  loggers / voice / arecord) — systemd only stops its own cgroup, so a
+  hand-started `./kami` or a half-dead service could leave processes running.
+- `setup_voice.sh` added — the voice-venv setup that the install scripts
+  referred to but which was missing.
+
 ## 2026-10-05
 
 - **Workspace restructure — the root IS the repo.** `RaspberryPi5_STT/ssai` →
