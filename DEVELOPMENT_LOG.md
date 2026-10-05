@@ -13,8 +13,9 @@ SSAI prototype), organized by date.
 - Demo docs today: credits moved into the demo's `README.md` (`CREDITS.md`
   removed); LICENSE file and mentions removed (licensing pending the Cesar
   conversation); `ARCHITECTURE.md` restructured — big-block schematic,
-  per-block diagrams, and an explicit "adding a new logger" recipe
-  (candidate to port into this repo's ARCHITECTURE.md).
+  per-block diagrams, an explicit "adding a new logger" recipe, and a short
+  "who writes what / which way the arrows go" clarification (all candidates
+  to port into this repo's ARCHITECTURE.md).
 - This repo: licensing-options draft added at the top of `LICENSE`
   (`[TO DISCUSS]`: hardware CERN-OHL-S v2 / per-software-component licence /
   docs CC BY-SA 4.0); `CREDITS.md` updated + proofread.
