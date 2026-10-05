@@ -3,6 +3,24 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-10-05 (3)
+
+- **Standing note — demo work is recorded here.** The public Kashiwa demo
+  (`kashiwaDemo/`, "SolarTurtle") must never mention CommonsClaw; our name
+  was scrubbed from it and its history rewritten. Alvaro: demo work should
+  stay exceptional from now on — but anything interesting found there (doc
+  structures, workflows, improvements) must be noted in THIS repo.
+- Demo docs today: credits moved into the demo's `README.md` (`CREDITS.md`
+  removed); LICENSE file and mentions removed (licensing pending the Cesar
+  conversation); `ARCHITECTURE.md` restructured — big-block schematic,
+  per-block diagrams, and an explicit "adding a new logger" recipe
+  (candidate to port into this repo's ARCHITECTURE.md).
+- This repo: licensing-options draft added at the top of `LICENSE`
+  (`[TO DISCUSS]`: hardware CERN-OHL-S v2 / per-software-component licence /
+  docs CC BY-SA 4.0); `CREDITS.md` updated + proofread.
+- Next writing pass (here first): "scenarios of activity" — how the system
+  runs end-to-end.
+
 ## 2026-10-05 (2)
 
 - **Setup / run / autostart naming system** (built for the Kashiwa demo, now
