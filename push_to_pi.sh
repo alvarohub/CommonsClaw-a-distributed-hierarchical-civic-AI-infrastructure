@@ -16,6 +16,8 @@ rsync -av --delete \
   --exclude '.git' \
   --exclude '__pycache__' \
   --exclude '.venv' \
+  --exclude '.vscode' \
+  --exclude 'kashiwaDemo' \
   --exclude '*.pyc' \
   --exclude '.DS_Store' \
   --exclude 'node_settings.json' \

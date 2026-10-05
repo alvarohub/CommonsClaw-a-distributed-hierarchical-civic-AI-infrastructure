@@ -1,4 +1,16 @@
-Icon
+# macOS Finder junk
+.DS_Store
+Icon*
+
+# Python
 __pycache__/
-Icon
+.venv/
+
+# Local editor config (machine-specific)
+.vscode/
+
+# kashiwaDemo lives here as its own repository (own GitHub remote)
+kashiwaDemo/
+
+# Runtime settings written on the node (Pi)
 node_settings.json

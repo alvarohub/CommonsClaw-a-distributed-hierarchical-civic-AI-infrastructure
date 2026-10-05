@@ -3,6 +3,20 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-10-05
+
+- **Workspace restructure — the root IS the repo.** `RaspberryPi5_STT/ssai` →
+  `CommonsClaw/` (same repo, same history; remote unchanged). The local dev
+  venv and `.vscode` moved inside the repo root (both gitignored); the old
+  outer shell folder was removed. `CommonsClaw.code-workspace` now opens the
+  repo itself (`"path": "."`).
+- **kashiwaDemo reserved.** A stripped, self-contained demo for the Kashiwa
+  collaborators will live in `kashiwaDemo/` as its own nested git repository
+  (own GitHub remote; ignored by this repo) — same workspace, and
+  collaborators never see this project.
+- Housekeeping: untracked macOS junk (`.DS_Store`, three `Icon\r` files) and
+  ignored it; `push_to_pi.sh` now also excludes `kashiwaDemo/` and `.vscode/`.
+
 ## 2026-09-27 (2)
 
 - **Memory folders reorganized to match the three toggle categories**:

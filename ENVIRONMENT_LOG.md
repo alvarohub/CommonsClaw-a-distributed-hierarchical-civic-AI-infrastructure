@@ -65,7 +65,7 @@ Investigation on the Mac showed:
 ssh admin@192.168.2.13
 
 # push code changes to the Pi (dev workflow)
-cd ~/Documents/DEV_HARDWARE/RaspberryPi5_STT/ssai && ./push_to_pi.sh
+cd ~/Documents/DEV_HARDWARE/CommonsClaw && ./push_to_pi.sh
 
 # is Ollama up?
 ssh admin@192.168.2.13 'curl -s http://127.0.0.1:11434/api/tags'
