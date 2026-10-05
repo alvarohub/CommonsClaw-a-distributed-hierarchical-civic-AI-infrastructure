@@ -1,3 +1,12 @@
+[TO DISCUSS ]
+
+
+- **Hardware:** [CERN Open Hardware Licence, Version 2 — Strongly Reciprocal (CERN-OHL-S v2)](https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center/blob/main/LICENSE).
+- **Accompanying software** (firmware, dashboards, data pipelines): see `CONTRIBUTING.md` for the compatible permissive licence (typically a copyleft-compatible OSI licence such as GPLv3) chosen per sub-directory.
+- **Documentation, diagrams, and text in this README:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), unless otherwise marked.
+
+Before: 
+
 MIT License
 
 Copyright (c) 2026 DLX - Design Lab
