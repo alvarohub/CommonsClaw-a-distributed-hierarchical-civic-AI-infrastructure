@@ -22,6 +22,10 @@ SSAI prototype), organized by date.
   carrying ideas — stay local / escalate only when necessary; intelligence
   where the energy is; a commons, not a butler) instead of starting at "a
   society of kami"; chapter title and docs-hub line updated.
+- Demo `ARCHITECTURE.md` (per Alvaro's question): clarified what "CORE" means —
+  the block label now says "shared code, run by each frontend", and the Core
+  section explains that each frontend imports and runs its own copy at
+  startup (they sync through shared files; there is no central core process).
 
 ## 2026-10-05 (3)
 
