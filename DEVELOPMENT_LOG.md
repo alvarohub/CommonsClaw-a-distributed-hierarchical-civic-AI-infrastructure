@@ -3,6 +3,19 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-10-06 (2)
+
+- Demo `ARCHITECTURE.md`, Core section — from Alvaro's C++ question ("why is
+  the core imported, not a unique global object / running process?"): added
+  the "**the core is a library, not a service**" note — importing the core
+  ≈ linking a library, each process runs its own copy; the one genuinely
+  shared process in the node is Ollama (`127.0.0.1:11434`); anything else
+  shared travels through plain files. Candidate to port together with the
+  rest of the demo doc rework (see 2026-10-05 (3)).
+- New `LEARNING_NOTES.md` at the repo root — Alvaro's personal learning
+  notebook (at his request): the lesson above written up with minimal Python
+  and C++ toy examples. **Gitignored**: local only, never committed.
+
 ## 2026-10-06
 
 - Recorded two scenario/application idea clusters in

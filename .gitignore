@@ -14,3 +14,6 @@ kashiwaDemo/
 
 # Runtime settings written on the node (Pi)
 node_settings.json
+
+# Personal learning notes (local only — never committed)
+LEARNING_NOTES.md
