@@ -158,4 +158,37 @@ Raised as the node started to look like "an agent with skills and memory":
    and what does "maintained by people sharing compute and energy" mean
    concretely (spare Pi in someone's kitchen as the backup node?).
 
+## Scenarios and applications (to develop)
+
+_Recorded 2026-10-06 — seeds for the "scenarios of activity" writing pass._
+
+### Recycling the installed base: any hardware can be a node
+
+The hierarchy accommodates **all sorts of platforms** — including the ones
+already around us. Old smartphones and tablets, orphaned by software
+support but still perfectly capable machines, could find a new life running
+Level 0, Level 1 or even Level 2 nodes. Because each level asks only for
+the compute it actually needs, the architecture fits every point on the
+hardware spectrum: **recycling and sustainable tech become a direct
+consequence of the design**, not an afterthought.
+
+### Local governance of compute — and of information
+
+One of the most interesting aspects of CommonsClaw / local datacenters is
+that they enable **local governance of the compute resources and of the
+information actually stored** — through an AI that is a "local expert" in
+the same sense that a deputy or a mayor is local: it knows the resources,
+the problems, the solutions, the local news, the people.
+
+This kind of grouping of people around common interests has precedents:
+social-network groups, wikis, databases — even two-or-three-person
+chatrooms and Slack-like forums. Bots already run inside these spaces as
+orchestrators and "chairs" of the room. CommonsClaw is related to that
+lineage, and everything those precedents teach should be studied and
+carried over: how privacy is maintained, who holds "administrator
+rights", where suggestions are logged, and so on. CommonsClaw then moves a
+step further: it makes the **databases and the compute themselves very
+local** (Level 1, Level 2…) and **negotiates the interactions and
+transactions between groups — horizontally and vertically.**
+
 Further reading and related work: [REFERENCES.md](REFERENCES.md).

@@ -3,6 +3,21 @@
 This document records the main work on the CommonsClaw node (formerly the
 SSAI prototype), organized by date.
 
+## 2026-10-06
+
+- Recorded two scenario/application idea clusters in
+  `TOWARDS_HIERARCHICAL_CIVIC_AI.md` → "Scenarios and applications (to
+  develop)": **(a) recycling the installed base** — old smartphones/tablets
+  re-lifed as Level 0/1/2 nodes, because the hierarchy fits any hardware
+  (sustainability as a design consequence); **(b) local governance of
+  compute and information** — the AI as a "local expert" (deputy/mayor of a
+  locality), the precedents to study (chatrooms, Slack-like forums, wikis,
+  databases, bots as orchestrators/"chairs": privacy, administrator rights,
+  where suggestions are logged), and the step further (very local
+  databases/compute + negotiated interactions and transactions between
+  groups, horizontally and vertically). Seeds the "scenarios of activity"
+  pass.
+
 ## 2026-10-05 (3)
 
 - **Standing note — demo work is recorded here.** The public Kashiwa demo
