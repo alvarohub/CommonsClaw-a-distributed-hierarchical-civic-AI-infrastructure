@@ -10,7 +10,7 @@ Tokyo. Reference hardware: Raspberry Pi 5 today, Jetson Orin next.
 
 | Chapter                                                    | What it is                                                                                          |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [01-vision.md](01-vision.md)                               | The hierarchical, recursive summarization society; the narrative concept                            |
+| [01-vision.md](01-vision.md)                               | **What CommonsClaw is** — the people's AI network: the levels, the narrative                        |
 | [02-architecture.md](02-architecture.md)                   | The layered architecture: core / channels / sensors / memory — and the one-vs-many-process decision |
 | [03-interaction-and-voice.md](03-interaction-and-voice.md) | The flawless front-end: canonical state machine, voice pipeline, robustness                         |
 | [04-channels.md](04-channels.md)                           | Channel-agnostic adapters: web, voice, Telegram, WhatsApp, Matrix, CLI                              |

@@ -17,6 +17,11 @@ SSAI prototype), organized by date.
   databases/compute + negotiated interactions and transactions between
   groups, horizontally and vertically). Seeds the "scenarios of activity"
   pass.
+- `docs/01-vision.md` reworked per Alvaro's review: now opens with a proper
+  explanation of the **CommonsClaw concept** (the people's AI network; three
+  carrying ideas — stay local / escalate only when necessary; intelligence
+  where the energy is; a commons, not a butler) instead of starting at "a
+  society of kami"; chapter title and docs-hub line updated.
 
 ## 2026-10-05 (3)
 

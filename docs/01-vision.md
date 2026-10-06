@@ -1,6 +1,42 @@
-# 01 — Vision: a society of kami, and the narrative
+# 01 — Vision: CommonsClaw, the people's AI network
+
+## What CommonsClaw is
+
+CommonsClaw is **the people's AI network**: not one model in one data center,
+but a growing commons of many small, local nodes — a _geographically
+distributed mixture of experts_ for civic life — built and maintained by
+communities that share compute, energy and data. Each node gives a place a
+voice and answers at the _smallest sufficient scale_: local knowledge stays
+local, and a node reaches upward (neighborhood, city, nation) only when a
+question truly needs it. Energy proportional to the question; the boundaries
+between tiers — and between communities — are negotiated, not assumed.
+
+Three ideas carry the whole design:
+
+- **Stay as local as possible; escalate only when necessary.** Most everyday
+  questions never leave the place — the local knowledge, the sensors, the
+  community's memory answer them. Escalation is the exception, and it is a
+  negotiated transaction (permission, scope, and possibly retribution), not
+  a default route.
+- **Intelligence where the energy is.** A giant datacenter answers a trivial
+  question with the same machinery it uses for hard ones. A hierarchy of
+  small models, each serving its community, spends only what the question
+  deserves — and couples the distribution of intelligence to the
+  distribution of energy (solar, local).
+- **A commons, not a butler.** Each node's memory belongs to a place and its
+  community — everyone who talks to it shares one accumulating identity.
+  This inverts the personal-assistant model (one person, one agent, one
+  diary); the politics and topology differ from the ground up.
+
+The long-form vision — origin, philosophy, open questions — is the
+[manifesto](../TOWARDS_HIERARCHICAL_CIVIC_AI.md). What follows here is the
+structure that vision implies: the levels, the narrative, the contrast with
+personal-assistant AI, and the design constraints.
 
 ## The hierarchy
+
+The vision takes shape as a hierarchy of levels — each one a voice for a
+community, at a different scale:
 
 | Level | Who                   | What it does                                                   | Hardware             |
 | ----- | --------------------- | -------------------------------------------------------------- | -------------------- |
