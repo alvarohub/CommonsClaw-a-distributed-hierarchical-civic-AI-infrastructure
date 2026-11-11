@@ -9,17 +9,29 @@ pandoc CEIBAL_JOINT_PROPOSAL.md --from=markdown --to=html5 --standalone --toc --
 **An educational and research collaboration to explore with Ceibal, Uruguay**  
 Discussion document · 11 November 2026
 
-> **What we are looking for:** research and education partners to evaluate the impact of a floating data centre on the marine environment, while developing its connection to local, community-controlled AI.
+> **The core question:** Can AI infrastructure be locally powered, ecologically regenerative, and understood, built, and governed by students and communities—rather than remaining an opaque, resource-intensive service in distant datacenters?
 >
-> **The longer-term ambition:** communities can produce energy locally, operate their own computing infrastructure, and govern the knowledge it holds. Floating Solar Data Centres explore the physical and ecological side; CommonsClaw develops the distributed civic-AI side.
+> **Two complementary research programmes:**
+> - **Floating Solar Data Centres** (spearheaded by Cesar Harada) explores the physical and ecological frontier: can locally powered, water-cooled computing operate sustainably at sea and even improve marine habitat and biodiversity?
+> - **CommonsClaw / Hierarchical Civic AI** (spearheaded by Alvaro Cassinelli) explores the civic and educational frontier: a bottom-up network of local AI nodes—each acting as *"the spirit of the place"*—that gives a conversational voice to an environment, reuses existing hardware, and builds shared community knowledge.
 >
-> **The proposal to Ceibal:** explore participation in a research-and-education collaboration bringing together **port or marina access, marine science, and design and engineering**. Ceibal could help shape the educational and technical activities and connect appropriate partners. STEM projects in sensing, device reuse, local energy, and CommonsClaw would form part of this shared experiment—not replace the marine research objective.
+> **The invitation to Ceibal:** co-design a research-and-education collaboration in Uruguay bringing together **1. Port or marina access**, **2. Marine science**, and **3. Design & engineering** (Slide 9).[4](#ref-4) Through a shared **Land–Water Twin** experiment, students and educators can build and interrogate land-based sensor and AI nodes (reusing retired devices and measuring power) linked to the marine platform's observations.
 
-This invitation follows slide 9 of the supplied presentation. The three partner roles, possible Ceibal contributions, and decisions needed to proceed are detailed in Section 4.[4](#ref-4)
+<details class="es-summary">
+<summary>Resumen ejecutivo en español (para compartir con equipos de Ceibal, ANEP, UTU, Udelar y contrapartes locales)</summary>
 
-**Reading guide:** Sections 1–9 are the discussion brief. Optional technical background follows in [Appendix A: CommonsClaw](#appendix-commonsclaw) and [Appendix B: Floating Solar Data Centres](#appendix-floating).
+<p><strong>Propuesta de exploración conjunta:</strong> Invitamos a Ceibal a co-diseñar una iniciativa de investigación y educación que articula dos proyectos complementarios: <strong>Floating Solar Data Centres</strong> (liderado por Cesar Harada, enfocado en generación solar flotante, cómputo refrigerado por agua de mar y evaluación de impacto en la biodiversidad marina) y <strong>CommonsClaw / Hierarchical Civic AI</strong> (liderado por Alvaro Cassinelli, una arquitectura de inteligencia artificial cívica, local y descentralizada donde cada nodo actúa como el <em>«espíritu del lugar»</em>, dando voz al entorno a través de sensores y memoria comunitaria compartida).</p>
 
-![Floating-platform prototype in Hong Kong, identified in the supplied presentation as built and tested at sea in 2021. Photograph reproduced from slide 1. This is an antecedent in the project's development, not evidence of an operational AI datacentre or demonstrated biodiversity gains.](assets/floating-prototype-hong-kong-2021.jpg)
+<ul>
+<li><strong>Tres roles complementarios en Uruguay (Slide 9):</strong> Buscamos articular (1) <strong>permiso de puerto o marina</strong> en aguas calmas con acceso en bote para inspección, (2) una <strong>institución de ciencias marinas</strong> (biología, química y física del agua, p. ej. CURE / Facultad de Ciencias – Udelar, IIBCE) y (3) <strong>socios de diseño, ingeniería y educación técnica</strong> (p. ej. Ceibal, CETP-UTU, UTEC, FING-Udelar).</li>
+<li><strong>El puente pedagógico («Gemelo Tierra–Agua»):</strong> Mientras el equipo científico evalúa la plataforma flotante, docentes y estudiantes construyen y ponen a prueba nodos gemelos en tierra (huertas escolares, laboratorios o escuelas costeras) reutilizando dispositivos (en sintonía con <em>Ceibal Sostenible</em> y <em>EduIA Lab</em>), midiendo el consumo energético real y contrastando las explicaciones de la IA local con las mediciones ambientales de tierra y mar.</li>
+<li><strong>Próximo paso:</strong> Una reunión exploratoria para definir el interés institucional, identificar contrapartes locales y acordar el alcance de un estudio de factibilidad conjunto, sin asumir compromisos financieros ni despliegues a gran escala de antemano.</li>
+</ul>
+</details>
+
+**Reading guide:** Sections 1–9 present the executive discussion brief. Optional technical deep-dives follow in [Appendix A: CommonsClaw Architecture & the Local AI Landscape](#appendix-commonsclaw) and [Appendix B: Floating Solar Data Centres, Costs & Marine Assessment](#appendix-floating).
+
+![Floating-platform prototype ("Ocean Imagineer") built and tested at sea in Hong Kong in 2021 (Slide 1). Solar panels on the roof powered onboard systems and hydrogen storage above an experimental oyster hatchery, establishing the physical-prototyping lineage that informs the proposed floating data centre trial.](assets/floating-prototype-hong-kong-2021.jpg)
 
 ## 1. Why bring these projects together?
 
@@ -40,13 +52,16 @@ The physical project is not merely a container for AI, and CommonsClaw is not me
 
 ![Proposed relationship between the projects. At a floating site, local solar generation powers a computing host. CommonsClaw connects that host, where appropriate, with independently powered school or community nodes through permission-controlled information exchange. Ceibal could contribute to a research-and-education collaboration involving port or marina access, marine science, and design and engineering. This is a design diagram, not an existing deployment.](assets/two-projects-one-programme.svg)
 
-**Power and data are different flows.** The proposal does not assume that an offshore platform supplies electricity to distant schools. Each site needs its own suitable power arrangement; the network exchanges approved information. Nor does sovereignty mean refusing all outside services: the objective is the capacity to operate locally and make explicit choices about any external dependence.
+**Power and data are different flows—and the network is both a service and a civic "probe."** The proposal does not assume that an offshore platform supplies electricity to distant schools: each site has its own suitable power arrangement, while the network exchanges approved information. Crucially, building a *geographically distributed system of experts* from the bottom up means the network operates simultaneously as a **local service provider** and as a **diagnostic probe**:
+
+- **Revealing real local needs instead of deploying overkill:** As people and students interact with local nodes, the network organically reveals *where and who is asking what*, and what compute, sensors, or knowledge are genuinely needed in each locality—exposing both local bottlenecks and oversized, unnecessary solutions.[16](#ref-16)
+- **Bottom-up resource balancing and public-policy insight:** Communities maintaining nodes naturally seek to minimize energy/compute waste or request capacity where real demand grows. Even more importantly, **reading the network's discovery index in reverse**—seeing where local nodes repeatedly have to reach out because knowledge, skills, or compute are missing in a locality—produces an empirical map of regional inequalities. That evidence can directly inform public-policy decisions on where to decentralize or centralize infrastructure, launch educational programmes, or target jobs, grants, and subsidies (expanded in [Appendix A3](#appendix-second-brain)).
 
 ## 2. The physical project: energy, computing, and marine ecology
 
 Floating Solar Data Centres investigates an alternative physical setting for computing: floating solar generation, local energy management, and a marine environment in which cooling and ecological effects can be studied together. The broader project also explores hydrogen and other services; these are not prerequisites for Ceibal's initial educational work.
 
-The supplied presentation describes an international programme of trials in planning and a history of prototypes beginning in 2021. The public project repository documents antecedents including the **Ocean Imagineer**, a floating oyster hatchery with solar power, and subsequent floating-energy experiments. These establish experience with components and field prototypes—not validation of every element of a future integrated datacentre.[2](#ref-2) [4](#ref-4)
+The supplied presentation describes an international programme of trials in planning—including a European marine-science test site in preparation with **Cnam-Intechmer (Cherbourg, France)**—and a history of prototypes beginning in 2021. The public project repository documents antecedents including the **Ocean Imagineer**, a floating oyster hatchery with solar power, and subsequent floating-energy experiments. These establish experience with components and field prototypes, while the proposed trials test whether a floating micro-datacentre can have a neutral or positive effect on marine biodiversity, comparable to artificial reefs.[2](#ref-2) [4](#ref-4)
 
 ### What the next experiments need to establish
 
@@ -56,19 +71,19 @@ The supplied presentation describes an international programme of trials in plan
 
 Slide 9 identifies biological, chemical, and physical assessment; slide 10 illustrates temperature probes at different depths, weather measurements, and above- and below-water observation. Marine scientists would need to define the study design, indicators, comparison sites, duration, and interpretation. Local renewable generation is not “zero electricity use”; seawater cooling is not “zero environmental impact.”[4](#ref-4)
 
-![Conceptual illustration of a floating solar and computing experiment, reproduced from slides 4 and 10 of the supplied presentation. The embedded image metadata identifies it as AI-generated. It illustrates a proposed arrangement, not measured ecological conditions or a completed installation.](assets/marine-experiment-concept.jpg)
+![Conceptual diagram of the proposed marine monitoring setup (Slides 4 and 10), showing above- and below-water biodiversity cameras, weather sensors, and temperature probes at 10 cm to 2 m depths across shaded, unshaded, and under-server zones.](assets/marine-experiment-concept.jpg)
 
-**The marine-impact experiment is a central purpose of the proposed collaboration.** It requires complementary partners, not one institution doing everything. Ceibal's educational and technical participation could be designed alongside the scientific study, while marine specialists and site operators retain responsibility for their respective work.
+**The marine-impact experiment is a central purpose of the proposed collaboration.** It requires complementary partners, not one institution doing everything. Ceibal's educational and technical participation can be designed alongside the scientific study, while marine specialists and site operators retain responsibility for their respective domains.
 
-## 3. The civic-AI project: a node for a place
+## 3. The civic-AI project: giving voice to a place
 
-CommonsClaw proposes a network of small AI nodes associated with places: a school, garden, library, workshop, or neighbourhood. Rather than a private assistant for one person, a node helps a community explore **shared, locally relevant knowledge**.
+CommonsClaw proposes a network of small AI nodes associated with physical places: a school garden, a coastal observatory, a library, a technical workshop, or a neighbourhood plaza. Rather than acting as a private digital butler for one individual, each node is conceived as **"the spirit of the place"**—a design and pedagogical metaphor for an AI entity embodied in a specific environment that gives voice to local ecosystems, translates sensor telemetry into human narratives, and helps a community build shared knowledge and stewardship.[3](#ref-3) [16](#ref-16)
 
-Sensors supply observations; people contribute questions and notes; selected documents provide context. A local language model makes that material easier to discuss. The intended shared record remains inspectable and correctable by people. When more capability is needed, a node could consult an authorized shared host rather than automatically sending everything to a remote commercial service.
+Sensors supply continuous observations; students, residents, and researchers contribute questions and field notes; curated local documents provide context. A small language model running directly on the node makes that material conversational while keeping the underlying record inspectable and correctable by people. When a question exceeds local knowledge or compute capacity, the node can consult peer places or a shared neighbourhood host rather than routing every everyday interaction to a distant commercial cloud.
 
-This is a hierarchy of **knowledge and tasks**, not one large model split across a low-bandwidth radio network. The aim is useful local operation even when an upstream connection is unavailable.
+This is a hierarchy of **knowledge, skills, and energy-aware task delegation**, not one monolithic model split across a low-bandwidth radio link. Each node remains useful to its local community even when upstream connectivity is absent.
 
-![Local-node prototype hardware pictured in slide 5 of the supplied presentation. This photograph illustrates the project's small-device development direction; the software capabilities and limitations are established separately by the repository record.](assets/local-node-prototype.jpg){.node-photo}
+![Prototype local-node hardware (Slide 5), illustrating the compact, modular computing and power-monitoring setup used to develop and test local civic-AI nodes.](assets/local-node-prototype.jpg){.node-photo}
 
 ### What exists, and what is still development work
 
@@ -83,51 +98,51 @@ The first hierarchy—two place nodes exchanging approved information through a 
 
 ## 4. How Ceibal could participate: three complementary partner roles
 
-Slide 9 asks for **research and education partners to evaluate the impact of a floating data centre on the marine environment**. It identifies three practical requirements:[4](#ref-4)
+Slide 9 asks for **research and education partners to evaluate the impact of a floating data centre on the marine environment**, structured around three complementary roles:[4](#ref-4)
 
-| Partner role sought | Contribution described in the presentation |
-| --- | --- |
-| **1. Port authority / marina permission** | A suitable place in calm water to float the device, with permission and regular boat access for inspection and maintenance. Site arrangements and operating responsibilities must be agreed with the appropriate authority or operator. |
-| **2. Marine science institution** | **Biology:** effects on biodiversity, potentially using visual, acoustic, and environmental-DNA observations. **Chemistry:** dissolved oxygen, acidity, salinity. **Physics:** temperature and turbidity. The institution would help define and evaluate a scientifically credible monitoring programme. |
-| **3. Design & Engineering institution** | **Design:** public engagement, flotation materials, the physical platform, and digital interfaces. **Engineering:** computational systems, sensors, IoT, edge AI, and hierarchical AI. This is a direct connection between the floating experiment and CommonsClaw. |
+| Partner role sought | Contribution described in the presentation | Illustrative Uruguayan counterparts to explore |
+| --- | --- | --- |
+| **1. Port authority / marina permission** | A calm-water berth or mooring where the floating prototype can be stationed and regularly inspected and maintained by boat. | National or municipal port/marina authorities (**ANP**, **DNH – Ministerio de Transporte y Obras Públicas**, municipal marinas, or yacht/nautical clubs along the Río de la Plata or Atlantic coast). |
+| **2. Marine science institution** | **Biology:** biodiversity impacts (visual, acoustic, eDNA). **Chemistry:** dissolved oxygen, acidity, salinity. **Physics:** water temperature stratification and turbidity. | **CURE (Udelar)** in Maldonado/Rocha, **Facultad de Ciencias (Udelar)**, **IIBCE**, or **DINARA**. Uruguay's coast offers a natural gradient from the brackish **Río de la Plata** estuary to Atlantic marine waters. |
+| **3. Design & Engineering institution** | **Design:** public engagement, flotation materials, physical platform, digital interfaces. **Engineering:** compute, sensors, IoT, edge AI, and hierarchical civic AI (CommonsClaw). | **Ceibal** (EduIA Lab, Ceibal Sostenible, Pensamiento Computacional), **CETP-UTU** (electronics, renewable energy, IT, and naval/maritime vocational tracks), **UTEC**, and **FING (Udelar)**. |
+
+*Note: Institutional names above are illustrative examples for discussion; no prior commitment or endorsement is assumed.*
 
 ### Possible Ceibal contributions to discuss
 
-- **Co-design the educational programme:** connect teacher-led STEM activities to the research questions, with age-appropriate participation, learning materials, and evaluation.
-- **Contribute to design and engineering activities:** explore sensing, data interfaces, local AI, energy measurement, and suitable device reuse with its teams and participating educators or institutions. CommonsClaw offers a concrete software development and experimentation strand.
-- **Help connect the partner roles:** discuss whether Ceibal could facilitate introductions or joint working sessions with a port/marina, marine-science researchers, and design/engineering institutions.
-- **Make the research accessible:** develop ways for learners and communities to examine reviewed observations, understand uncertainty, and question AI-generated explanations—not only view a finished demonstrator.
+- **Co-design the STEM and AI-literacy programme:** connect teacher-led activities to the experiment's real research questions, with age-appropriate participation, curriculum materials, and evaluation through **EduIA Lab**.
+- **Lead the "Land–Water Twin" and circular-economy hardware track:** explore with **Ceibal Sostenible** and technical educators (for example in secondary schools or **CETP-UTU**) how retired tablets, laptops, or phones and micro:bit/ESP32 sensors can form land-based twin nodes that mirror the floating platform's telemetry schema.
+- **Help convene the Uruguayan partner triangle:** facilitate introductions or a joint scoping roundtable with marine-science researchers, design/engineering faculties, and port or marina authorities.
+- **Make scientific evidence and AI limits legible to learners:** create interfaces and classroom activities where students compare raw environmental measurements against local AI summaries, learning how sensors, energy budgets, and language models actually work.
 
-These are invitations, not assigned duties or commitments. **Ceibal would not be presumed to grant marine permissions, provide specialist ecological assessment, or operate the platform.** The first conversation should establish which role it wants and has the capacity to take.
+These are open possibilities, not assigned duties. **Ceibal would not be presumed to grant marine permissions, fund offshore construction from its education budget, or operate marine vessels.** The first conversation is to identify which parts of this ecosystem Ceibal wishes to shape.
 
-The potential value is shared: students gain learning and development opportunities; educators and researchers can develop teaching, research, publications, and international exchange; a participating city or port can investigate open technology and sustainable local capabilities. These are opportunities to explore, not guaranteed outcomes.
+The potential value is shared across the ecosystem (Slide 9): for **students**, hands-on learning across ecology, electronics, energy, and AI; for **teachers and researchers**, interdisciplinary research, publications, and international collaboration; and for a **participating city or port**, open-source innovation in sustainable infrastructure and local technical capacity.[4](#ref-4)
 
-### Existing foundations in Uruguay
+### Existing foundations in Uruguay: students are already building this
 
-- **AI education and evaluation:** EduIA Lab was presented in March 2025; Ceibal and ANEP expanded their teacher-facing AI offer in June 2026. This proposal would complement those initiatives by asking what learners gain from operating and examining AI infrastructure itself.[6](#ref-6) [7](#ref-7)
-- **Physical computing and STEM:** Ceibal's programmable-board resources connect electronics and computational thinking with project-based learning. Earlier Gluons work by Cassinelli and Daniel Saakes also explored spatially distributed physical computing and includes a published initial proposal/report for Ceibal.[8](#ref-8) [9](#ref-9)
-- **Repair and circular economy:** Ceibal has documented experience in device repair, component recovery, and recycling. This creates a relevant basis for investigating reuse—not evidence that equipment is available or suitable for this project.[10](#ref-10)
-- **A wider policy context:** Uruguay's National AI Strategy 2024–2030 addresses governance, capabilities, and sustainable development. Alignment offers a discussion framework, not endorsement or funding.[11](#ref-11)
+- **Student precedent in water & coastal sensing (Premio NODO):** At Uruguay's national **Premio NODO** (MEC + ANEP + Ceibal), students from **Liceo N.° 4 in Soriano** won a distinction for building a **Floating Monitoring Station** (*Estación de Monitoreo Flotante*) to measure water parameters, and **School N.° 268 in Montevideo** was recognized for automated beach-warning sensors. Rather than introducing an alien concept, this collaboration scales and connects what Uruguayan students and teachers are already pioneering—linking their water sensors to local AI nodes and international marine research (including potential data exchange with the **Cnam-Intechmer** site in France).[6](#ref-6) [20](#ref-20)
+- **AI education and regional leadership (EduIA Lab & IDB Hub):** Ceibal launched the regional **EduIA Lab** in March 2025, backed by an IDB technical cooperation (UR-T1361) consolidating it as a regional hub for responsible, people-centred AI in education, alongside Ceibal and ANEP's 2026 classroom tools (Gemini, NotebookLM, and PowerBuddy in CREA). CommonsClaw complements those cloud tools with a hands-on, local infrastructure layer.[6](#ref-6) [7](#ref-7)
+- **Existing innovation channels (Fondos NODO) & physical computing:** Ceibal's micro:bit and computational-thinking programmes already connect sensors, programming, and student inquiry, while **Fondos NODO** provide an established national mechanism for school- and student-led innovation projects. Earlier Gluons work by Cassinelli and Daniel Saakes also explored spatial physical computing with an initial proposal/report for Ceibal in 2015–2017.[8](#ref-8) [9](#ref-9) [20](#ref-20)
+- **Repair, circular economy, and 98% renewable electricity:** Ceibal Sostenible recovers and reuses or recycles over 75% of disused educational devices across repair centres nationwide, while Uruguay generated **98% of its electricity from renewable sources in 2025**. Together with Uruguay's National AI Strategy 2024–2030, this makes Uruguay a natural global reference for sustainable, locally governed AI.[10](#ref-10) [11](#ref-11) [20](#ref-20)
 
-**The educational bridge is concrete:** learners follow a question from the floating platform or another local observation site to an AI explanation—and back to the hardware, energy, evidence, and human decisions that made it possible.
+**The operational bridge between the two projects is the Land–Water Twin:** students and educators build land-based sensor-and-AI nodes (in a school garden, weather station, or coastal lab) using the same software and telemetry format as the floating platform, enabling direct comparison between land microclimates and marine data.
 
-## 5. Start small: build, measure, question, share
+## 5. Start small: the Land–Water Twin in practice
 
-Within the collaboration, an educational and CommonsClaw demonstrator could use **two school or community settings and one shared host**, linked to a jointly selected environmental question and the marine study where appropriate. This is an illustrative scale for discussion, not a substitute for the floating experiment or an allocation of sites or participants.
+Within the collaboration, the educational and CommonsClaw track can start with **two school or technical-education settings and one shared host**, linked to the floating platform's sensor protocol.
 
-### A possible learning sequence
+### A five-step learning and research sequence
 
-| Activity | What learners investigate | A tangible result |
+| Activity | What learners and educators investigate | A tangible result |
 | --- | --- | --- |
-| **Give equipment a second useful life** | Which retired device can safely act as a browser terminal, sensor gateway, or local-model host? What are its limits? | A tested device inventory and a working node assembled from suitable components. |
-| **Measure the place** | What do sensors actually measure? How do calibration, missing data, depth, or shading affect interpretation? | A documented observation record; for example, an educational investigation of the temperature measurements proposed for the floating experiment. |
-| **Question the AI** | Can its explanation be traced to the measurements? Can students identify an unsupported statement? | A teacher-reviewed account separating observations, interpretations, and uncertainty. |
-| **Measure the cost of computing** | How much electricity is used while idle and while answering? How does a smaller model or different device change the result? | An energy-and-reuse comparison, not an assumed “green” label. |
-| **Build shared knowledge** | What should another place know, and what should remain local? Who can approve, correct, or delete a contribution? | Two approved local reports and a cross-place comparison through the shared host. |
+| **1. Give equipment a second useful life** | Which retired Ceibal tablet, laptop, or phone can safely serve as a browser terminal, sensor gateway, or local-model host? | A benchmarked hardware triage matrix and a working node built from reused and low-cost components. |
+| **2. Instrument the place (Land–Water Twin)** | What do temperature, light, water, and power sensors actually measure? How do depth, shading, calibration, and missing data affect readings? | A calibrated land node (e.g., school garden or coastal lab) sharing the exact data schema of the floating platform's depth and weather probes. |
+| **3. Talk with "the spirit of the place"—and verify it** | Can the local AI's conversational summary be traced to the underlying sensor log? Can students catch an unsupported claim? | A teacher-reviewed place journal separating raw measurements, community notes, and AI interpretation. |
+| **4. Measure the energy cost of intelligence** | How many watt-hours does the node use while idle, logging, or answering a question? How much solar area and battery storage does that require? | A real energy budget comparing model sizes and hardware tiers—replacing abstract "green AI" claims with measured watts. |
+| **5. Connect places and govern shared memory** | What local reports should be shared with another school or compared with the floating platform, and what stays local? | Two approved local narratives and a cross-site comparison (e.g., shaded vs. exposed temperature curves on land and in water). |
 
-Laboratory and land-based activities can prepare equipment, interfaces, and teaching materials while the marine partners establish permissions and protocols. A professionally supervised small solar setup could support the energy activity. This is preparatory work within the joint programme, not a reason to defer defining the marine collaboration.
-
-The partners should plan from the outset how reviewed observations from the floating experiment will feed learning activities. Participation need not require learners to go offshore: data analysis, interface design, local-node development, and public engagement can take place on land. These activities complement, rather than substitute for, scientific ecological assessment.
+Laboratory and school-based activities can begin immediately—preparing sensors, testing retired devices, and building educational interfaces—while marine-science and port partners establish the calm-water berth and ecological baseline. Participation never requires students to work offshore: all hardware assembly, data analysis, and AI interaction take place safely in classrooms, workshops, or dockside visits.
 
 ### Circular economy is a research question, too
 
@@ -188,11 +203,21 @@ Local interaction can use Wi-Fi or Ethernet. Larger transfers and inter-site coo
 
 Antel documents IoT expertise and an R&D kit with LoRa and NB-IoT modules. Separately, a 2022 supplier announcement describes a private LoRaWAN network planned for Montevideo's streetlighting, including provision for third-party services. These are useful leads to investigate; current coverage, permission, tariffs, equipment compatibility, and data-hosting arrangements still need confirmation. Neither establishes access for this proposal or national coverage.[14](#ref-14)
 
+### Indicative division of contributions ("who brings what")
+
+To be clear from the outset, **Ceibal is not being asked to fund offshore marine hardware out of its educational budget.** A balanced partnership can combine international R&D assets with existing Uruguayan educational and scientific channels:
+
+| International project team (Cassinelli, Harada & international network) | Uruguayan partner ecosystem (Ceibal & local counterparts to explore) |
+| --- | --- |
+| **Floating Solar Data Centre IP & prototypes:** engineering lineage from sea trials (2021–2026) and sister scientific test protocol with **Cnam-Intechmer (France)**. | **Pedagogical co-design & school channels:** selecting pilot schools/clubs, teacher training, and alignment with **EduIA Lab / Hub** and **Fondos NODO**. |
+| **CommonsClaw open-source stack & technical lead:** local LLM node software, sensor harness, shared memory architecture, and reference node kits. | **Circular-economy hardware triage:** testing candidate retired tablets/laptops/phones and battery-safety protocols with **Ceibal Sostenible** and **CETP-UTU**. |
+| **International funding & research mobilisation:** co-authoring international ocean-impact, climate, and civic-AI grant proposals and joint publications. | **National ecosystem convening:** connecting a **marine-science lead** (e.g., CURE / Facultad de Ciencias), a **calm-water port/marina**, and national innovation instruments (e.g., **ANII**). |
+
 ### The budget conversation
 
-There is no verified inventory or supplier quotation supporting a monetary total. Cost **engineering; educator preparation and release time; equipment and spares; installation/travel; connectivity; evaluation; and recurring support/replacement** separately. Cost any marine study separately as well.
+There is no verified inventory or supplier quotation supporting a monetary total yet. Cost **engineering; educator preparation and release time; equipment and spares; installation/travel; connectivity; evaluation; and recurring support/replacement** separately, and cost the marine study on its own research track.
 
-Compare reuse with new equipment on total operating cost and useful life. A donated device is not automatically free to support; locally generated electricity does not remove capital or maintenance costs.
+Compare device reuse with new off-the-shelf hardware (such as a Raspberry Pi 5 or modular ESP32 kits like Espressif's ESP-Mosaico) on total operating cost, safety, and useful life. A donated device is not automatically free to support; locally generated electricity does not remove capital or maintenance costs.
 
 ## 8. What would count as success?
 
@@ -235,30 +260,35 @@ The manifesto proposes a “geographically distributed mixture of experts”: di
 
 | Level | Role in the proposed network | Illustrative equipment and output |
 | --- | --- | --- |
-| **0 — Sensing and embedded AIoT** | Record signals; optionally filter, classify, or detect events locally. | Sensors, microcontrollers, or logger processes; timestamped readings or a narrowly defined event. Not every device needs a language model. |
-| **1 — The place node, or “kami”** | Combine local observations and selected knowledge; converse with people; maintain the place's shared record. | The current Pi-class prototype, or a suitably tested alternative; answers grounded in local material. |
-| **2 — The neighbourhood/shared node** | Compare several places, consolidate approved reports, and provide capabilities that an individual node cannot adequately host. | A school, library, cooperative, or institutional host; cross-place synthesis and shared retrieval services. Hardware follows measured workloads, not a fixed GPU prescription. |
+| **0 — Sensing and embedded AIoT** | Record signals; optionally filter, classify, or detect events locally. | Sensors, microcontrollers (e.g., micro:bit, ESP32 / ESP-Mosaico), or logger processes; timestamped readings or defined events. Not every device needs a language model. |
+| **1 — The place node ("spirit of the place")** | Give a conversational voice to one specific environment; combine local observations, selected documents, and community notes; maintain the place's inspectable record. | The current Pi 5 prototype, or a suitably tested alternative (including candidate reused devices); answers grounded in local material. |
+| **2 — The neighbourhood/shared node** | Compare several places, consolidate approved reports, cache recurring knowledge and skills, and provide capabilities that an individual node cannot host alone. | A school, library, cooperative, or institutional host; cross-place synthesis and shared retrieval services. Hardware follows measured workloads, not a fixed GPU prescription. |
 | **3+ — Wider institutional services** | Address questions requiring a broader geographic scope, specialist knowledge, or greater computing capability. | Municipal, national, specialist, and—when explicitly chosen—global services. Escalation is conditional, not the default destination of every interaction. |
 
 This follows the current project documentation: **Level 2 is the first tier spanning several places**; older draft numbering varies. A floating platform is a possible physical host, not a level in itself. Its role depends on the model, knowledge, and services it can support.[16](#ref-16)
 
-![Proposed CommonsClaw node hierarchy. People interact with place nodes; sensor and AIoT devices supply local observations. Place nodes may consult peers or a shared neighbourhood node, and wider services only when needed and permitted. The discovery directory is a proposed knowledge-routing function. The diagram does not represent a deployed network.](assets/commonsclaw-node-hierarchy.svg){.technical-diagram}
+![Proposed CommonsClaw node hierarchy. People interact with place nodes—each acting as the embodied voice or "spirit" of its place—while sensor and AIoT devices supply local observations. Place nodes consult peers or a shared neighbourhood node, and wider services only when needed and permitted. A collective "second brain" mesh coordinates knowledge discovery, skill specialization, adaptive caching, and energy-aware load balancing.](assets/commonsclaw-node-hierarchy.svg){.technical-diagram}
 
 **People are participants and stewards, not another hardware tier.** Teachers, learners, residents, researchers, and maintainers can ask questions, contribute observations, challenge interpretations, and decide what enters shared memory. A phone may be only an interface; becoming a compute node requires separate compatibility and operating tests.
 
-### A3. “DNS for AI”: finding who knows, before choosing a bigger model
+<a id="appendix-second-brain"></a>
 
-The draft architecture uses “DNS/RAG/whoknowwhat” to describe a discovery and knowledge-sharing idea. Ordinary DNS resolves names into network information; the analogy here is a directory that helps answer **“which node has relevant knowledge or a useful capability, and under what access conditions?”** It is not a claim that DNS itself understands questions.[16](#ref-16)
+### A3. Beyond "DNS for AI": a collective "second brain" for knowledge, skills, compute, and energy
 
-Three functions should remain distinct:
+Early project notes used the shorthand *"DNS for AI"* to describe how a node finds out who knows what across the network. While useful as a first intuition, **a traditional DNS metaphor is too narrow**: classic DNS is a static phonebook that maps a name to an address. Knowing *where data sits* is only one dimension of a living civic network.
 
-- **Discovery:** locate a relevant place or service. A future directory could describe its subject, geographic or temporal scope, endpoint, freshness, and access conditions without publishing the underlying records.
-- **Retrieval:** obtain permitted observations or documents. Retrieval-augmented generation (**RAG**) means supplying that material as context to a model; it does not necessarily mean training a new model.
-- **Routing:** decide whether the current node, a peer, or a higher tier should perform the task. Missing knowledge and insufficient model capability are different problems.
+What CommonsClaw actually proposes is a **collective "second brain" and resource mesh** that coordinates four intertwined dynamics—staying as local as possible and reaching outward only when necessary, while simultaneously acting as a **service provider and a diagnostic probe**:[16](#ref-16)
 
-For example, a question about water temperature at the floating site should first use that site's observations. A comparison with a nearby site might require an authorized peer query. Comparing several sites over time could call for the Level-2 host. A larger model still cannot establish an ecological effect from inadequate measurements.
+1. **Epistemic Discovery ("Who knows what, and where?"):** When a question cannot be answered from a node's own sensors and memory, discovery locates which peer place or higher tier holds relevant ground-truth observations or verified domain knowledge (for example, connecting a school garden node with a nearby coastal station or agricultural school), together with its freshness and access terms.
+2. **Compute and Energy Load-Balancing ("Where can this request be handled right now?"):** Unlike static directories, civic nodes run on heterogeneous hardware and local, time-varying renewable energy (such as solar panels and batteries). Routing weighs not only where data lives, but **where surplus solar power and idle compute capacity are currently available**—deferring or shifting heavier summarization and inference to a sunlit node, a floating solar host, or a mains-powered school server rather than draining a low-battery field node.
+3. **Adaptive Knowledge Caching & Reinforcement ("Strengthening local memory through use"):** When a community or classroom repeatedly asks about a subject—or fetches external context—the distilled answers and supporting documents are **cached and reinforced locally**. Frequently used knowledge settles close to the people who need it (much like synaptic reinforcement in a shared second brain), progressively enriching the local database and cutting future network and energy costs.
+4. **Concentration of Skills & Specialized Capabilities ("Where expertise crystallizes"):** Nodes accumulate not only passive text, but **reusable skills, analytical routines, and specialized tools** shaped by recurring local demands (for example, calibrating a turbidity probe, interpreting estuarine salinity shifts, or advising on local crops). Over time, each node develops distinct practical expertise—forming a genuine **geographically distributed mixture of experts**.
 
-Discovery metadata, identity, authorization, stale records, caching, and revocation remain **design work**. The directory need not be a single global authority; its distribution and governance must be decided. Finding a node does not grant permission to read it, and a summary is not automatically anonymous.
+#### Reading the index in reverse: an empirical tool for public policy
+
+Because this architecture grows from the bottom up, **analyzing the network's discovery and routing patterns in reverse becomes a high-value civic instrument.** Tracing what a locality asks for—and where local nodes repeatedly fail to find knowledge, skills, or compute capacity—exposes both oversized, unnecessary deployments and real regional gaps.
+
+Anonymized, aggregate reports on the unequal distribution of knowledge, technical skills, or computing resources across neighbourhoods and regions can directly inform **democratic and public-policy decisions**: where to decentralize or centralize infrastructure, where to launch new educational or vocational programmes, and where to target public grants, subsidies, or local job creation.[16](#ref-16)
 
 ### A4. Inside one node: the existing mechanism and its next step
 
@@ -276,6 +306,26 @@ The intended memory ladder is **readings → local reports → a reviewed accoun
 Two place nodes and one shared host are enough to test the essential questions: can an answer cite its local evidence; can an approved report be compared across places; can a transfer be refused or revoked; and does useful local operation survive disconnection? LoRa can carry small observations, while richer inter-node exchanges use appropriate IP connectivity.
 
 The pilot need not implement a nationwide discovery service, train a new foundation model, or automate consequential decisions. Its purpose is to establish the smallest useful, governable connection between **people, observations, local models, and shared knowledge**.
+
+### A6. Why now: an exploding field of local AI—and how CommonsClaw compares with OpenClaw
+
+Three years ago, running a conversational language model, voice transcription, and persistent agent memory on a solar-powered board or a repurposed tablet was impractical. Today, **local and edge AI is one of the fastest-moving frontiers in computing**, making this proposal timely and technically realistic:[21](#ref-21)
+
+- **Compact, capable open-weight models:** Models in the 0.3B–3.8B parameter range—including **Gemma 3 270M** (Google DeepMind), **Llama 3.2 1B** (Meta), **SmolLM2 1.7B** (Hugging Face), **Qwen2.5 0.5B/1.5B**, and **Phi-3.5** (Microsoft)—deliver strong instruction-following and summarization within a few gigabytes of RAM.
+- **Commodity edge runtimes & modular hardware:** C/C++ inference engines (**llama.cpp**, **Ollama**) run quantized models on ARM boards (Raspberry Pi 5) and repurposed Android devices, while modular microcontroller platforms (such as **Espressif's ESP-Mosaico** and ESP32-S3/C6) let students and coding agents build sensor-and-edge nodes from inexpensive off-the-shelf parts.
+- **Cascaded and frugal routing:** Research such as **FrugalGPT** (Stanford), **RouteLLM** (UC Berkeley/LMSYS), and **Hybrid LLM** demonstrates that answering routine queries on small models and escalating only hard queries cuts inference cost and energy dramatically without sacrificing quality— confirmed quantitatively by **Power Hungry Processing** (Luccioni et al.) and tracked by tools like **CodeCarbon** and the **AI Energy Score**.
+- **Local voice, agent memory, and open protocols:** Open voice stacks (**Home Assistant's "Year of the Voice"**, **Wyoming**, **Piper TTS**, **openWakeWord**, **faster-whisper**), hierarchical file-based agent memory (**MemGPT / Letta**), and interoperability standards (**Model Context Protocol / MCP**, **Agent2Agent / A2A**, **AGENTS.md**, and cryptographic agent workspaces such as Block's **Buzz**) provide ready-to-use building blocks, alongside decades of community-network governance from **guifi.net**, **NYC Mesh**, **Meshtastic**, and Berkeley's pioneering **Community Memory** project (1973).
+
+#### CommonsClaw vs. OpenClaw: a commons, not a personal butler
+
+Within this wave, **OpenClaw** (`openclaw/openclaw`) has emerged as the flagship open-source personal AI assistant: it runs on a user's own hardware, keeps Markdown memory files locally, performs nightly "dreaming" memory consolidation with deterministic score gates, and connects to personal chat channels. CommonsClaw deliberately borrows OpenClaw's best file-memory mechanics—while **inverting its topology and civic purpose**:[21](#ref-21)
+
+| Dimension | OpenClaw (Personal AI Gateway) | CommonsClaw (Hierarchical Civic AI) |
+| --- | --- | --- |
+| **Whose memory and identity?** | **One individual user:** a private personal diary and assistant across WhatsApp, Telegram, or Slack; group sessions are excluded from durable memory. | **A place and its community:** shared, plural authorship where everyone interacting with the node contributes to one evolving local memory. |
+| **Relationship to the physical world** | **Channel-first:** follows a person across digital messaging apps. | **Embodiment-first ("spirit of the place"):** anchored to a specific garden, school, park, or coastal platform; its sensors are its body. |
+| **Topology** | **Flat:** one personal agent + plugins in a single trust domain. | **Federated hierarchy (Levels 0 → 1 → 2 → 3+):** each tier summarizes at its own scale and negotiates permissions across community boundaries. |
+| **Core unsolved problem** | Personal productivity and tool orchestration for one owner. | **Civic governance:** whose voice counts in a shared memory, how a commons resists capture by its loudest visitor, and how communities share compute, energy, and knowledge. |
 
 <a id="appendix-floating"></a>
 
@@ -354,7 +404,7 @@ Public institutional and technical references were checked on 10–11 November 2
 **3. CommonsClaw origins.** [Credits and Project History](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/CREDITS.md), pinned to reviewed revision `17baa3f`. Project-authored account.
 
 <a id="ref-4"></a>
-**4. Supplied presentation and images.** *20261111 Floating Solar Data Centre - Alvaro Copy for Ceibal*, version 11 November 2026, attributed on its title slide to Alvaro Cassinelli and Cesar Harada. **Slide 9 is the source of the three-part research-and-education partnership request; slide 10 illustrates the proposed monitoring setup.** Slides 1 and 5 provide the photographs used here; slides 4 and 10 contain the marine concept illustration. The illustration's embedded metadata identifies it as AI-generated. The relationship, node-hierarchy, and physical-flow diagrams were drawn for this report. The source PowerPoint is retained alongside the Markdown; it is not embedded in the standalone HTML. Image reuse here does not establish a separate open-image licence.
+**4. Supplied presentation and images.** *20261111 Floating Solar Data Centre - Alvaro Copy for Ceibal*, version 11 November 2026, by Alvaro Cassinelli and Cesar Harada. **Slide 9 defines the three-part research-and-education partnership request; slide 10 illustrates the proposed temperature, weather, and biodiversity monitoring setup.** Slides 1 and 5 provide the prototype photographs; slides 4 and 10 provide the conceptual marine monitoring diagram; the architecture and flow diagrams were drawn for this report.
 
 <a id="ref-5"></a>
 **5. Prototype status.** CommonsClaw [Plan of Record](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/PLAN.md), [roadmap](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/docs/07-roadmap.md), [voice status](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/docs/03-interaction-and-voice.md), and [simulated solar logger](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/loggers/sensor_solarpower.py). Evidence of current implementation and unfinished acceptance criteria, not production readiness.
@@ -400,3 +450,9 @@ Public institutional and technical references were checked on 10–11 November 2
 
 <a id="ref-19"></a>
 **19. Lifecycle and circularity.** UN Trade and Development (UNCTAD), [Digital Economy Report 2024: Shaping an environmentally sustainable and inclusive digital future](https://unctad.org/publication/digital-economy-report-2024). Broader digital-economy evidence, not a lifecycle assessment of either proposed project.
+
+<a id="ref-20"></a>
+**20. Uruguayan student precedents, regional hub, and renewable matrix.** Presidency of Uruguay, [Premio NODO recognition including Liceo N.° 4 (Soriano) "Floating Monitoring Station" and School N.° 268 (Montevideo) beach-warning sensors](https://www.gub.uy/presidencia/comunicacion/noticias/comunidades-educativas-todo-pais-fueron-reconocidas-sus-proyectos-innovadores); Inter-American Development Bank (IDB), [UR-T1361: Consolidating the Regional AI-in-Education Hub (EduIA Hub)](https://www.iadb.org/es/proyecto/UR-T1361); Ministry of Industry, Energy and Mining (MIEM), [Uruguay maintains 98% renewable electricity generation](https://www.gub.uy/ministerio-industria-energia-mineria/comunicacion/noticias/uruguay-mantiene-su-alta-renovabilidad-generacion-electrica); and Cnam-Intechmer (Cherbourg), [Institut national des sciences et techniques de la mer](https://www.intechmer.cnam.fr/).
+
+<a id="ref-21"></a>
+**21. Local/edge AI ecosystem and OpenClaw comparison.** CommonsClaw, [Verified References](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/REFERENCES.md) and [CommonsClaw vs OpenClaw](https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/COMMONSCLAW_VS_OPENCLAW.md), citing: [OpenClaw](https://github.com/openclaw/openclaw); [FrugalGPT](https://arxiv.org/abs/2305.05176) (Chen et al., 2023); [Hybrid LLM](https://arxiv.org/abs/2404.14618) (Ding et al., 2024); [Gemma 3 270M](https://developers.googleblog.com/en/introducing-gemma-3-270m/); [Llama 3.2 1B](https://huggingface.co/meta-llama/Llama-3.2-1B); [SmolLM2](https://arxiv.org/abs/2502.02737); [Phi-3 / 3.5](https://arxiv.org/abs/2404.14219); [Qwen2.5](https://arxiv.org/abs/2412.15115); [llama.cpp](https://github.com/ggml-org/llama.cpp); [Ollama](https://github.com/ollama/ollama); [Espressif ESP-Mosaico](https://www.espressif.com/en/news/ESP_Mosaico_Release); [MemGPT](https://arxiv.org/abs/2310.08560) & [Letta Context Repositories](https://www.letta.com/); [Model Context Protocol (MCP)](https://modelcontextprotocol.io/); [Agent2Agent (A2A)](https://a2a-protocol.org/); [AGENTS.md](https://agents.md/); [Block Buzz](https://block.xyz/inside/introducing-buzz-where-humans-and-agents-work-together); [guifi.net](https://doi.org/10.1016/j.comnet.2015.07.009) (Baig et al., 2015); [NYC Mesh](https://www.nycmesh.net/); [Power Hungry Processing](https://arxiv.org/abs/2311.16863) (Luccioni et al., 2024); [AI Energy Score](https://huggingface.co/AIEnergyScore); and [CodeCarbon](https://codecarbon.io/).
