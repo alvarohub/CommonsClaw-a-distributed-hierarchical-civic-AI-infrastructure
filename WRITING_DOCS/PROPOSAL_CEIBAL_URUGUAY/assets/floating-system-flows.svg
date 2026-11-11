@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="technical-diagram" width="1100" height="760" viewBox="0 0 1100 760" role="img" aria-labelledby="floating-flow-title floating-flow-desc">
+  <title id="floating-flow-title">Floating datacentre: electricity, heat, and information</title>
+  <desc id="floating-flow-desc">A conceptual photovoltaic source feeds power management and storage or backup, which supplies computing and communications. A designed cooling interface transfers heat from computing to the surroundings. Environmental sensors produce data for local computing and for scientific review and educational use. Flotation, mooring, operations, and any optional hydrogen or water-service integrations require separate design and assessment.</desc>
+  <defs>
+    <marker id="floating-power" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#a14d12" stroke-width="1.5"/></marker>
+    <marker id="floating-heat" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#b34436" stroke-width="1.5"/></marker>
+    <marker id="floating-data" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#09665f" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="1100" height="760" rx="18" fill="#f0f5f3"/>
+  <g font-family="Arial, sans-serif" fill="#20383f">
+    <text x="35" y="43" font-size="26" font-weight="700">One physical system, three different kinds of flow</text>
+    <text x="35" y="75" font-size="18" fill="#52676c">Conceptual interfaces to design and test. No capacities or performance are implied.</text>
+    <rect x="35" y="108" width="290" height="100" rx="10" fill="#fff2db"/>
+    <rect x="405" y="108" width="290" height="100" rx="10" fill="#fff2db"/>
+    <rect x="775" y="108" width="290" height="100" rx="10" fill="#d9eae4"/>
+    <text x="180" y="142" text-anchor="middle" font-size="22" font-weight="700">Photovoltaic generation</text>
+    <text x="180" y="171" text-anchor="middle" font-size="18">Variable local energy supply</text>
+    <text x="550" y="142" text-anchor="middle" font-size="22" font-weight="700">Power management</text>
+    <text x="550" y="170" text-anchor="middle" font-size="18">Protection, conversion, metering</text>
+    <text x="550" y="194" text-anchor="middle" font-size="17">Storage / backup as designed</text>
+    <text x="920" y="142" text-anchor="middle" font-size="22" font-weight="700">Computing + connection</text>
+    <text x="920" y="171" text-anchor="middle" font-size="18">May host a CommonsClaw node</text>
+    <path d="M335 155 H393 M705 155 H763" stroke="#a14d12" stroke-width="3" marker-end="url(#floating-power)"/>
+    <text x="366" y="133" text-anchor="middle" font-size="16" fill="#a14d12">power</text>
+    <text x="735" y="133" text-anchor="middle" font-size="16" fill="#a14d12">power</text>
+    <rect x="35" y="247" width="660" height="76" rx="10" fill="#fff" stroke="#c7d8d3"/>
+    <text x="55" y="278" font-size="21" font-weight="700">Physical support and access</text>
+    <text x="55" y="304" font-size="18">Flotation, mooring, enclosure, connections, inspection and maintenance</text>
+    <rect x="775" y="300" width="290" height="90" rx="10" fill="#f8e5df"/>
+    <text x="920" y="336" text-anchor="middle" font-size="22" font-weight="700">Designed cooling interface</text>
+    <text x="920" y="365" text-anchor="middle" font-size="18">Transfer, not elimination of heat</text>
+    <path d="M920 220 V287" stroke="#b34436" stroke-width="3" marker-end="url(#floating-heat)"/>
+    <text x="937" y="257" font-size="17" fill="#b34436">heat</text>
+    <rect x="405" y="369" width="290" height="100" rx="10" fill="#e4ebed"/>
+    <text x="550" y="403" text-anchor="middle" font-size="20" font-weight="700">Environmental observations</text>
+    <text x="550" y="432" text-anchor="middle" font-size="18">Biology / chemistry / physics</text>
+    <text x="550" y="456" text-anchor="middle" font-size="17">Energy, weather and operating state</text>
+    <rect x="35" y="369" width="290" height="100" rx="10" fill="#d9eae4"/>
+    <text x="180" y="403" text-anchor="middle" font-size="22" font-weight="700">Scientific review</text>
+    <text x="180" y="432" text-anchor="middle" font-size="18">Approved evidence for education</text>
+    <text x="180" y="456" text-anchor="middle" font-size="17">Not automatic AI validation</text>
+    <path d="M395 414 H337" stroke="#09665f" stroke-width="2.5" marker-end="url(#floating-data)"/>
+    <text x="366" y="393" text-anchor="middle" font-size="16" fill="#09665f">data</text>
+    <path d="M705 418 H730 V228 H805 V217" fill="none" stroke="#09665f" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#floating-data)"/>
+    <rect x="775" y="508" width="290" height="110" rx="10" fill="#dcecf3"/>
+    <text x="920" y="543" text-anchor="middle" font-size="22" font-weight="700">Marine surroundings</text>
+    <text x="920" y="572" text-anchor="middle" font-size="18">Water movement, shading, habitat</text>
+    <text x="920" y="599" text-anchor="middle" font-size="16">Effects require comparison and study</text>
+    <path d="M920 402 V496" stroke="#b34436" stroke-width="3" marker-end="url(#floating-heat)"/>
+    <text x="938" y="451" font-size="17" fill="#b34436">heat</text>
+    <path d="M765 559 H550 V480" fill="none" stroke="#09665f" stroke-width="2.5" marker-end="url(#floating-data)"/>
+    <text x="565" y="543" font-size="17" fill="#09665f">measurements</text>
+    <rect x="35" y="507" width="405" height="118" rx="10" fill="#fff" stroke="#c7d8d3"/>
+    <text x="55" y="538" font-size="21" font-weight="700">Wider integrations: optional</text>
+    <text x="55" y="567" font-size="18">Hydrogen, water services, aquaculture, etc.</text>
+    <text x="55" y="594" font-size="18">Not all required for the first experiment.</text>
+    <rect x="35" y="665" width="1030" height="60" rx="9" fill="#153f46"/>
+    <text x="55" y="702" font-size="19" fill="#fff">Orange: electricity</text>
+    <text x="285" y="702" font-size="19" fill="#fff">Red: heat</text>
+    <text x="445" y="702" font-size="19" fill="#fff">Teal: information</text>
+    <text x="680" y="702" font-size="18" fill="#e1efeb">Every arrow represents an interface to validate.</text>
+  </g>
+</svg>

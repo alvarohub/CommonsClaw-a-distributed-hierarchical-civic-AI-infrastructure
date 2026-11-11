@@ -1,0 +1,75 @@
+name: Deploy Ceibal Proposal to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "WRITING_DOCS/PROPOSAL_CEIBAL_URUGUAY/**"
+      - "docs/CEIBAL_EXECUTIVE_BRIEF.md"
+      - "docs/CEIBAL_EXECUTIVE_BRIEF.html"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Proposal HTML from Markdown
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/_site"
+          cd WRITING_DOCS/PROPOSAL_CEIBAL_URUGUAY
+          if pandoc --help | grep -q -- '--embed-resources'; then
+            EMBED_FLAG="--embed-resources"
+          else
+            EMBED_FLAG="--self-contained"
+          fi
+          pandoc CEIBAL_JOINT_PROPOSAL.md \
+            --from=markdown \
+            --to=html5 \
+            --standalone \
+            --toc \
+            --toc-depth=2 \
+            --metadata pagetitle="From local energy to civic AI | Ceibal" \
+            --template=assets/report-template.html \
+            --css=assets/proposal.css \
+            "$EMBED_FLAG" \
+            --output="$GITHUB_WORKSPACE/_site/index.html"
+          cp "$GITHUB_WORKSPACE/_site/index.html" "$GITHUB_WORKSPACE/_site/CEIBAL_JOINT_PROPOSAL.html"
+          cp "$GITHUB_WORKSPACE/docs/CEIBAL_EXECUTIVE_BRIEF.html" "$GITHUB_WORKSPACE/_site/CEIBAL_EXECUTIVE_BRIEF.html"
+          touch "$GITHUB_WORKSPACE/_site/.nojekyll"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

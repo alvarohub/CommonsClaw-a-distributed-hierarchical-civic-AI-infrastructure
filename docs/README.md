@@ -8,6 +8,16 @@ Tokyo. Reference hardware: Raspberry Pi 5 today, Jetson Orin next.
 
 ## How to read this
 
+For an institutional discussion rather than a technical introduction, see the
+[illustrated joint proposal for Ceibal](../WRITING_DOCS/PROPOSAL_CEIBAL_URUGUAY/CEIBAL_JOINT_PROPOSAL.md)
+or its [standalone, printable HTML edition](../WRITING_DOCS/PROPOSAL_CEIBAL_URUGUAY/CEIBAL_JOINT_PROPOSAL.html).
+It connects Floating Solar Data Centres and CommonsClaw through a proposed
+marine-impact research and education collaboration, identifying port/marina,
+marine-science, and design/engineering partner roles and possible Ceibal
+contributions in STEM, local energy, device reuse, and civic AI.
+The original CommonsClaw-only [executive brief](CEIBAL_EXECUTIVE_BRIEF.md) and
+[HTML edition](CEIBAL_EXECUTIVE_BRIEF.html) are preserved as background.
+
 | Chapter                                                    | What it is                                                                                          |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | [01-vision.md](01-vision.md)                               | **What CommonsClaw is** — the people's AI network: the levels, the narrative                        |

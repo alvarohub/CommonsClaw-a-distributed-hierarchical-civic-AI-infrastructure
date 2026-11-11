@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A discussion brief for Ceibal: CommonsClaw's local civic AI vision, prototype evidence, development needs, and a possible educational experiment in Uruguay.">
+<title>CommonsClaw | Discussion brief for Ceibal</title>
+<style>
+:root { color-scheme: light; --ink: #203239; --muted: #52646b; --accent: #06665d; --line: #cbd9d5; --paper: #fff; --wash: #eff5f2; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+body { margin: 0; color: var(--ink); background: var(--wash); font: 17px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+a { color: var(--accent); text-underline-offset: .18em; overflow-wrap: anywhere; }
+a:hover { color: #003e38; }
+a:focus-visible { outline: 3px solid #a34a10; outline-offset: 4px; }
+.skip { position: absolute; top: -5rem; left: 1rem; padding: .6rem 1rem; background: white; }
+.skip:focus { top: 1rem; }
+.masthead { max-width: 1280px; margin: auto; padding: 2rem 3rem 1.2rem; display: flex; justify-content: space-between; gap: 1rem; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.masthead span:last-child { color: var(--muted); }
+.layout { max-width: 1280px; margin: 0 auto 4rem; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 2rem; padding: 0 3rem; align-items: start; }
+nav { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow: auto; font-size: .81rem; line-height: 1.5; padding-top: 1rem; }
+nav h2 { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 1rem; color: var(--muted); }
+nav ul { list-style: none; margin: 0; padding: 0; }
+nav ul ul { padding-left: .5rem; }
+nav li { margin: .55rem 0; }
+nav a { text-decoration: none; }
+main { min-width: 0; padding: 3rem; background: var(--paper); border-top: 5px solid var(--accent); box-shadow: 0 8px 35px #2032390a; }
+h1, h2, h3 { line-height: 1.2; text-wrap: balance; }
+h1 { font-size: clamp(2.4rem, 5vw, 3.8rem); letter-spacing: -.05em; margin: 0 0 1rem; }
+h2 { font-size: 1.45rem; margin: 2.5rem 0 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+h1 + h2 { border: 0; padding: 0; margin: 0 0 1.2rem; font-size: 1.5rem; color: var(--accent); font-weight: 500; }
+h3 { font-size: 1.08rem; margin-top: 1.8rem; }
+p { margin: 0 0 1.05rem; }
+blockquote { margin: 1.8rem 0; padding: 1.4rem 1.5rem; border-left: 4px solid var(--accent); background: var(--wash); }
+blockquote p:last-child { margin: 0; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 1.2rem 0 1.6rem; font-size: .86rem; line-height: 1.55; }
+th, td { padding: .85rem .75rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); overflow-wrap: break-word; }
+th { background: var(--wash); font-weight: 700; }
+tbody tr:nth-child(even) { background: #f8faf9; }
+table p { margin: 0; }
+ul, ol { padding-left: 1.4rem; }
+li { margin-bottom: .65rem; }
+sup { line-height: 0; font-size: .72em; }
+.footnotes { font-size: .8rem; color: var(--muted); }
+.footnotes ol { padding-left: 1.7rem; }
+.footnotes p { margin-bottom: .6rem; }
+.footnotes li { padding-left: .2rem; margin-bottom: 1rem; }
+footer { max-width: 1280px; margin: auto; padding: 0 3rem 2rem; font-size: .8rem; color: var(--muted); }
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: 1fr; gap: 1rem; padding: 0 1.5rem; }
+  nav { position: static; max-height: none; padding: 0; }
+  nav > ul > li > ul { display: flex; flex-wrap: wrap; gap: .3rem 1rem; }
+  nav li { margin: .3rem 0; }
+  main { padding: 2rem; }
+  .masthead { padding: 1.5rem; }
+}
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .layout { padding: 0 .6rem; }
+  main { padding: 1.4rem 1rem; }
+  .masthead { padding: 1.2rem; flex-direction: column; gap: .25rem; }
+  nav { padding: .3rem .6rem; }
+  table { table-layout: auto; font-size: .78rem; }
+  th, td { padding: .6rem .4rem; }
+  blockquote { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@page { size: A4; margin: 17mm; }
+@media print {
+  body { background: white; font-size: 10pt; line-height: 1.45; }
+  .skip, nav, .masthead, footer { display: none; }
+  .layout { display: block; margin: 0; padding: 0; max-width: none; }
+  main { padding: 0; box-shadow: none; border: 0; }
+  h1 { font-size: 30pt; }
+  h2 { font-size: 15pt; margin-top: 1.6rem; }
+  h3 { font-size: 11pt; }
+  h1, h2, h3 { break-after: avoid; }
+  table { font-size: 8.5pt; table-layout: auto; }
+  thead { display: table-header-group; }
+  tr, blockquote { break-inside: avoid; }
+  th, td { padding: .5rem; }
+  p, li { orphans: 3; widows: 3; }
+  a { color: #154e48; }
+  .footnotes { font-size: 8pt; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#brief">Skip to brief</a>
+<header class="masthead"><span>CommonsClaw / Hierarchical Civic AI</span><span>Ceibal discussion / November 2026</span></header>
+<div class="layout">
+<nav aria-label="Contents">
+<h2>In this brief</h2>
+<ul>
+<li><a href="#commonsclaw" id="toc-commonsclaw">CommonsClaw</a>
+<ul>
+<li><a href="#local-civic-ai-as-shared-educational-infrastructure"
+id="toc-local-civic-ai-as-shared-educational-infrastructure">Local civic
+AI as shared educational infrastructure</a></li>
+<li><a href="#the-problem-and-the-opportunity"
+id="toc-the-problem-and-the-opportunity">1. The problem and the
+opportunity</a></li>
+<li><a href="#the-vision-in-practical-terms"
+id="toc-the-vision-in-practical-terms">2. The vision, in practical
+terms</a></li>
+<li><a href="#what-exists-and-what-remains-to-be-demonstrated"
+id="toc-what-exists-and-what-remains-to-be-demonstrated">3. What exists,
+and what remains to be demonstrated</a></li>
+<li><a href="#what-uruguay-already-offers"
+id="toc-what-uruguay-already-offers">4. What Uruguay already
+offers</a></li>
+<li><a href="#what-a-development-collaboration-would-need-to-deliver"
+id="toc-what-a-development-collaboration-would-need-to-deliver">5. What
+a development collaboration would need to deliver</a></li>
+<li><a href="#a-possible-sequence-with-explicit-decision-gates"
+id="toc-a-possible-sequence-with-explicit-decision-gates">6. A possible
+sequence, with explicit decision gates</a></li>
+<li><a href="#people-hardware-and-the-budget-conversation"
+id="toc-people-hardware-and-the-budget-conversation">7. People,
+hardware, and the budget conversation</a></li>
+<li><a href="#conditions-for-a-responsible-experiment"
+id="toc-conditions-for-a-responsible-experiment">8. Conditions for a
+responsible experiment</a></li>
+<li><a href="#questions-for-the-ceibal-discussion"
+id="toc-questions-for-the-ceibal-discussion">9. Questions for the Ceibal
+discussion</a></li>
+<li><a href="#references-and-evidence-notes"
+id="toc-references-and-evidence-notes">References and evidence
+notes</a></li>
+</ul></li>
+</ul>
+</nav>
+<main id="brief">
+<h1 id="commonsclaw">CommonsClaw</h1>
+<h2 id="local-civic-ai-as-shared-educational-infrastructure">Local civic
+AI as shared educational infrastructure</h2>
+<p><strong>Discussion brief for Ceibal, Uruguay | 10 November
+2026</strong></p>
+<blockquote>
+<p><strong>The proposition:</strong> explore whether small, locally
+operated AI nodes can help schools and communities understand their
+environment, build shared knowledge, and learn how AI works. Start with
+a bounded experiment; use its evidence to decide whether a wider network
+is worth developing.</p>
+<p><strong>The decision now is whether to co-design that experiment, not
+whether to approve a national deployment.</strong> No partnership,
+funding, sites, equipment allocation, or delivery schedule is assumed in
+this document.</p>
+</blockquote>
+<h2 id="the-problem-and-the-opportunity">1. The problem and the
+opportunity</h2>
+<p>Access to an AI chatbot is not the same as the capacity to
+understand, adapt, and govern AI infrastructure. A school or community
+may use powerful online tools while having little control over where
+computation happens, what local knowledge is retained, or how that
+knowledge is shared.</p>
+<p>There is a second, practical gap: environmental measurements, school
+projects, and community observations often remain separate. A sensor
+dashboard shows values; a chatbot generates language; neither
+automatically becomes a trustworthy, collectively maintained record of a
+place.</p>
+<p><strong>CommonsClaw proposes to connect these functions.</strong> Its
+central question is whether a locally operated AI, grounded in
+measurements and curated community contributions, can become useful
+shared infrastructure rather than another personal assistant.</p>
+<p>For Ceibal, this would be a complementary research and education
+track, not a replacement for existing platforms or teachers. Ceibal
+already has EduIA Lab, teacher-facing AI initiatives, and
+physical-computing educational resources. Its 2026 AI offer includes
+Gemini and NotebookLM; the additional question here is what
+<strong>local operation, physical sensing, and community
+stewardship</strong> make possible.<a href="#fn1" class="footnote-ref"
+id="fnref1" role="doc-noteref"><sup>1</sup></a><a href="#fn2"
+class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><a
+href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a></p>
+<h2 id="the-vision-in-practical-terms">2. The vision, in practical
+terms</h2>
+<p>A <strong>place node</strong> is a small computer associated with a
+school garden, library, workshop, or public space. People access it
+through a local browser interface and, where validated, voice. It
+combines a local language model with selected documents, sensor
+readings, and community notes.</p>
+<p>The longer-term architecture connects these nodes at different
+scales:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Scale</th>
+<th>Intended responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sensors and small devices</td>
+<td>Measure and record: temperature, soil moisture, energy, or other
+locally chosen observations.</td>
+</tr>
+<tr class="even">
+<td>Place node</td>
+<td>Answer questions about that place; maintain an inspectable local
+record.</td>
+</tr>
+<tr class="odd">
+<td>Shared school-cluster or neighbourhood node</td>
+<td>Compare approved information from several places; handle work beyond
+an individual node’s capacity.</td>
+</tr>
+<tr class="even">
+<td>Larger institutional services</td>
+<td>Supply additional capabilities only when needed and permitted.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The hierarchy concerns knowledge and task delegation, not
+splitting one large model across a radio network.</strong> Local nodes
+should continue their local functions when an upstream connection fails.
+Communities should decide what may leave a node, for what purpose, and
+who can change its shared memory. These are design requirements, not
+completed safeguards.</p>
+<p><strong>An illustrative activity, not an existing
+deployment:</strong> students instrument two school gardens, compare
+measurements with the AI’s explanation, correct unsupported claims, and
+publish a teacher-reviewed account of what they observed. A shared node
+then compares the two accounts without receiving students’ private
+conversations. The learning is both environmental and computational:
+measurement, uncertainty, source checking, programming, and collective
+decision-making.</p>
+<p>The project is led conceptually and technically by Alvaro Cassinelli,
+with origins in the SSAI prototype at DLX, University of Tokyo, and in
+exchanges with Cesar Harada’s Floating Solar Hydrogen Data Center
+project. That energy-infrastructure project is complementary but
+separate: a Ceibal experiment does <strong>not</strong> require a
+floating platform, hydrogen installation, or new datacenter. Earlier
+Gluons work by Cassinelli and Daniel Saakes provides a
+physical-computing precedent and includes a published proposal/report
+for Ceibal; it does not establish a current partnership.<a href="#fn4"
+class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a><a
+href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a><a href="#fn6" class="footnote-ref"
+id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<h2 id="what-exists-and-what-remains-to-be-demonstrated">3. What exists,
+and what remains to be demonstrated</h2>
+<p><strong>Current maturity: a local-node prototype, not an operational
+civic AI network.</strong> The following reflects repository evidence,
+not an independent field evaluation.<a href="#fn7" class="footnote-ref"
+id="fnref7" role="doc-noteref"><sup>7</sup></a></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Evidence available</th>
+<th>Boundary of that evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raspberry Pi 5 running a local model through Ollama; phone-to-node
+Wi-Fi chat with streamed answers, recorded as tested.</td>
+<td>This demonstrates local interaction, not classroom-scale concurrency
+or educational effectiveness.</td>
+</tr>
+<tr class="even">
+<td>File-based identity, community notes, sensor digests, and logging
+mechanisms.</td>
+<td>Accumulating information is not yet a validated, source-traceable
+community memory or cross-place synthesis.</td>
+</tr>
+<tr class="odd">
+<td>A local microphone/transcription prototype, plus browser speech
+features.</td>
+<td>Voice reliability remains development work. Browser dictation may
+use external services; a local model alone does not make the entire
+voice path offline.</td>
+</tr>
+<tr class="even">
+<td>Sensor registry, logger supervision, and actual computer-health
+telemetry.</td>
+<td>The solar-power logger is explicitly simulated. Real environmental
+sensing and solar autonomy must be instrumented and tested.</td>
+</tr>
+<tr class="odd">
+<td>Setup, monitoring, autostart, and model-benchmark tooling.</td>
+<td>Unattended recovery, sustained uptime, secure administration, and
+maintainability require acceptance testing.</td>
+</tr>
+</tbody>
+</table>
+<p>The Pi 5 provides an existing reference platform, not a decision that
+all future nodes must use it. Repository benchmarks are narrow
+development measurements, not evidence of Spanish-language classroom
+quality, whole-system energy savings, or performance on retired Ceibal
+devices.<a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a></p>
+<p><strong>Still to build:</strong> trustworthy memory consolidation;
+authenticated, permission-controlled exchange between nodes; rules for
+escalation to larger models; and the operational and educational
+framework for a supported deployment. These are the substance of the
+proposed collaboration, not packaging around an already finished
+product.</p>
+<h2 id="what-uruguay-already-offers">4. What Uruguay already offers</h2>
+<p>These are documented foundations and possible points of contact,
+<strong>not committed partners or resources available on
+demand</strong>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Existing foundation</th>
+<th>Possible relevance</th>
+<th>What must be established together</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Ceibal’s EduIA Lab and AI education work.</strong> EduIA Lab
+was presented in March 2025; Ceibal and ANEP announced further
+teacher-facing AI tools and support in June 2026.<a href="#fn9"
+class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a><a
+href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a></td>
+<td>Pedagogical design, teacher involvement, evaluation, and comparison
+with existing AI uses.</td>
+<td>Whether this research question fits current priorities; who would
+sponsor and evaluate it.</td>
+</tr>
+<tr class="even">
+<td><strong>Physical computing and micro:bit education.</strong>
+Ceibal’s EDUx materials connect programmable boards with project-based
+learning, electronics, and computational thinking.<a href="#fn11"
+class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a></td>
+<td>Students could build and interrogate environmental sensing systems
+rather than only consume AI outputs.</td>
+<td>Suitable ages, teacher preparation, equipment access, and curriculum
+fit. A micro:bit is a sensor/learning device, not a conversational
+language-model host.</td>
+</tr>
+<tr class="odd">
+<td><strong>Device repair and circular-economy experience.</strong>
+Official reporting describes Ceibal’s repair, component recovery, and
+recycling operations.<a href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a></td>
+<td>Assess whether some retired equipment can serve as browser
+terminals, sensor gateways, or compute nodes.</td>
+<td>Actual inventory, authorization, operating-system support, memory,
+battery safety, energy use, and support cost. No stock or device
+suitability is assumed.</td>
+</tr>
+<tr class="even">
+<td><strong>Antel IoT expertise and prototyping hardware.</strong> Antel
+documents an IoT offering and an R&amp;D kit with communications modules
+including LoRa and NB-IoT.<a href="#fn13" class="footnote-ref"
+id="fnref13" role="doc-noteref"><sup>13</sup></a></td>
+<td>Advice on sensor connectivity and a possible route to a supported
+field connection.</td>
+<td>Coverage at selected sites, service terms, device compatibility,
+costs, and data hosting. These pages do not establish an open,
+nationwide LoRaWAN service accessible to this project.</td>
+</tr>
+<tr class="odd">
+<td><strong>Montevideo’s documented LoRaWAN lighting project.</strong> A
+February 2022 supplier announcement describes a private network planned
+for 70,000 streetlights and provision for third-party services.<a
+href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a></td>
+<td>A concrete lead for investigating shared municipal
+connectivity.</td>
+<td>Current operation, gateway coverage, operator permission, capacity,
+and commercial terms. The announcement is not proof of present access or
+coverage outside Montevideo.</td>
+</tr>
+<tr class="even">
+<td><strong>Uruguay’s National AI Strategy 2024-2030.</strong> Its
+objectives cover governance, capabilities, and sustainable
+development.<a href="#fn15" class="footnote-ref" id="fnref15"
+role="doc-noteref"><sup>15</sup></a></td>
+<td>A policy context for public-interest AI infrastructure and local
+technical capacity.</td>
+<td>Actual institutional fit and any funding mechanism; alignment alone
+is not endorsement or financing.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="connectivity-use-each-network-for-the-right-job">Connectivity:
+use each network for the right job</h3>
+<p>Use <strong>local Wi-Fi or Ethernet for interaction</strong>, and an
+authorized IP connection for larger transfers and coordination between
+sites. The initial local-node test need not depend on access to any
+external radio network.</p>
+<p><strong>LoRa/LoRaWAN suits small, occasional sensor
+messages</strong>, not continuous voice, model downloads, or high-volume
+exchange of documents. LoRa is the radio technology; LoRaWAN adds a
+network protocol and gateway/server architecture. Meshtastic is a
+separate LoRa-based mesh option, not interchangeable with LoRaWAN. Any
+radio experiment needs a site survey and confirmation of applicable
+Uruguayan equipment and spectrum requirements.<a href="#fn16"
+class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a><a
+href="#fn17" class="footnote-ref" id="fnref17"
+role="doc-noteref"><sup>17</sup></a></p>
+<h2 id="what-a-development-collaboration-would-need-to-deliver">5. What
+a development collaboration would need to deliver</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Work package</th>
+<th>Concrete result to evaluate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Reliable local node</strong></td>
+<td>Repeatable installation; bounded failures and recovery;
+Spanish-language evaluation; a clear typed interface before adding more
+demanding voice interaction.</td>
+</tr>
+<tr class="even">
+<td><strong>Trustworthy shared knowledge</strong></td>
+<td>Source and timestamp attached to observations; separation of
+measurements, user suggestions, and model interpretation; human
+approval, correction, and deletion of shared memory.</td>
+</tr>
+<tr class="odd">
+<td><strong>First functioning hierarchy</strong></td>
+<td>Two place nodes and one shared node exchanging only approved
+information; authenticated access, logged permissions, revocation, and
+useful local behaviour during disconnection.</td>
+</tr>
+<tr class="even">
+<td><strong>Real sensing and measured resource use</strong></td>
+<td>A small set of calibrated sensors; explicit missing/stale-data
+handling; measured power consumption, response time, and maintenance
+effort. Solar and radio links only where justified by the selected
+activity.</td>
+</tr>
+<tr class="odd">
+<td><strong>Educational and operational design</strong></td>
+<td>Teacher-led activities, safeguarding review, local stewardship,
+training, support procedures, and a comparison with a simpler non-AI
+approach.</td>
+</tr>
+</tbody>
+</table>
+<p>There are reusable foundations rather than a need to invent every
+component. CommonsClaw already uses local model serving; Home
+Assistant’s voice work offers a modular, local-first precedent. Kolibri
+provides a separate precedent for offline educational delivery,
+local-network access, and educator support. RouteLLM demonstrates
+research on selecting between models of different capabilities. None
+supplies the missing community-governance layer, proves educational
+benefit here, or guarantees energy savings.<a href="#fn18"
+class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a><a
+href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a><a href="#fn20" class="footnote-ref"
+id="fnref20" role="doc-noteref"><sup>20</sup></a></p>
+<h2 id="a-possible-sequence-with-explicit-decision-gates">6. A possible
+sequence, with explicit decision gates</h2>
+<p><strong>Discussion scenario only:</strong> two participating places
+and one shared institutional host are enough to test the first
+hierarchy. Site count, participants, age groups, and scope remain
+open.</p>
+<p>The ranges below are <strong>rough engineering planning
+estimates</strong>, not externally benchmarked delivery times. They
+assume an available software lead with regular engineering support,
+educator participation, suitable off-the-shelf hardware, and one bounded
+learning activity. They exclude procurement delays, school-calendar
+constraints, and institutional approvals; those may dominate elapsed
+time.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Indicative active elapsed time</th>
+<th>Output and decision gate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>A. Joint definition and feasibility</strong></td>
+<td>2-4 weeks</td>
+<td>Agree the activity, data boundaries, equipment audit,
+responsibilities, and evaluation criteria. Decide whether to
+proceed.</td>
+</tr>
+<tr class="even">
+<td><strong>B. Pilot-ready prototype</strong></td>
+<td>A further 6-10 weeks</td>
+<td>Harden the existing node, integrate real sensors, and demonstrate
+controlled exchange with a second node and shared host in the lab.
+Proceed only after recovery, data-boundary, and source-checking tests
+pass.</td>
+</tr>
+<tr class="odd">
+<td><strong>C. Small supervised experiment</strong></td>
+<td>A further 8-12 weeks</td>
+<td>Run the selected activity at the participating places; document
+learning, reliability, errors, support effort, and power use. Pause or
+simplify if agreed safeguards fail.</td>
+</tr>
+<tr class="even">
+<td><strong>D. Review and scale decision</strong></td>
+<td>A further 2-4 weeks</td>
+<td>Publish findings, a costed operating model, and a recommendation:
+stop, revise, repeat, or expand.</td>
+</tr>
+</tbody>
+</table>
+<p>If sequential, this is <strong>18-30 active weeks</strong>, before
+external delays. It is not a forecast of national readiness. Home
+Assistant’s staged voice releases and Kolibri’s deployment guidance
+support the incremental approach, <strong>not these numerical
+estimates</strong>.<a href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a><a href="#fn22" class="footnote-ref"
+id="fnref22" role="doc-noteref"><sup>22</sup></a></p>
+<p>Expansion would be a separate programme: repeatable provisioning and
+updates, fleet security, local support and spares, model/content
+governance, accessibility, and trials across different contexts. A
+successful demonstration at two places would not establish capacity or
+value at national scale.</p>
+<h2 id="people-hardware-and-the-budget-conversation">7. People,
+hardware, and the budget conversation</h2>
+<h3 id="human-capacity">Human capacity</h3>
+<p>For the scenario above, discuss <strong>one named
+software/integration lead plus regular embedded-systems or deployment
+support</strong>; two available engineering contributors would reduce
+dependence on a single person. This is a planning assumption, not an
+agreed staffing request.</p>
+<p>Also needed are an <strong>education/co-design lead with
+participating teachers</strong>, an <strong>evaluation lead</strong>,
+<strong>privacy and safeguarding expertise at design and release
+gates</strong>, and a <strong>named local custodian at each
+site</strong>. These responsibilities can overlap, but protected time
+for preparation, supervision, maintenance, and review must be budgeted.
+Teachers should not silently inherit systems-administration duties.</p>
+<h3 id="illustrative-equipment-envelope">Illustrative equipment
+envelope</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Purpose and sizing question</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Two place-node computers</strong></td>
+<td>Begin from the tested Pi 5 class or benchmark available
+alternatives. Include cooling, reliable storage, power supplies, and
+appropriate enclosures.</td>
+</tr>
+<tr class="even">
+<td><strong>One shared computer</strong></td>
+<td>Host cross-place synthesis and any larger model. Benchmark existing
+institutional hardware before deciding whether extra RAM or a GPU is
+needed.</td>
+</tr>
+<tr class="odd">
+<td><strong>One small sensor set per place</strong></td>
+<td>Select only measurements needed by the learning activity; include
+interfaces, calibration, mounting, and replacement parts.</td>
+</tr>
+<tr class="even">
+<td><strong>Browser-capable access devices</strong></td>
+<td>Check authorized use of existing school equipment; a learner should
+not need a personal smartphone to participate.</td>
+</tr>
+<tr class="odd">
+<td><strong>Support and measurement equipment</strong></td>
+<td>Power meter, backup storage, spare components, and a documented
+recovery method.</td>
+</tr>
+<tr class="even">
+<td><strong>Conditional additions</strong></td>
+<td>Microphone/speaker after voice tests; LoRa devices and a
+gateway/service only if needed; battery/solar equipment only after
+measuring the load and site conditions.</td>
+</tr>
+</tbody>
+</table>
+<p>No supplier quotation or verified Ceibal inventory supports a
+monetary total yet. A useful next-step budget should separate
+<strong>engineering time; educator preparation and release time;
+equipment and spares; installation and travel; connectivity; evaluation;
+and recurring support/replacement costs</strong>. Device reuse should be
+compared with new hardware on total cost, reliability, and energy use,
+not assumed to be free.</p>
+<h2 id="conditions-for-a-responsible-experiment">8. Conditions for a
+responsible experiment</h2>
+<ul>
+<li><strong>Child safety and data governance first.</strong> Determine
+responsibility for data processing, lawful basis and any required
+consent, retention, access, and deletion before involving learners.
+Review the design against Uruguay’s personal-data framework and
+institutional requirements.<a href="#fn23" class="footnote-ref"
+id="fnref23" role="doc-noteref"><sup>23</sup></a></li>
+<li><strong>Local does not automatically mean private.</strong> Shared
+terminals, logs, memory, browser speech services, and upstream queries
+all need explicit controls. A summary can still identify a person.</li>
+<li><strong>Keep decisions with people.</strong> No autonomous grading,
+student profiling, or consequential civic decisions in the initial
+scope. Treat generated explanations as hypotheses to verify, not
+authoritative accounts of the community.</li>
+<li><strong>Measure additional value.</strong> Compare against a sensor
+dashboard plus teacher-curated notebook, and, where appropriate, an
+existing institutional AI tool. Agree thresholds before starting:
+source-backed answers, learning outcomes, response time,
+uptime/recovery, support hours, and total operating cost.</li>
+<li><strong>Test the sustainability claim.</strong> Measure whole-node
+idle and active power, not only inference speed. Reduced cloud use does
+not by itself prove a lower environmental footprint.</li>
+</ul>
+<h2 id="questions-for-the-ceibal-discussion">9. Questions for the Ceibal
+discussion</h2>
+<ol type="1">
+<li><strong>Purpose:</strong> which learning or community problem
+warrants this experiment, rather than a simpler existing tool?</li>
+<li><strong>Contribution:</strong> would Ceibal be interested in
+co-design, educational evaluation, technical development, equipment
+assessment, or some combination?</li>
+<li><strong>Setting and governance:</strong> which contexts and age
+groups are appropriate, and who would steward each node and approve
+shared knowledge?</li>
+<li><strong>Infrastructure:</strong> what equipment and connectivity may
+actually be used, under what conditions?</li>
+<li><strong>Evidence and continuation:</strong> what results would
+justify further investment, and who would own ongoing maintenance?</li>
+</ol>
+<p><strong>Suggested immediate outcome:</strong> a jointly agreed
+feasibility scope with named counterparts and explicit go/no-go
+criteria. A budget and calendar can then follow from facts established
+together.</p>
+<h2 id="references-and-evidence-notes">References and evidence
+notes</h2>
+<p>Sources checked on <strong>10 November 2026</strong>. Government
+publications document initiatives and policy, not commitments to
+CommonsClaw. Supplier announcements are identified as such. Project
+references below are pinned to repository revision <code>17baa3f</code>
+so that prototype claims can be checked against the reviewed record.</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Presidency of Uruguay, <strong>“Ceibal presento EduIA
+Lab, primer laboratorio regional de inteligencia artificial en
+educacion”</strong>, 26 March 2025. <a
+href="https://www.gub.uy/presidencia/comunicacion/noticias/ceibal-presento-eduia-lab-primer-laboratorio-regional-inteligencia-artificial">Official
+announcement</a>.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Presidency of Uruguay, <strong>“Ceibal y ANEP ofrecen
+nuevas herramientas de inteligencia artificial para docentes”</strong>,
+16 June 2026. <a
+href="https://www.gub.uy/presidencia/comunicacion/noticias/inteligencia-artificial-docentes-estudiantes-ceibal-anep-nuevas-2026">Official
+announcement</a>. Establishes the existing institutional offer; it does
+not describe a locally hosted language-model network.<a href="#fnref2"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Ceibal, EDUx, <strong>“Micro:bit en el aula”</strong>,
+course description, undated. <a
+href="https://edux.ceibal.edu.uy/courses/course-v1:ceibal+CEIBAL4_C1+2/about">Educational
+approach and programmable-board activities</a>. Evidence of educational
+resources, not current course availability or an equipment allocation.<a
+href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>CommonsClaw, <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/CREDITS.md">Credits
+and Project History</a>. Project-authored account of roles and prototype
+origins.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Cesar Harada, <a
+href="https://github.com/cesarharada/Floating-Solar-Hydrogen-Data-Center">Floating
+Solar Hydrogen Data Center</a>. Related open-hardware proposal; its
+repository distinguishes prototyped and speculative elements.<a
+href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>Alvaro Cassinelli and Daniel Saakes, <strong>“Data Flow,
+Spatial Physical Computing”</strong>, TEI 2017, <a
+href="https://doi.org/10.1145/3024969.3024978">DOI:
+10.1145/3024969.3024978</a>. <a
+href="https://alvarocassinelli.com/gluons/">Author’s project page</a>
+links the paper, software, and initial Ceibal proposal/report.<a
+href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>CommonsClaw, <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/PLAN.md">Plan
+of Record</a>, <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/docs/03-interaction-and-voice.md">voice
+status</a>, and <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/docs/07-roadmap.md">roadmap</a>.
+The <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/sensors.json">sensor
+registry</a> and <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/loggers/sensor_solarpower.py">solar
+logger</a> explicitly identify simulated solar data. Where broader
+vision texts imply completed capabilities, this brief uses the
+implementation record and unfinished acceptance criteria.<a
+href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>CommonsClaw, <a
+href="https://github.com/alvarohub/CommonsClaw-a-distributed-hierarchical-civic-AI-infrastructure/blob/17baa3f0ce216119c368be26b99bfa6a5a87bbfd/BENCHMARKS.md">Model
+Benchmarks</a>, measurements dated 25 September 2026. The recorded rows
+are explicitly described as quick probes.<a href="#fnref8"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>Presidency of Uruguay, <strong>“Ceibal presento EduIA
+Lab, primer laboratorio regional de inteligencia artificial en
+educacion”</strong>, 26 March 2025. <a
+href="https://www.gub.uy/presidencia/comunicacion/noticias/ceibal-presento-eduia-lab-primer-laboratorio-regional-inteligencia-artificial">Official
+announcement</a>.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p>Presidency of Uruguay, <strong>“Ceibal y ANEP ofrecen
+nuevas herramientas de inteligencia artificial para docentes”</strong>,
+16 June 2026. <a
+href="https://www.gub.uy/presidencia/comunicacion/noticias/inteligencia-artificial-docentes-estudiantes-ceibal-anep-nuevas-2026">Official
+announcement</a>. Establishes the existing institutional offer; it does
+not describe a locally hosted language-model network.<a href="#fnref10"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p>Ceibal, EDUx, <strong>“Micro:bit en el aula”</strong>,
+course description, undated. <a
+href="https://edux.ceibal.edu.uy/courses/course-v1:ceibal+CEIBAL4_C1+2/about">Educational
+approach and programmable-board activities</a>. Evidence of educational
+resources, not current course availability or an equipment allocation.<a
+href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p>Presidency of Uruguay, <strong>“El 75% de los residuos
+electronicos de Ceibal es reutilizado”</strong>, 3 June 2024. <a
+href="https://www.gub.uy/presidencia/comunicacion/noticias/75-residuos-electronicos-ceibal-es-reutilizado">Repair,
+recovery, recycling, and educational activities</a>. Evidence of
+lifecycle-management capacity, not available retired-device inventory.<a
+href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p>Antel, <a href="https://www.antel.com.uy/web/iot">IoT
+overview</a> and <a
+href="https://www.antel.com.uy/web/iot/w/kit-iot-hardware">Kit IoT
+Hardware</a>, undated. The kit description explicitly lists NB-IoT,
+LoRa, BLE, Xbee, and LTE.<a href="#fnref13" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p>Actility, <strong>“Uruguay to deploy one of LoRaWAN’s
+largest smart street lighting projects…”</strong>, 4 February 2022. <a
+href="https://www.actility.com/uruguay-montevideo-lorawan-street-lighting/">Supplier
+announcement</a>. Describes a private, customer-premises network and
+prospective third-party services; not a current coverage or
+service-access confirmation.<a href="#fnref14" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p>Agesic, <strong>National Artificial Intelligence
+Strategy 2024-2030</strong>, published 22 November 2024, approved 21
+November. <a
+href="https://www.gub.uy/agencia-gobierno-electronico-sociedad-informacion-conocimiento/comunicacion/publicaciones/estrategia-nacional-inteligencia-artificial-2024-2030">Official
+summary and strategy link</a>.<a href="#fnref15" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p>The Things Network, <a
+href="https://www.thethingsnetwork.org/docs/lorawan/what-is-lorawan/">What
+is LoRaWAN?</a>, technical documentation, undated. Explains the
+distinction between LoRa and LoRaWAN and suitability for small
+payloads.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p>Meshtastic, <a
+href="https://meshtastic.org/docs/introduction/">Introduction</a>,
+project documentation, undated. A reference for off-grid LoRa messaging,
+not evidence of an available Uruguayan deployment.<a href="#fnref17"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p>Home Assistant, <strong>“2023: Home Assistant’s year of
+Voice”</strong>, 20 December 2022, with links to subsequent staged
+releases. <a
+href="https://www.home-assistant.io/blog/2022/12/20/year-of-voice/">Project
+announcement</a>. A modular voice-engineering precedent, not a classroom
+conversational-AI evaluation.<a href="#fnref18" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p>Learning Equality, <a
+href="https://kolibri.readthedocs.io/en/latest/">Kolibri User Guide</a>
+and <a href="https://learningequality.org/kolibri/about-kolibri/">About
+Kolibri</a>, undated. Offline education, local-server delivery, and
+educator-support precedent; not a language-model system.<a
+href="#fnref19" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p>Isaac Ong et al., <strong>“RouteLLM: Learning to Route
+LLMs with Preference Data”</strong>, first submitted 26 June 2024. <a
+href="https://arxiv.org/abs/2406.18665">arXiv:2406.18665</a>. Supports
+research feasibility of model routing; API-cost results are not
+measurements of CommonsClaw’s energy use or educational quality.<a
+href="#fnref20" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p>Home Assistant, <strong>“2023: Home Assistant’s year of
+Voice”</strong>, 20 December 2022, with links to subsequent staged
+releases. <a
+href="https://www.home-assistant.io/blog/2022/12/20/year-of-voice/">Project
+announcement</a>. A modular voice-engineering precedent, not a classroom
+conversational-AI evaluation.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p>Learning Equality, <a
+href="https://kolibri.readthedocs.io/en/latest/">Kolibri User Guide</a>
+and <a href="https://learningequality.org/kolibri/about-kolibri/">About
+Kolibri</a>, undated. Offline education, local-server delivery, and
+educator-support precedent; not a language-model system.<a
+href="#fnref22" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p>Uruguay, <strong>Law No. 18.331, Personal Data
+Protection</strong>, promulgated 11 August 2008. <a
+href="https://www.impo.com.uy/bases/leyes/18331-2008">IMPO legal text
+and amendment references</a>. A starting point for institutional legal
+review, not a compliance determination.<a href="#fnref23"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</main>
+</div>
+<footer>Discussion document, not a deployment commitment. This page is self-contained and can be saved or printed to PDF. External references require connectivity.</footer>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title desc">
+  <title id="title">Two projects, one research and education collaboration</title>
+  <desc id="desc">Floating Solar Data Centres can power a computing host locally. CommonsClaw connects this host to independently powered school and community nodes by permission-controlled information exchange. The proposed collaboration brings together port or marina access, marine science, and design and engineering, with possible Ceibal contributions in education, technical activities, and partner connections.</desc>
+  <defs>
+    <marker id="power-arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#a14d12" stroke-width="1.6"/></marker>
+    <marker id="data-arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#09665f" stroke-width="1.6"/></marker>
+  </defs>
+  <rect width="1000" height="650" rx="20" fill="#f0f5f3"/>
+  <g font-family="Arial, sans-serif" fill="#173840">
+    <text x="40" y="48" font-size="25" font-weight="700">Two projects. Distinct responsibilities. Shared possibilities.</text>
+    <text x="40" y="80" font-size="18" fill="#52676c">Design intent, not an existing installation or confirmed partnership</text>
+    <rect x="35" y="112" width="380" height="350" rx="14" fill="#fff" stroke="#aec9d0"/>
+    <text x="58" y="146" font-size="20" font-weight="700">FLOATING SOLAR DATA CENTRES</text>
+    <text x="58" y="172" font-size="18" fill="#52676c">Physical and ecological research</text>
+    <rect x="65" y="200" width="320" height="70" rx="8" fill="#fff2db"/>
+    <text x="225" y="229" text-anchor="middle" font-size="21" font-weight="700">Local solar generation</text>
+    <text x="225" y="253" text-anchor="middle" font-size="17">Energy management and metering</text>
+    <path d="M225 275 V313" stroke="#a14d12" stroke-width="3" marker-end="url(#power-arrow)"/>
+    <text x="245" y="298" font-size="16" fill="#a14d12">electricity at this site</text>
+    <rect x="65" y="325" width="320" height="70" rx="8" fill="#e4efef"/>
+    <text x="225" y="353" text-anchor="middle" font-size="21" font-weight="700">Floating computing host</text>
+    <text x="225" y="378" text-anchor="middle" font-size="17">Could run a CommonsClaw node</text>
+    <text x="58" y="432" font-size="17">Marine impacts: measure, compare, review.</text>
+    <rect x="585" y="112" width="380" height="350" rx="14" fill="#fff" stroke="#a9c7ba"/>
+    <text x="608" y="146" font-size="21" font-weight="700">COMMONSCLAW</text>
+    <text x="608" y="172" font-size="18" fill="#52676c">Civic AI and shared knowledge</text>
+    <rect x="615" y="200" width="320" height="70" rx="8" fill="#e4efef"/>
+    <text x="775" y="229" text-anchor="middle" font-size="21" font-weight="700">Shared institutional node</text>
+    <text x="775" y="253" text-anchor="middle" font-size="17">Approved cross-place synthesis</text>
+    <path d="M775 279 V314" stroke="#09665f" stroke-width="2.5" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)"/>
+    <rect x="615" y="325" width="320" height="70" rx="8" fill="#edf4e8"/>
+    <text x="775" y="353" text-anchor="middle" font-size="21" font-weight="700">School and community nodes</text>
+    <text x="775" y="378" text-anchor="middle" font-size="17">Each has its own power arrangement</text>
+    <text x="608" y="432" font-size="17">Local sensing, models, and human review.</text>
+    <path d="M425 355 H574" stroke="#09665f" stroke-width="2.5" stroke-dasharray="7 5" marker-start="url(#data-arrow)" marker-end="url(#data-arrow)"/>
+    <text x="499" y="284" text-anchor="middle" font-size="18" font-weight="700">Permission-</text>
+    <text x="499" y="307" text-anchor="middle" font-size="18" font-weight="700">controlled</text>
+    <text x="499" y="330" text-anchor="middle" font-size="18" font-weight="700">information</text>
+    <text x="499" y="389" text-anchor="middle" font-size="16" fill="#52676c">Not a power line</text>
+    <rect x="35" y="495" width="930" height="120" rx="14" fill="#153f46"/>
+    <text x="60" y="532" font-size="22" font-weight="700" fill="#fff">CEIBAL: RESEARCH AND EDUCATION COLLABORATION</text>
+    <text x="60" y="565" font-size="19" fill="#e1efeb">Port / marina access | Marine science | Design and engineering</text>
+    <text x="60" y="594" font-size="18" fill="#e1efeb">Possible roles: learning design, technical activities, and connections between partners.</text>
+  </g>
+</svg>
